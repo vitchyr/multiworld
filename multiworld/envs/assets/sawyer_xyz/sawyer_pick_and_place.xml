@@ -7,7 +7,7 @@
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass=".1" diaginertia="100000 100000 100000"/>
             <geom name="objbox" type="sphere" pos="0 0 0"
-                  size="0.015" rgba=".1 .1 .9 1"
+                  size="0.015" rgba=".1 .1 .1 1"
                   contype="7" conaffinity="7" friction="10.0 0.10 0.002" condim="4" mass=1.0
             />
             <site name="obj" pos="0 0 0" size="0.01" />
@@ -19,6 +19,8 @@
               rgba="0.5 0.5 1 0.5"/>
     </worldbody>
     <actuator>
-        <motor gear="10" joint="rc_close"  />
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="100"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="100"  user="1"/>
+        
     </actuator>
 </mujoco>

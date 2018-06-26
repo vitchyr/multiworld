@@ -16,7 +16,7 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     mocap_low = np.array([-0.2, 0.5, 0.06])
     mocap_high = np.array([0.2, 0.7, 0.6])
 
-    def __init__(self, model_name, frame_skip=50):
+    def __init__(self, model_name, frame_skip=15):
         MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
         # Resets the mocap welds that we use for actuation.
         sim = self.sim
@@ -61,9 +61,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def __init__(
             self,
             *args,
-            hand_low=(-0.2, 0.55, 0.05),
-            hand_high=(0.2, 0.75, 0.3),
-            action_scale=1./100,
+            hand_low=(-0.5, 0.40, 0.00),
+            hand_high=(0.5, 1, 0.5),
+            action_scale=1/100,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
@@ -82,5 +82,10 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.mocap_low,
             self.mocap_high,
         )
+        
+
         self.data.set_mocap_pos('mocap', new_mocap_pos)
+
+       
+
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))

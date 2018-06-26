@@ -45,6 +45,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if goal_high is None:
             goal_high = np.hstack((self.hand_high, obj_high))
 
+
+
+
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
 
@@ -78,18 +81,25 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0
-        self.viewer.cam.lookat[1] = 1.0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 0.3
-        self.viewer.cam.elevation = -45
-        self.viewer.cam.azimuth = 270
-        self.viewer.cam.trackbodyid = -1
+        pass
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 1.0
+        # self.viewer.cam.lookat[2] = 0.5
+        # self.viewer.cam.distance = 0.3
+        # self.viewer.cam.elevation = -45
+        # self.viewer.cam.azimuth = 270
+        # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
+
+
         self.set_xyz_action(action[:3])
-        self.do_simulation(action[3:])
+
+
+       
+        
+        self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
