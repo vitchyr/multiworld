@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerPickEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -20,8 +20,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_init_pos=(0, 0.6, 0.02),
 
             fix_goal=True,
-            fixed_goal= (0, 0.85, 0.02, 0.1) ,
-            #3D placing goal, followed by height target for picking
+            fixed_goal= (0, 0.6, 0.1) ,
             goal_low=None,
             goal_high=None,
 
@@ -47,7 +46,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high = np.hstack((self.hand_high, obj_high))
 
 
-        self.max_path_length = 150
+        self.max_path_length = 100
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -56,10 +55,6 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
-
-
-
-
         
 
         self.hide_goal_markers = hide_goal_markers
@@ -113,9 +108,12 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         ob = self._get_obs()
        
 
-        reward , pickRew, placeRew = self.compute_rewards(action, ob)
+        reward = self.compute_reward(action, ob)
         self.curr_path_length +=1
 
+
+
+       
        
         #info = self._get_info()
 
@@ -123,7 +121,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'pickRew':pickRew, 'placeRew': placeRew}
+        return ob, reward, done, {}
 
     def _get_obs(self):
         e = self.get_endeff_pos()
@@ -196,18 +194,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
 
         self._set_obj_xyz(self.obj_init_pos)
-
         self.curr_path_length = 0
-        self.pickCompleted = False
-
-        init_obj = self.obj_init_pos
-
-        heightTarget , placingGoal = self._state_goal[3], self._state_goal[:3]
-
-        self.maxPlacingDist = np.linalg.norm([init_obj[0], init_obj[1], heightTarget] - placingGoal) + heightTarget
-
-
-
         return self._get_obs()
 
     def _reset_hand(self):
@@ -279,84 +266,40 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         return self.data.site_xpos[_id].copy()
 
 
-
-
-
     def compute_rewards(self, actions, obs):
            
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
        
-        heightTarget = self._state_goal[3]
-        placingGoal = self._state_goal[:3]
+        heightTarget = self._state_goal[2]
 
         objPos = self.get_body_com("obj")
-      
-
         
         fingerCOM = (rightFinger + leftFinger)/2
 
+        
 
-        graspDist = np.linalg.norm(objPos - fingerCOM)
-        graspRew = -graspDist
-
-
-        def graspAttained():
-            if graspDist <0.1:
-                return True
-
-            else:
-                return False
-
-        def pickCompletionCriteria():
-
-            tolerance = 0.01
-
-            if objPos[2] >= (heightTarget - tolerance):
-                return True
-            else:
-                return False
-
-
-        if pickCompletionCriteria():
-
-            self.pickCompleted = True
-
-        def pickReward():
-
-            if self.pickCompleted and graspAttained():
-                return 10*heightTarget
-       
-            elif (objPos[2]> 0.025) and graspAttained():
-                
-                return 10* min(heightTarget, objPos[2])
-         
-            else:
-                return 0
-
-        def placeReward():
-
-
-            placingDist = np.linalg.norm(objPos - placingGoal)
-            #print(placingDist)
-          
-
-            if self.pickCompleted and graspAttained():
-
-                placeRew = max(100*(self.maxPlacingDist - placingDist),0)
-               
-
-                return placeRew
-
-            else:
-                return 0 
-
-        pickRew = pickReward()
-        placeRew = placeReward()
-        reward = graspRew + pickRew + placeRew
-
+        dist = np.linalg.norm(objPos - fingerCOM)
 
        
-        return [reward, pickRew, placeRew] 
+       
+
+        graspRew = -dist
+        pickRew = 0 ; 
+       
+       
+        if ((objPos[2]> 0.025) and (dist<0.1)):
+       
+            if objPos[2] < heightTarget:
+
+                pickRew=100*objPos[2]
+            else:
+                pickRew=100*heightTarget
+
+       
+
+        reward = graspRew + pickRew
+       
+        return [reward]
         #returned in a list because that's how compute_reward in multiTask.env expects it
 
    

@@ -42,7 +42,12 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         next_obs = {
             k: v[None] for k, v in obs.items()
         }
-        return self.compute_rewards(actions, next_obs)[0]
+        
+        rewards = self.compute_rewards(actions, next_obs)
+        
+
+
+        return self.compute_rewards(actions, next_obs)
 
     def get_diagnostics(self, *args, **kwargs):
         """

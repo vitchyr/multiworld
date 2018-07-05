@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -20,8 +20,8 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_init_pos=(0, 0.6, 0.02),
 
             fix_goal=True,
-            fixed_goal= (0, 0.85, 0.02, 0.1) ,
-            #3D placing goal, followed by height target for picking
+            fixed_goal= (1.571) ,
+            #target angle for the door
             goal_low=None,
             goal_high=None,
 
@@ -86,7 +86,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_door.xml')
 
     def viewer_setup(self):
         pass
@@ -109,11 +109,11 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
+       
         ob = self._get_obs()
        
 
-        reward , pickRew, placeRew = self.compute_rewards(action, ob)
+        reward , doorOpenRew = self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
        
@@ -123,11 +123,11 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'pickRew':pickRew, 'placeRew': placeRew}
+        return ob, reward, done, {'doorOpenRew':doorOpenRew}
 
     def _get_obs(self):
         e = self.get_endeff_pos()
-        b = self.get_obj_pos()
+        b = self.get_site_pos('doorGraspPoint')
         flat_obs = np.concatenate((e, b))
 
         return dict(
@@ -139,26 +139,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             state_achieved_goal=flat_obs,
         )
 
-    def _get_info(self):
-        hand_goal = self._state_goal[:3]
-        obj_goal = self._state_goal[3:]
-        hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos())
-        obj_distance = np.linalg.norm(obj_goal - self.get_obj_pos())
-        touch_distance = np.linalg.norm(
-            self.get_endeff_pos() - self.get_obj_pos()
-        )
-        return dict(
-            hand_distance=hand_distance,
-            obj_distance=obj_distance,
-            hand_and_obj_distance=hand_distance+obj_distance,
-            touch_distance=touch_distance,
-            hand_success=float(hand_distance < self.indicator_threshold),
-            obj_success=float(obj_distance < self.indicator_threshold),
-            hand_and_obj_success=float(
-                hand_distance+obj_distance < self.indicator_threshold
-            ),
-            touch_success=float(touch_distance < self.indicator_threshold),
-        )
+    
 
     def get_obj_pos(self):
         return self.data.get_body_xpos('obj').copy()
@@ -191,23 +172,14 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         
 
         self._reset_hand()
+        
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
-        self._set_goal_marker(self._state_goal)
-
-        self._set_obj_xyz(self.obj_init_pos)
+       
+      
 
         self.curr_path_length = 0
-        self.pickCompleted = False
-
-        init_obj = self.obj_init_pos
-
-        heightTarget , placingGoal = self._state_goal[3], self._state_goal[:3]
-
-        self.maxPlacingDist = np.linalg.norm([init_obj[0], init_obj[1], heightTarget] - placingGoal) + heightTarget
-
-
-
+       
         return self._get_obs()
 
     def _reset_hand(self):
@@ -223,17 +195,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.do_simulation(1)
         self._set_obj_xyz(new_obj_pos)
 
-    def set_to_goal(self, goal):
-        state_goal = goal['state_desired_goal']
-        hand_goal = state_goal[:3]
-        for _ in range(30):
-            self.data.set_mocap_pos('mocap', hand_goal)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            # keep gripper closed
-            self.do_simulation(np.array([1]))
-        self._set_obj_xyz(state_goal[3:])
-        self.sim.forward()
-
+  
     """
     Multitask functions
     """
@@ -275,6 +237,8 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     
 
     def get_site_pos(self, siteName):
+
+       
         _id = self.model.site_names.index(siteName)
         return self.data.site_xpos[_id].copy()
 
@@ -285,78 +249,48 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def compute_rewards(self, actions, obs):
            
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+
+        doorGraspPoint = self.get_site_pos('doorGraspPoint')
+        
+        
+        
+        doorAngleTarget = self._state_goal
        
-        heightTarget = self._state_goal[3]
-        placingGoal = self._state_goal[:3]
-
-        objPos = self.get_body_com("obj")
-      
-
         
         fingerCOM = (rightFinger + leftFinger)/2
 
 
-        graspDist = np.linalg.norm(objPos - fingerCOM)
+        graspDist = np.linalg.norm(doorGraspPoint - fingerCOM)
+        
+        
+
         graspRew = -graspDist
 
 
-        def graspAttained():
-            if graspDist <0.1:
-                return True
+     
 
-            else:
-                return False
-
-        def pickCompletionCriteria():
-
-            tolerance = 0.01
-
-            if objPos[2] >= (heightTarget - tolerance):
-                return True
-            else:
-                return False
+        def doorOpenReward():
 
 
-        if pickCompletionCriteria():
 
-            self.pickCompleted = True
+            doorAngle = self.data.get_joint_qpos('doorjoint')
 
-        def pickReward():
+            if graspDist < 0.1:
 
-            if self.pickCompleted and graspAttained():
-                return 10*heightTarget
-       
-            elif (objPos[2]> 0.025) and graspAttained():
-                
-                return 10* min(heightTarget, objPos[2])
-         
-            else:
-                return 0
+                return 10 * doorAngle
 
-        def placeReward():
+            return 0
+
+        
 
 
-            placingDist = np.linalg.norm(objPos - placingGoal)
-            #print(placingDist)
-          
+        doorOpenRew = doorOpenReward()
 
-            if self.pickCompleted and graspAttained():
-
-                placeRew = max(100*(self.maxPlacingDist - placingDist),0)
-               
-
-                return placeRew
-
-            else:
-                return 0 
-
-        pickRew = pickReward()
-        placeRew = placeReward()
-        reward = graspRew + pickRew + placeRew
-
+        reward = graspRew + doorOpenRew
+        #print(reward)
 
        
-        return [reward, pickRew, placeRew] 
+        return [reward, doorOpenRew] 
         #returned in a list because that's how compute_reward in multiTask.env expects it
 
    

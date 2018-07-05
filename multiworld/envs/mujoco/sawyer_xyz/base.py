@@ -75,6 +75,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
+        
         pos_delta = action * self.action_scale
         new_mocap_pos = self.data.mocap_pos + pos_delta[None]
         new_mocap_pos[0, :] = np.clip(

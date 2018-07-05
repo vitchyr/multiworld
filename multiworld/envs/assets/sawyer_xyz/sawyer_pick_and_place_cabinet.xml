@@ -5,18 +5,30 @@
         <include file="sawyer_xyz_base.xml"></include>
 
         
-        <body name="obj" pos="0 0.6 0.02">
+        <body name="obj" pos="0. 0.6 0.02">
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass=".1" diaginertia="100000 100000 100000"/>
             <geom name="objbox" type="box" pos="0 0 0"
                   size="0.02 0.02 0.02" rgba="0 0.5 1 1"
-                  contype="7" conaffinity="7" friction="10.0 0.10 0.002" condim="4" mass=".1"
+                  contype="7" conaffinity="7" friction="10.0 0.10 0.002" condim="4" mass="1"
             />
             <site name="obj" pos="0 0 0" size="0.01" />
         </body>
         
 
-        <site name="goal" pos="0.3 0.9 0.02" size="0.02"
+        <body name="cabinet" pos="0 1 0.1" euler='0 0 -1.57'>
+            <geom type="box" pos="0 0 0" size="0.2 0.2 0.01" rgba=".7 .7 .9 1" contype="1" conaffinity="1"/>
+           
+            <geom type="box" pos="-0.2 0 0.2" size="0.01 0.2 0.2" contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0.2 0.2" size="0.2 0.01 0.2"  contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 -0.2 0.2" size="0.2 0.01 0.2" contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0 0.4" size="0.2 0.2 0.01" rgba=".7 .7 .9 1" contype="1" conaffinity="1"/>
+    
+
+        </body>
+
+
+        <site name="goal" pos="0 0.85 0.12" size="0.02"
               rgba="1 0.5 0.5 0.5"/>
        
     </worldbody>

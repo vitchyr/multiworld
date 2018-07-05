@@ -105,6 +105,8 @@ class MujocoEnv(gym.Env):
             self.sim.data.ctrl[:] = ctrl
         for _ in range(n_frames):
             self.sim.step()
+            
+
 
     def render(self, mode='human'):
         if mode == 'rgb_array':
