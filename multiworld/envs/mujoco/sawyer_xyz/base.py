@@ -16,7 +16,7 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     mocap_low = np.array([-0.2, 0.5, 0.06])
     mocap_high = np.array([0.2, 0.7, 0.6])
 
-    def __init__(self, model_name, frame_skip=15):
+    def __init__(self, model_name, frame_skip=5):
         MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
         # Resets the mocap welds that we use for actuation.
         sim = self.sim

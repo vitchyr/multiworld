@@ -106,7 +106,7 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
 
 
        
-        
+      
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
        
@@ -277,7 +277,7 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
 
             if graspDist < 0.1:
 
-                return 10 * doorAngle
+                return max(10 * doorAngle , 0)
 
             return 0
 

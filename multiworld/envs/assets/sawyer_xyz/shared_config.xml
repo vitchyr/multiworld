@@ -38,7 +38,7 @@ Usage:
             gravity="0 0 -9.81"
             iterations="50"
             integrator="Euler"
-            timestep="0.003"
+            timestep="0.01"
             cone="elliptic"
             impratio="3"
             tolerance="1e-10"
