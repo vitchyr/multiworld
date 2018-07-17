@@ -21,6 +21,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             render_onscreen=True,
             render_size=84,
             reward_type="dense",
+            norm_order=1,
             target_radius = 0.5,
             boundary_dist = 4,
             ball_radius = 0.25,
@@ -36,6 +37,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.render_onscreen = render_onscreen
         self.render_size = render_size
         self.reward_type = reward_type
+        self.norm_order = norm_order
         self.target_radius = target_radius
         self.boundary_dist = boundary_dist
         self.ball_radius = ball_radius
@@ -124,13 +126,15 @@ class Point2DEnv(MultitaskEnv, Serializable):
         )
 
     def compute_rewards(self, actions, obs):
-        achieved_goals = obs['observation']
-        desired_goals = obs['desired_goal']
-        d = np.linalg.norm(achieved_goals - desired_goals, axis=-1)
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        d = np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=-1)
         if self.reward_type == "sparse":
             return -(d > self.target_radius).astype(np.float32)
-        if self.reward_type == "dense":
+        elif self.reward_type == "dense":
             return -d
+        elif self.reward_type == 'vectorized_dense':
+            return -np.abs(achieved_goals - desired_goals)
 
     def get_goal(self):
         return {
