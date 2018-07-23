@@ -46,8 +46,10 @@ def visualize(fileName):
 
 #gen_goals('sawyer_pick_goals_file1')
 
-visualize('sawyer_pick_goals_file1')
-
+#visualize('sawyer_pick_goals_file1')
+goals = read_goals('sawyer_pick_goals_file1')
+import ipdb
+ipdb.set_trace()
 
 
 

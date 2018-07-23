@@ -38,6 +38,8 @@ class MultitaskEnv(metaclass=abc.ABCMeta):
         return self.unbatchify_dict(goals, 0)
 
     def compute_reward(self, action, obs):
+
+       
         actions = action[None]
         next_obs = {
             k: v[None] for k, v in obs.items()
