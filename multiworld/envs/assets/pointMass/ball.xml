@@ -1,0 +1,26 @@
+<mujoco model="box">
+	<compiler inertiafromgeom="true" angle="degree" coordinate="local"/>
+	<worldbody>
+
+    <geom name="tableTop" type="box" pos="0 0 -0.01" size="0.4 0.4 0.01"
+          rgba=".6 .6 .5 1" contype="1" conaffinity="1" />
+    <body name="ball" pos="0 0 0">
+      <joint name='ballx' type='slide' axis='1 0 0' pos='0 0 0' range='-0.3 0.3' damping='0.1' armature='0' stiffness='0'/>
+      <joint name='bally' type='slide' axis='0 1 0' pos='0 0 0' range='-0.3 0.3' damping='0.1' armature='0' stiffness='0'/>
+		  <geom type="sphere" size="0.02" pos="0 0 0.02" rgba="0 1 1 1" />
+    </body>
+
+    <site name="goal" pos="0.2 0.2 0.02" size="0.02 0.02 0.02" type="box"
+              rgba="1 0 0 0.5"/>
+       
+	</worldbody>
+
+  
+
+  <actuator>
+    <position ctrllimited="true" ctrlrange="-1 1" joint="ballx" kp="20"  user="1"/>
+    <position ctrllimited="true" ctrlrange="-1 1" joint="bally" kp="20"  user="1"/>
+        
+  </actuator>
+
+</mujoco>

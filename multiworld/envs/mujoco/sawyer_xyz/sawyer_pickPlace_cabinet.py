@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerPickPlaceCabinetEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -20,7 +20,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_init_pos=(0, 0.6, 0.02),
 
             fix_goal=True,
-            fixed_goal= (0, 0.85, 0.02, 0.1) ,
+            fixed_goal= (0, 0.85, 0.12, 0.1) ,
             #3D placing goal, followed by height target for picking
             goal_low=None,
             goal_high=None,
@@ -47,7 +47,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high = np.hstack((self.hand_high, obj_high))
 
 
-        self.max_path_length = 150
+        self.max_path_length = 200
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -86,7 +86,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_cabinet.xml')
 
     def viewer_setup(self):
         pass
@@ -343,6 +343,11 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             if self.pickCompleted and graspAttained():
 
                 placeRew = max(100*(self.maxPlacingDist - placingDist),0)
+
+                print(placingDist)
+
+
+                #print(placingDist)
                
 
                 return placeRew
@@ -353,6 +358,9 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         pickRew = pickReward()
         placeRew = placeReward()
         reward = graspRew + pickRew + placeRew
+
+
+       
 
 
        

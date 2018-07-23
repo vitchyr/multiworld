@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"></include>
+
+
+
+        <body name="cabinet" pos="0 1.2 0.2" euler='0 0 -1.57'>
+
+
+        <!--
+            <geom type="box" pos="0 0 0" size="0.2 0.2 0.01" rgba="1 0 0 1" contype="1" conaffinity="1"/>
+        
+
+       
+            <geom type="box" pos="-0.2 0 0.2" size="0.01 0.2 0.2" contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0.2 0.2" size="0.2 0.01 0.2"  contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 -0.2 0.2" size="0.2 0.01 0.2" contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0 0.4" size="0.2 0.2 0.01" rgba="1 0 0 1" contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0 0.2" size="0.2 0.2 0.01" rgba="1 0 0 1" contype="1" conaffinity="1"/>
+        /-->
+            <body name="door" pos="0.21 0. 0.2">
+                <joint name="doorjoint" pos="0 0.2 0" axis="0 0 1" type="hinge" limited="true" range="-3 3" damping="0.1" armature="0" />
+                <geom type="box" pos="0 0 0" size="0.01 0.2 0.2" rgba=".1 .1 .9 1" contype="1" conaffinity="1"/>
+                <geom type="box" pos="0.05 -0.2 0" size="0.05 0.01 0.01" rgba=".75 .75 .75 1" contype="1" conaffinity="1"/>
+                <geom type="box" pos="0.1 -0.1 0" size="0.01 0.1 0.01" rgba=".75 .75 .75 1" contype="1" conaffinity="1"/>
+                <site name="doorGraspPoint" pos="0.1 -0.1 0" size="0.02"
+              rgba="1 0 0 0.7"/>
+            </body>
+
+        </body>
+
+        
+      
+       
+    </worldbody>
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="100"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="100"  user="1"/>
+        
+    </actuator>
+</mujoco>

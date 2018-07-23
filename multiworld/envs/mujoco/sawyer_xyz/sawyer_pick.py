@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerPickEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -20,7 +20,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_init_pos=(0, 0.6, 0.02),
 
             fix_goal=True,
-            fixed_goal= (0, 0.85, 0.02, 0.1) ,
+            fixed_goal= (0, 0.6, 0.1) ,
             #3D placing goal, followed by height target for picking
             goal_low=None,
             goal_high=None,
@@ -47,7 +47,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high = np.hstack((self.hand_high, obj_high))
 
 
-        self.max_path_length = 150
+        self.max_path_length = 100
 
         self.reward_type = reward_type
         self.indicator_threshold = indicator_threshold
@@ -101,7 +101,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def step(self, action):
 
-
+     
         self.set_xyz_action(action[:3])
 
 
@@ -109,11 +109,11 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
+        #self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
        
 
-        reward , pickRew, placeRew = self.compute_rewards(action, ob)
+        reward , pickRew = self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
        
@@ -123,7 +123,7 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'pickRew':pickRew, 'placeRew': placeRew}
+        return ob, reward, done, {'pickRew':pickRew}
 
     def _get_obs(self):
         e = self.get_endeff_pos()
@@ -198,13 +198,13 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_obj_xyz(self.obj_init_pos)
 
         self.curr_path_length = 0
-        self.pickCompleted = False
+      
 
         init_obj = self.obj_init_pos
 
-        heightTarget , placingGoal = self._state_goal[3], self._state_goal[:3]
+        heightTarget  = self._state_goal[2]
 
-        self.maxPlacingDist = np.linalg.norm([init_obj[0], init_obj[1], heightTarget] - placingGoal) + heightTarget
+        #self.maxPlacingDist = np.linalg.norm([init_obj[0], init_obj[1], heightTarget] - placingGoal) + heightTarget
 
 
 
@@ -286,9 +286,8 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
            
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
        
-        heightTarget = self._state_goal[3]
-        placingGoal = self._state_goal[:3]
-
+        heightTarget = self._state_goal[2]
+       
         objPos = self.get_body_com("obj")
       
 
@@ -307,56 +306,27 @@ class SawyerPickPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             else:
                 return False
 
-        def pickCompletionCriteria():
-
-            tolerance = 0.01
-
-            if objPos[2] >= (heightTarget - tolerance):
-                return True
-            else:
-                return False
-
-
-        if pickCompletionCriteria():
-
-            self.pickCompleted = True
-
+      
         def pickReward():
 
-            if self.pickCompleted and graspAttained():
-                return 10*heightTarget
+           
        
-            elif (objPos[2]> 0.025) and graspAttained():
+            if (objPos[2]> 0.025) and graspAttained():
                 
                 return 10* min(heightTarget, objPos[2])
          
             else:
                 return 0
 
-        def placeReward():
-
-
-            placingDist = np.linalg.norm(objPos - placingGoal)
-            #print(placingDist)
-          
-
-            if self.pickCompleted and graspAttained():
-
-                placeRew = max(100*(self.maxPlacingDist - placingDist),0)
-               
-
-                return placeRew
-
-            else:
-                return 0 
+       
 
         pickRew = pickReward()
-        placeRew = placeReward()
-        reward = graspRew + pickRew + placeRew
+       
+        reward = graspRew + pickRew 
 
 
        
-        return [reward, pickRew, placeRew] 
+        return [reward, pickRew] 
         #returned in a list because that's how compute_reward in multiTask.env expects it
 
    
