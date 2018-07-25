@@ -20,6 +20,9 @@ class SawyerPickEnv(SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
 
+            goals = None,
+            num_goals = 1,
+
             
 
             **kwargs
@@ -51,8 +54,11 @@ class SawyerPickEnv(SawyerXYZEnv):
        
         self.heightTarget = 0.1
 
+        self.num_goals = num_goals
 
-        
+        if self.num_goals>1:
+            assert goals!=None
+            self.goals = goals
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -62,9 +68,14 @@ class SawyerPickEnv(SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
         )
+
+        self.obj_space = Box(obj_low, obj_high)
+
         self.observation_space = Dict([
           
             ('state_observation', self.hand_and_obj_space),
+
+            ('desired_goal', self.obj_space)
             
         ])
         #goal is not part of observation space, specified in the dict only to define 
@@ -111,7 +122,7 @@ class SawyerPickEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'pickRew':pickRew}
+        return ob, reward, done, {'reward': reward , 'pickRew':pickRew}
 
     def _get_obs(self):
         e = self.get_endeff_pos()
@@ -121,6 +132,8 @@ class SawyerPickEnv(SawyerXYZEnv):
         return dict(
            
             state_observation=flat_obs,
+
+            desired_goal = self._state_goal
             
         )
 
@@ -139,15 +152,33 @@ class SawyerPickEnv(SawyerXYZEnv):
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
+
+    def sample_objPos(self):
+
+
+        goal_idx = np.random.randint(0, self.num_goals)
+        goal = self.goals[goal_idx]
+
+        return [goal[0], goal[1], 0.02]
+
     def reset_model(self):
 
         
 
         self._reset_hand()
-       
-       
 
-        self._set_obj_xyz(self.obj_init_pos)
+
+        if self.num_goals >1:
+
+            obj_pos = self.sample_objPos()
+
+        else:
+            obj_pos = self.obj_init_pos
+
+
+        self._state_goal = obj_pos
+
+        self._set_obj_xyz(obj_pos)
 
         self.curr_path_length = 0
       

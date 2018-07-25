@@ -44,12 +44,12 @@ def visualize(fileName):
     plt.savefig(fileName+'.png')
 
 
-#gen_goals('sawyer_pick_goals_file1')
+gen_goals('sawyer_pick_goals_val1')
 
-#visualize('sawyer_pick_goals_file1')
-goals = read_goals('sawyer_pick_goals_file1')
-import ipdb
-ipdb.set_trace()
+visualize('sawyer_pick_goals_val1')
+# goals = read_goals('sawyer_pick_goals_file1')
+# import ipdb
+# ipdb.set_trace()
 
 
 
