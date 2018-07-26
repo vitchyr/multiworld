@@ -1,5 +1,6 @@
 <mujoco model="box">
 	<compiler inertiafromgeom="true" angle="degree" coordinate="local"/>
+  <option timestep='0.01'/>
 	<worldbody>
 
     <geom name="tableTop" type="box" pos="0 0 -0.01" size="0.4 0.4 0.01"
@@ -18,8 +19,8 @@
   
 
   <actuator>
-    <position ctrllimited="true" ctrlrange="-1 1" joint="ballx" kp="20"  user="1"/>
-    <position ctrllimited="true" ctrlrange="-1 1" joint="bally" kp="20"  user="1"/>
+    <position ctrllimited="true" ctrlrange="-1 1" joint="ballx" kp="5"  user="1"/>
+    <position ctrllimited="true" ctrlrange="-1 1" joint="bally" kp="5"  user="1"/>
         
   </actuator>
 

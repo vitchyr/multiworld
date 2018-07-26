@@ -23,6 +23,8 @@ class SawyerPickEnv(SawyerXYZEnv):
             goals = None,
             num_goals = 1,
 
+            hand_init_pos = (0, 0.4, 0.05),
+
             
 
             **kwargs
@@ -50,7 +52,7 @@ class SawyerPickEnv(SawyerXYZEnv):
         
       
         self.obj_init_pos = np.array([obj_init_pos[0], obj_init_pos[1], 0.02])
-
+        self.hand_init_pos = np.array(hand_init_pos)
        
         self.heightTarget = 0.1
 
@@ -88,12 +90,13 @@ class SawyerPickEnv(SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
+        
         pass
         # self.viewer.cam.trackbodyid = 0
         # self.viewer.cam.lookat[0] = 0
         # self.viewer.cam.lookat[1] = 1.0
         # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.3
+        # self.viewer.cam.distance = 0.6
         # self.viewer.cam.elevation = -45
         # self.viewer.cam.azimuth = 270
         # self.viewer.cam.trackbodyid = -1
@@ -187,7 +190,7 @@ class SawyerPickEnv(SawyerXYZEnv):
 
     def _reset_hand(self):
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.05]))
+            self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 

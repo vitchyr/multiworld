@@ -6,18 +6,23 @@ from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 
 import numpy as np
+import pickle
+
 
 class BallEnv(MujocoEnv, Serializable):
 
    
 
-    def __init__(self, init_pos = [0,0] , goal_pos = [0.2, 0], *args, **kwargs):
+    def __init__(self, init_pos = [0,0] , goal_idx = None, *args, **kwargs):
         
         
       
         model_name = get_asset_full_path('pointMass/ball.xml')
         self.obj_init_pos = init_pos
-        self.goalPos = [goal_pos[0] , goal_pos[1], 0]
+      
+        self.goals = pickle.load(open("/home/russellm/multiworld/multiworld/envs/goals/PointMassGoals.pkl", "rb"))
+        
+        self._goal_idx = 0
 
         self.curr_path_length = 0
         self.max_path_length = 100
@@ -42,15 +47,19 @@ class BallEnv(MujocoEnv, Serializable):
         ])
 
     def viewer_setup(self):
+
+        pass
         
-        self.viewer.cam.trackbodyid = -1
-        self.viewer.cam.distance = 0.8
-        self.viewer.cam.azimuth = 90.0
-        self.viewer.cam.elevation = -90.0
-        self.viewer.cam.lookat[0] = 0
-        self.viewer.cam.lookat[1] = 0
-        self.viewer.cam.lookat[2] = 0
-    
+        # self.viewer.cam.trackbodyid = -1
+        # self.viewer.cam.distance = 0.8
+        # self.viewer.cam.azimuth = 90.0
+        # self.viewer.cam.elevation = -90.0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 0
+        # self.viewer.cam.lookat[2] = 0
+    def  log_diagnostics(self, paths, prefix):
+        pass
+
 
     def get_site_pos(self, siteName):
 
@@ -67,12 +76,12 @@ class BallEnv(MujocoEnv, Serializable):
         self.do_simulation(action)
         
         ballPos = self.get_body_com("ball")
-        goalPos = self.goalPos
+        goalPos = self.goals[self._goal_idx]
         obs = self._get_obs()
 
        
-
-        reward = -np.linalg.norm(ballPos - goalPos)
+        
+        reward = -np.linalg.norm(ballPos[:2] - goalPos)
        
         
         self.curr_path_length +=1
@@ -104,16 +113,44 @@ class BallEnv(MujocoEnv, Serializable):
         self.model.site_pos[self.model.site_name2id('goal')] = (
             goal[:3]
         )
-    
-    def reset_model(self):
+
+
+    def sample_goals(self, num_goals):
 
       
-        self._set_obj(self.obj_init_pos)
-        self._set_goal_marker(self.goalPos)
+        
 
+        return np.array(range(num_goals))
        
 
+
+    #@overrides
+    def reset(self, reset_args = None):
+        self.sim.reset()
+        ob = self.reset_model(reset_args = reset_args)
+        if self.viewer is not None:
+            self.viewer_setup()
+        return ob
+
+    def reset_model(self, reset_args = None):
+
+      
+        goal_idx = reset_args
+        if goal_idx is not None:
+            self._goal_idx = goal_idx
+        elif self._goal_idx is None:
+            self._goal_idx = np.random.randint(1)
+
+
+        goal_xy = self.goals[self._goal_idx]
+
+        goalPos = [goal_xy[0], goal_xy[1], 0]
+
+        self._set_obj(self.obj_init_pos)
+        self._set_goal_marker(goalPos)
+
         self.curr_path_length = 0
+
         return self._get_obs()
 
 
