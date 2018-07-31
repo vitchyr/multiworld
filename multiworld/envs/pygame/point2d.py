@@ -1,7 +1,10 @@
 import numpy as np
+from collections import OrderedDict
 from gym import spaces
 from pygame import Color
 
+from multiworld.envs.env_util import get_stat_in_paths, \
+    create_stats_ordered_dict, get_asset_full_path
 from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
@@ -44,6 +47,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.walls = walls
         self.fixed_goal = fixed_goal
         self.randomize_position_on_reset = randomize_position_on_reset
+        if self.fixed_goal is not None:
+            self.fixed_goal = np.array(self.fixed_goal)
 
         self._max_episode_steps = 50
         self.max_target_distance = self.boundary_dist - self.target_radius
@@ -96,20 +101,17 @@ class Point2DEnv(MultitaskEnv, Serializable):
         done = False
         return ob, reward, done, info
 
-    def _sample_goal(self):
-        return np.random.uniform(
-            size=2, low=-self.max_target_distance, high=self.max_target_distance
-        )
-
     def reset(self):
-        self._target_position = np.random.uniform(
-            size=2, low=-self.max_target_distance, high=self.max_target_distance
-        )
+        if not self.fixed_goal is None:
+            self._target_position = self.fixed_goal
+        else:
+            self._target_position = np.random.uniform(
+                size=2, low=-self.max_target_distance, high=self.max_target_distance
+            )
         if self.randomize_position_on_reset:
             self._position = np.random.uniform(
                 size=2, low=-self.boundary_dist, high=self.boundary_dist
             )
-        return self._get_obs()
 
     def seed(self, s):
         """Do nothing for seed"""
@@ -124,6 +126,30 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_desired_goal=self._target_position.copy(),
             state_achieved_goal=self._position.copy(),
         )
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'radius',
+            'target_position',
+            'distance_to_target',
+            'velocity',
+            'speed',
+            'is_success',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+                ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+                ))
+        return statistics
 
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
@@ -203,7 +229,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 y_bounds=(-self.boundary_dist, self.boundary_dist),
                 render_onscreen=self.render_onscreen,
             )
-
         self.drawer.fill(Color('white'))
         self.drawer.draw_solid_circle(
             self._target_position,
