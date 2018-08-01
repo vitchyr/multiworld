@@ -20,8 +20,8 @@ class SawyerPickEnv(SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
 
-            goals = None,
-            num_goals = 1,
+            goals = [(0, 0.6)],
+           
 
             hand_init_pos = (0, 0.4, 0.05),
 
@@ -56,26 +56,22 @@ class SawyerPickEnv(SawyerXYZEnv):
        
         self.heightTarget = 0.1
 
-        self.num_goals = num_goals
 
-        if self.num_goals>1:
-            assert goals!=None
-            self.goals = goals
+        self.goals = goals
+        self.num_goals = len(goals)
 
+        
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
         )
-        self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
-        )
+        self.hand_space = Box(hand_low, hand_high)
 
         self.obj_space = Box(obj_low, obj_high)
 
         self.observation_space = Dict([
           
-            ('state_observation', self.hand_and_obj_space),
+            ('state_observation', self.hand_space),
 
             ('desired_goal', self.obj_space)
             
@@ -128,13 +124,11 @@ class SawyerPickEnv(SawyerXYZEnv):
         return ob, reward, done, {'reward': reward , 'pickRew':pickRew}
 
     def _get_obs(self):
-        e = self.get_endeff_pos()
-        b = self.get_obj_pos()
-        flat_obs = np.concatenate((e, b))
+      
 
         return dict(
            
-            state_observation=flat_obs,
+            state_observation= self.get_endeff_pos(),
 
             desired_goal = self._state_goal
             
@@ -156,7 +150,7 @@ class SawyerPickEnv(SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
 
-    def sample_objPos(self):
+    def sample_goal(self):
 
 
         goal_idx = np.random.randint(0, self.num_goals)
@@ -171,14 +165,10 @@ class SawyerPickEnv(SawyerXYZEnv):
         self._reset_hand()
 
 
-        if self.num_goals >1:
+       
+        obj_pos = self.sample_goal()
 
-            obj_pos = self.sample_objPos()
-
-        else:
-            obj_pos = self.obj_init_pos
-
-
+      
         self._state_goal = obj_pos
 
         self._set_obj_xyz(obj_pos)
@@ -255,28 +245,7 @@ class SawyerPickEnv(SawyerXYZEnv):
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
-        # for stat_name in [
-        #     'hand_distance',
-        #     'obj_distance',
-        #     'hand_and_obj_distance',
-        #     'touch_distance',
-        #     'hand_success',
-        #     'obj_success',
-        #     'hand_and_obj_success',
-        #     'touch_success',
-        # ]:
-        #     stat_name = stat_name
-        #     stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-        #     statistics.update(create_stats_ordered_dict(
-        #         '%s%s' % (prefix, stat_name),
-        #         stat,
-        #         always_show_all_stats=True,
-        #     ))
-        #     statistics.update(create_stats_ordered_dict(
-        #         'Final %s%s' % (prefix, stat_name),
-        #         [s[-1] for s in stat],
-        #         always_show_all_stats=True,
-        #     ))
+       
         return statistics
 
    
