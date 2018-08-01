@@ -70,7 +70,7 @@ class BallEnv(MujocoEnv, Serializable):
         goalPos = self.goalPos
         obs = self._get_obs()
 
-       
+        #print(np.linalg.norm(ballPos - goalPos))
 
         reward = -np.linalg.norm(ballPos - goalPos)
        

@@ -7,6 +7,8 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
+import pickle
+
 class SawyerPickEnv(SawyerXYZEnv):
     def __init__(
             self,
@@ -64,7 +66,7 @@ class SawyerPickEnv(SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
         dtype = np.float32)
-        import pickle
+      
         self.goals = pickle.load(open("/home/russellm/multiworld/multiworld/envs/goals/sawyer_pick_goals_file1.pkl", "rb"))
 
         self.observation_space = self.hand_and_obj_space
@@ -218,7 +220,7 @@ class SawyerPickEnv(SawyerXYZEnv):
         heightTarget = self.heightTarget
        
         objPos = self.get_body_com("obj")
-        print(objPos)
+        #print(objPos)
       
 
         
@@ -286,5 +288,14 @@ class SawyerPickEnv(SawyerXYZEnv):
         #         always_show_all_stats=True,
         #     ))
         return statistics
+
+
+    #required by rllab parallel sampler
+    def terminate(self):
+        """
+        Clean up operation,
+        """
+        pass
+
 
    

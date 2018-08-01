@@ -20,7 +20,7 @@ class BallEnv(MujocoEnv, Serializable):
         model_name = get_asset_full_path('pointMass/ball.xml')
         self.obj_init_pos = init_pos
       
-        self.goals = pickle.load(open("/home/russellm/multiworld/multiworld/envs/goals/PointMassGoals.pkl", "rb"))
+        self.goals = pickle.load(open("/home/russellm/multiworld/multiworld/envs/goals/pointMassVal.pkl", "rb"))
         
         self._goal_idx = 0
 
@@ -76,14 +76,16 @@ class BallEnv(MujocoEnv, Serializable):
         self.do_simulation(action)
         
         ballPos = self.get_body_com("ball")
+
         goalPos = self.goals[self._goal_idx]
+
         obs = self._get_obs()
 
        
         
         reward = -np.linalg.norm(ballPos[:2] - goalPos)
        
-        
+        #print(reward)  
         self.curr_path_length +=1
 
         if self.curr_path_length == self.max_path_length:
@@ -152,5 +154,13 @@ class BallEnv(MujocoEnv, Serializable):
         self.curr_path_length = 0
 
         return self._get_obs()
+
+    #required by rllab parallel sampler
+    def terminate(self):
+        """
+        Clean up operation,
+        """
+        pass
+
 
 

@@ -11,8 +11,8 @@
 		  <geom type="sphere" size="0.02" pos="0 0 0.02" rgba="0 1 1 1" />
     </body>
 
-    <site name="goal" pos="0.2 0.2 0.02" size="0.02 0.02 0.02" type="box"
-              rgba="1 0 0 0.5"/>
+    <site name="goal" pos="0.2 0.2 0.03" size="0.02 0.02 0.03" type="box"
+              rgba="1 0 0 0.3"/>
        
 	</worldbody>
 
