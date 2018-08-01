@@ -81,7 +81,7 @@ class SawyerPickEnv(SawyerXYZEnv):
             
         ])
         #goal is not part of observation space, specified in the dict only to define 
-        #self.goal_space. Goal not passed into the network
+        #self.goal_space. 
 
         self.reset()
 
