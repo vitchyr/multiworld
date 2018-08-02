@@ -20,7 +20,7 @@ class SawyerPickEnv(SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
 
-            goals = [(0, 0.6)],
+            goals = None,
            
 
             hand_init_pos = (0, 0.4, 0.05),
@@ -52,20 +52,24 @@ class SawyerPickEnv(SawyerXYZEnv):
         
       
         self.obj_init_pos = np.array([obj_init_pos[0], obj_init_pos[1], 0.02])
+
+        if goals == None:
+            self.goals = [self.obj_init_pos]
+
         self.hand_init_pos = np.array(hand_init_pos)
        
         self.heightTarget = 0.1
 
 
-        self.goals = goals
-        self.num_goals = len(goals)
+        
+        self.num_goals = len(self.goals)
 
         
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
         )
-        self.hand_space = Box(hand_low, hand_high)
+        self.hand_space = Box(self.hand_low, self.hand_high)
 
         self.obj_space = Box(obj_low, obj_high)
 
@@ -87,15 +91,15 @@ class SawyerPickEnv(SawyerXYZEnv):
 
     def viewer_setup(self):
         
-        pass
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
+       
+        self.viewer.cam.trackbodyid = 0
+        self.viewer.cam.lookat[0] = 0
+        self.viewer.cam.lookat[1] = 1.0
+        self.viewer.cam.lookat[2] = 0.5
+        self.viewer.cam.distance = 0.6
+        self.viewer.cam.elevation = -45
+        self.viewer.cam.azimuth = 270
+        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
 
@@ -124,11 +128,14 @@ class SawyerPickEnv(SawyerXYZEnv):
         return ob, reward, done, {'reward': reward , 'pickRew':pickRew}
 
     def _get_obs(self):
+
+
+        flat_obs = [self.get_endeff_pos()]
       
 
         return dict(
            
-            state_observation= self.get_endeff_pos(),
+            state_observation= flat_obs,
 
             desired_goal = self._state_goal
             
