@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnv( SawyerXYZEnv):
+class SawyerPushEnv( SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -19,14 +19,13 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
             obj_init_pos=(0, 0.6, 0.02),
 
-            goals = [[0, 0.7, 0.02, 0.1]],
+            goals = [[0, 0.7, 0.02]],
 
             
             goal_low=None,
             goal_high=None,
 
             hand_init_pos = (0, 0.4, 0.05),
-            #hand_init_pos = (0, 0.5, 0.15) used for debbuging
             blockSize = 0.02,
 
             **kwargs
@@ -90,30 +89,31 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
-        #pass
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0
-        self.viewer.cam.lookat[1] = 1.0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 0.6
-        self.viewer.cam.elevation = -45
-        self.viewer.cam.azimuth = 270
-        self.viewer.cam.trackbodyid = -1
+        pass
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 1.0
+        # self.viewer.cam.lookat[2] = 0.5
+        # self.viewer.cam.distance = 0.3
+        # self.viewer.cam.elevation = -45
+        # self.viewer.cam.azimuth = 270
+        # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
 
-        #debug mode:
-        #action[:3] = [0,0,-1]
-        #self.do_simulation([1,-1])
 
         self.set_xyz_action(action[:3])
+
+
+       
+        
         self.do_simulation([action[-1], -action[-1]])
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
        
 
-        reward , pickRew, placeRew , placingDist = self.compute_rewards(action, ob)
+        reward , placeRew , reachRew = self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
        
@@ -123,7 +123,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'pickRew':pickRew, 'placeRew': placeRew, 'reward' : reward, 'placingDist': placingDist}
+        return ob, reward, done, { 'placeRew': placeRew, 'reward' : reward, 'reachRew': reachRew}
 
 
 
@@ -192,13 +192,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         init_obj = self.obj_init_pos
 
-        heightTarget , placingGoal = self._state_goal[3], self._state_goal[:3]
+
+        
+        placingGoal =  self._state_goal[:3]
 
 
-       
-
-        self.maxPlacingDist = np.linalg.norm(np.array([init_obj[0], init_obj[1], heightTarget]) - np.array(placingGoal)) + heightTarget
-        #Can try changing this
+     
 
 
 
@@ -231,90 +230,32 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         
        
-        heightTarget = self._state_goal[3]
+        
         placingGoal = self._state_goal[:3]
 
         
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         objPos = self.get_body_com("obj")
+
+
         fingerCOM = (rightFinger + leftFinger)/2
 
 
-        graspDist = np.linalg.norm(objPos - fingerCOM)
-        graspRew = -graspDist
+        placeRew = -np.linalg.norm(placingGoal - objPos)
 
-       
-
-
-        def graspAttained():
-            if graspDist <0.1:
-                return True
-
-            else:
-                return False
-
-        def pickCompletionCriteria():
-
-            tolerance = 0.01
-
-            if objPos[2] >= (heightTarget - tolerance):
-                return True
-            else:
-                return False
-
-        if pickCompletionCriteria():
-            self.pickCompleted = True
-
-       
-
-        def pickReward():
-
-            if self.pickCompleted and graspAttained():
-                return 10*heightTarget
-       
-            elif (objPos[2]> (self.blockSize + 0.005)) and graspAttained():
-                
-                return 10* min(heightTarget, objPos[2])
-         
-            else:
-                return 0
-
-        def placeReward():
-
-
-            placingDist = np.linalg.norm(objPos - placingGoal)
-            #print(placingDist)
-          
-            c1 = 100 ; c2 = 0.01 ; c3 = 0.001
-            if self.pickCompleted and graspAttained():
-
-
-                placeRew = 100*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-
-                placeRew = max(placeRew,0)
-                #max term is very important here. Place Reward shoud never be negative
-               
-
-                return [placeRew , placingDist]
-
-            else:
-                return [0 , placingDist]
-
-
+        reachRew = -np.linalg.norm(objPos - fingerCOM)
       
 
-        pickRew = pickReward()
-        placeRew , placingDist = placeReward()
 
-        #print(placeRew, '\t', placingDist)
+       
+        reward  = reachRew + placeRew
 
-        #print(placingDist, '\t', placeRew)
-        assert ((placeRew >=0) and (pickRew>=0))
-        reward = graspRew + pickRew + placeRew
+        
+        
 
 
-        #print(placeRew)
-        return [reward, pickRew, placeRew, placingDist] 
+       
+        return [reward,  placeRew, reachRew] 
      
 
    

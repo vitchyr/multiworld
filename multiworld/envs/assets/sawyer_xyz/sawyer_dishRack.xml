@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"></include>
+
+        
+        <body name="obj" pos="-0.3 0.5 0.02">
+            <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
+            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <geom name="objbox" type="cylinder" pos="0 0 0"
+                  size="0.08 0.01" rgba="0 0.5 1 1"
+                  contype="1" conaffinity="1" friction="10.0 0.1 0.002" condim="4" 
+            />
+            <site name="obj" pos="0 0 0" size="0.01" />
+        </body>
+
+
+        <body name="dishrack" pos="0 0.8 0.01" quat= '1 0 0 1'>
+            <geom type="box" pos="0 0 0" size="0.13 0.2 0.01" rgba="1 0 0 1" contype="1" conaffinity="1"/>
+            <!-- <geom type="box" pos="0.2 0 0.1" size="0.01 0.2 0.1" rgba="1 0 0 1" contype="1" conaffinity="1"/> -->
+            <geom type="box" pos="0 0.2 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0.1 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 0.0 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 -0.1 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
+            <geom type="box" pos="0 -0.2 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
+
+
+        </body>
+
+        
+
+        <site name="goal" pos="0.3 0.9 0.02" size="0.02"
+              rgba="1 0.5 0.5 0.5"/>
+       
+    </worldbody>
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="100"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="100"  user="1"/>
+        
+    </actuator>
+
+
+    <contact>
+        <pair geom1= "objbox" geom2="tableTop"/>
+    </contact>
+</mujoco>

@@ -24,6 +24,7 @@ def gen_pickGoals(fileName):
     pickle.dump(goals, fobj)
     fobj.close()
 
+
 def gen_pointMassGoals(fileName):
 
     goals = []
@@ -44,6 +45,34 @@ def gen_pointMassGoals(fileName):
     pickle.dump(goals, fobj)
     fobj.close()
 
+
+def gen_objPos_goalPos(fileName):
+
+    goals = []
+    for count in range(20):
+
+        # i = np.random.uniform(-.1, .1)
+        # j = np.random.uniform(0.6, 0.8)
+
+        config = {}
+        i1 = np.random.uniform(-.3, .3)
+        j1 = np.random.uniform(0.5, 0.65)
+
+        i2 = np.random.uniform(-.3, .3)
+        j2 = np.random.uniform(.7, .85)
+
+        config['objPos'] = [i1, j1]
+        config['goalPos'] = [i2, j2]
+
+        goals.append(config)
+
+
+    fobj = open(save_dir+fileName+'.pkl', 'wb')
+    pickle.dump(goals, fobj)
+    fobj.close()
+
+
+#gen_objPos_goalPos('obj_behind_goal')
 
 
 
@@ -79,12 +108,12 @@ def visualize(fileName):
 
 
 
-#read_goals('sawyer_pick_goals_60X40_train')
+read_goals('sawyer_pick_goals_60X35_train')
 
-gen_pointMassGoals('pointMassVal')
+# gen_pointMassGoals('pointMassVal')
 
 
-visualize('pointMassVal')
+# visualize('pointMassVal')
 
 ## goals = read_goals('sawyer_pick_goals_file1')
 # import ipdb
