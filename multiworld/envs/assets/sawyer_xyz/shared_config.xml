@@ -42,6 +42,7 @@ Usage:
             cone="elliptic"
             impratio="3"
             tolerance="1e-10"
+            impedance='constant'
     />
 
     <default>

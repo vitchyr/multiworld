@@ -26,7 +26,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             goal_high=None,
 
             hand_init_pos = (0, 0.4, 0.05),
-            #hand_init_pos = (0, 0.5, 0.15) used for debbuging
+            #hand_init_pos = (0, 0.5, 0.35) ,
             blockSize = 0.02,
 
             **kwargs
@@ -90,21 +90,21 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
-        #pass
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0
-        self.viewer.cam.lookat[1] = 1.0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 0.6
-        self.viewer.cam.elevation = -45
-        self.viewer.cam.azimuth = 270
-        self.viewer.cam.trackbodyid = -1
+        pass
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 1.0
+        # self.viewer.cam.lookat[2] = 0.5
+        # self.viewer.cam.distance = 0.6
+        # self.viewer.cam.elevation = -45
+        # self.viewer.cam.azimuth = 270
+        # self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
 
         #debug mode:
-        #action[:3] = [0,0,-1]
-        #self.do_simulation([1,-1])
+        # action[:3] = [0,0,-1]
+        # self.do_simulation([1,-1])
 
         self.set_xyz_action(action[:3])
         self.do_simulation([action[-1], -action[-1]])
