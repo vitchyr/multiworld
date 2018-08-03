@@ -5,20 +5,21 @@
         <include file="sawyer_xyz_base.xml"></include>
 
         
-        <body name="obj" pos="-0.3 0.5 0.02">
+        <body name="obj" pos="-0.3 0.5 0.08" quat= '0 0 1 1'>
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objbox" type="cylinder" pos="0 0 0"
-                  size="0.08 0.01" rgba="0 0.5 1 1"
+                  size="0.07 0.01" rgba="0 0.5 1 1"
                   contype="1" conaffinity="1" friction="10.0 0.1 0.002" condim="4" 
             />
             <site name="obj" pos="0 0 0" size="0.01" />
         </body>
 
 
+
         <body name="dishrack" pos="0 0.8 0.01" quat= '1 0 0 1'>
             <geom type="box" pos="0 0 0" size="0.13 0.2 0.01" rgba="1 0 0 1" contype="1" conaffinity="1"/>
-            <!-- <geom type="box" pos="0.2 0 0.1" size="0.01 0.2 0.1" rgba="1 0 0 1" contype="1" conaffinity="1"/> -->
+          
             <geom type="box" pos="0 0.2 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
             <geom type="box" pos="0 0.1 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>
             <geom type="box" pos="0 0.0 0.07" size="0.13 0.01 0.07"  contype="1" conaffinity="1"/>

@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPushEnv( SawyerXYZEnv):
+class SawyerDishRackEnv( SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -162,6 +162,8 @@ class SawyerPushEnv( SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
 
+        
+
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
@@ -180,6 +182,9 @@ class SawyerPushEnv( SawyerXYZEnv):
 
         self._reset_hand()
         self.put_obj_in_hand()
+
+        import ipdb
+        ipdb.set_trace()
         
         self._state_goal = self.sample_goal()
 
@@ -208,7 +213,7 @@ class SawyerPushEnv( SawyerXYZEnv):
 
     def put_obj_in_hand(self):
 
-        new_obj_pos = self.data.get_site_xpos('endeffector')
+        new_obj_pos = self.data.get_site_xpos('endEffector')
         new_obj_pos[1] -= 0.01
         self.do_simulation(-1)
         self.do_simulation(1)
@@ -221,7 +226,7 @@ class SawyerPushEnv( SawyerXYZEnv):
         
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 0, 1]))
             self.do_simulation(None, self.frame_skip)
 
 

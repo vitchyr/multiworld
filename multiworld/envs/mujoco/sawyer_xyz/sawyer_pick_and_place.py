@@ -253,11 +253,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         graspDist = np.linalg.norm(objPos - fingerCOM)
         graspRew = -graspDist
 
+        placingDist = np.linalg.norm(objPos - placingGoal)
        
-        #print(graspDist)
-
-      
-        #print(graspDist)
+        
 
 
         def pickCompletionCriteria():
@@ -273,18 +271,22 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             self.pickCompleted = True
 
        
-        graspThresh1 = 0.1
-        graspThresh2 = 0.1
-        #Can tweak these params
+
+
+        def objDropped():
+
+            return (objPos[2] < (self.blockSize + 0.005)) and (placingDist >0.02) and (graspDist > 0.02) 
+            # Object on the ground, far away from the goal, and from the gripper
+            #Can tweak the margin limits
 
 
         def pickReward():
             
 
-            if self.pickCompleted and (graspDist < graspThresh2):
+            if self.pickCompleted and not(objDropped()):
                 return 10*heightTarget
        
-            elif (objPos[2]> (self.blockSize + 0.005)) and (graspDist < graspThresh1):
+            elif (objPos[2]> (self.blockSize + 0.005)) and (graspDist < 0.1):
                 
                 return 10* min(heightTarget, objPos[2])
          
@@ -293,32 +295,16 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         def placeReward():
 
-            
-
-            placingDist = np.linalg.norm(objPos - placingGoal)
-           
           
             c1 = 100 ; c2 = 0.01 ; c3 = 0.001
-            if self.pickCompleted and (graspDist < graspThresh2):
+            if self.pickCompleted and (graspDist < 0.1) and not(objDropped()):
 
 
                 placeRew = 100*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
 
-                #placeRew = 10*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-                # placeRew =  c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
-
-                #placeRew = 10*(self.maxPlacingDist - placingDist)
-
-
-
-
-
-                
-                placeRew = max(placeRew,0)
-                #max term is very important here. Place Reward shoud never be negative
-
-                #print(placingDist, '\t', placeRew)
                
+                placeRew = max(placeRew,0)
+           
 
                 return [placeRew , placingDist]
 
@@ -331,17 +317,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         pickRew = pickReward()
         placeRew , placingDist = placeReward()
 
-        #print(placeRew)
-
-        #print(placeRew, '\t', placingDist)
-
-        #print(placingDist, '\t', placeRew)
+      
         assert ((placeRew >=0) and (pickRew>=0))
         reward = graspRew + pickRew + placeRew
 
-
-        #print(placeRew)
-        #print(reward)
         return [reward, graspRew, pickRew, placeRew, placingDist] 
      
 

@@ -138,7 +138,7 @@ Usage:
 
                                                 <body name="rightclaw" pos="0 -0.05 0" >
 
-                                                    <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.005"  rgba="1 1 1 1.0" />
+                                                    <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="1 1 1 1.0" />
                                                    <!--  <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide"/> -->
                                                     <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true"  type="slide"/> 
 
@@ -153,7 +153,7 @@ Usage:
                                                 <body name="leftclaw" pos="0 0.05 0">
 
                                                 
-                                                    <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.005"  rgba="0 1 1 1.0" />
+                                                    <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="0 1 1 1.0" />
                                                    <!--  <joint name="l_close" pos="0 0 0" axis="0 1 0" range= "-0.03 0" armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide"/> -->
 
                                                     <joint name="l_close" pos="0 0 0" axis="0 1 0" range= "-0.03 0" armature="100" damping="1000" limited="true"  type="slide"/>
