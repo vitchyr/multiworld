@@ -119,7 +119,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.set_xyz_action(action[:3])
 
 
-        print(action[-1])
+        # print(action[-1])
         self.do_simulation([action[-1], -action[-1]])
         
         # The marker seems to get reset every time you do a simulation

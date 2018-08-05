@@ -6,23 +6,64 @@ import numpy as np
 
 save_dir = '/home/russellm/multiworld/multiworld/envs/goals/'
 
+
+def read_goals(fileName):
+
+    fobj = open(save_dir+fileName+'.pkl', 'rb')
+    goals = pickle.load(fobj)
+
+    return goals
+
+
+
 def gen_pickPlaceGoals(fileName):
 
     goals = []
     for count in range(20):
 
-        # i = np.random.uniform(-.1, .1)
-        # j = np.random.uniform(0.6, 0.8)
+        task={}
 
-        i = np.random.uniform(-.3, .3)
-        j = np.random.uniform(0.5, 0.8)
+        xs = np.random.uniform(-.3, .3, size=2)
+        ys = np.random.uniform(0.5, 0.8, size = 2)
 
-        goals.append([i,j])
+        task['obj'] = [xs[0], ys[0]]
+        task['goal'] = [xs[1], ys[1]]
+
+        goals.append(task)
 
 
     fobj = open(save_dir+fileName+'.pkl', 'wb')
     pickle.dump(goals, fobj)
     fobj.close()
+
+def visualize_pickPlace(fileName, xRange = [-.3, .3], yRange=[0.5, 0.8]):
+
+    tasks = np.array(read_goals(fileName))
+    from matplotlib import pyplot as plt
+
+    for i in range(len(tasks)):
+        task = tasks[i]
+
+        color = np.random.uniform(0,1, size=3)
+        plt.annotate(xy = task['obj'], s= 'O'+str(i), color=color)
+        plt.annotate(xy = task['goal'], s='G'+str(i), color=color)
+
+
+    plt.xlim(xRange[0], xRange[1])
+    plt.ylim(yRange[0], yRange[1])
+
+
+    plt.savefig(fileName+'.png')
+
+
+gen_pickPlaceGoals('pickPlace')
+
+
+visualize_pickPlace('pickPlace')
+
+
+
+
 
 
 def gen_pointMassGoals(fileName):
@@ -76,15 +117,6 @@ def gen_objPos_goalPos(fileName):
 
 
 
-def read_goals(fileName):
-
-    fobj = open(save_dir+fileName+'.pkl', 'rb')
-    goals = pickle.load(fobj)
-
-    import ipdb
-    ipdb.set_trace()
-    return goals
-
 
 
 
@@ -93,6 +125,9 @@ def visualize(fileName):
 
     goals = np.array(read_goals(fileName))[:20]
     from matplotlib import pyplot as plt
+
+
+
 
     xs = goals[:,0]
     ys = goals[:,1]
@@ -108,12 +143,9 @@ def visualize(fileName):
 
 
 
-read_goals('sawyer_pick_goals_60X35_train')
-
-# gen_pointMassGoals('pointMassVal')
+#read_goals('sawyer_pick_goals_60X35_train')
 
 
-# visualize('pointMassVal')
 
 ## goals = read_goals('sawyer_pick_goals_file1')
 # import ipdb
