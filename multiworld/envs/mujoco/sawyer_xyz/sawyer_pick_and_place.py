@@ -104,8 +104,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #debug mode:
 
+        # action[:3] = [0,0,-1]
+        # self.do_simulation([1,-1])
+     
 
-        #self.do_simulation([1,-1])
         # print(action[-1])
 
         # if self.pickCompleted:
@@ -116,7 +118,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         # else:
         self.set_xyz_action(action[:3])
 
+
+        print(action[-1])
         self.do_simulation([action[-1], -action[-1]])
+        
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()

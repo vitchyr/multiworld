@@ -6,7 +6,7 @@ import numpy as np
 
 save_dir = '/home/russellm/multiworld/multiworld/envs/goals/'
 
-def gen_pickGoals(fileName):
+def gen_pickPlaceGoals(fileName):
 
     goals = []
     for count in range(20):
@@ -15,7 +15,7 @@ def gen_pickGoals(fileName):
         # j = np.random.uniform(0.6, 0.8)
 
         i = np.random.uniform(-.3, .3)
-        j = np.random.uniform(0.5, 0.85)
+        j = np.random.uniform(0.5, 0.8)
 
         goals.append([i,j])
 

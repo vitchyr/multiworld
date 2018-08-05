@@ -25,7 +25,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
 
-            hand_init_pos = (0, 0.4, 0.05),
+            hand_init_pos = (0, 0.4, 0.25),
             blockSize = 0.02,
 
             **kwargs
@@ -226,7 +226,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
-            self.data.set_mocap_quat('mocap', np.array([0, 0, 0, 1]))
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
 
