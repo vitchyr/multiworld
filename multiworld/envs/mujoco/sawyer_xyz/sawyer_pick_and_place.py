@@ -130,10 +130,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
    
     def _get_obs(self):
-        e = self.get_endeff_pos()
-        b = self.get_obj_pos()
+        fingerCOM = self.get_endeff_pos()
+        objPos = self.get_body_com("obj")
       
-        flat_obs = np.concatenate((e, b))
+        flat_obs = np.concatenate((fingerCOM, objPos))
 
         return dict(
             
@@ -143,10 +143,17 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             
         )
 
+    def get_endeff_pos(self):
+
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        return (rightFinger + leftFinger)/2
+
+
+
+
     def _get_info(self):
         pass
-    def get_obj_pos(self):
-        return self.data.get_body_xpos('obj').copy()
+    
 
     def _set_goal_marker(self, goal):
         """
@@ -229,17 +236,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
            
         state_obs = obs['state_observation']
 
-        endEffPos , objPos = state_obs[0:3], state_obs[3:6]
+        fingerCOM , objPos = state_obs[0:3], state_obs[3:6]
         
         
        
         heightTarget = self.heightTarget
         placingGoal = self._state_goal
-
-        
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        objPos = self.get_body_com("obj")
-        fingerCOM = (rightFinger + leftFinger)/2
 
 
         graspDist = np.linalg.norm(objPos - fingerCOM)

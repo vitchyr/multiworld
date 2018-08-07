@@ -15,13 +15,15 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
             doorGrasp_low=None,
             doorGrasp_high=None,
 
-            tasks = [{'goalAngle': [0.5236],  'door_init_pos':[0, 1.2, 0.2]}] , 
+            tasks = [{'goalAngle': [0.5236],  'door_init_pos':[0, 0.2, 0.2]}] , 
 
             goal_low= np.array([0]),
             goal_high=np.array([1.58825]),
 
             hand_init_pos = (0, 0.4, 0.05),
             #hand_init_pos = (0, 0.5, 0.35) ,
+
+            doorHalfWidth = 0.2,
            
             **kwargs
     ):
@@ -43,6 +45,8 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
 
         self.max_path_length = 150
 
+        self.doorHalfWidth = doorHalfWidth
+
 
         self.tasks = tasks
         self.num_tasks = len(tasks)
@@ -58,8 +62,7 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
             np.hstack((self.hand_high, doorGrasp_high)),
         )
 
-        import ipdb
-        ipdb.set_trace()
+       
 
         self.goal_space = Box(goal_low, goal_high)
 
@@ -108,7 +111,7 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, {'doorOpenRew':doorOpenRew}
+        return ob, reward, done, {'doorOpenRew':doorOpenRew, 'reward': reward}
 
     def _get_obs(self):
         e = self.get_endeff_pos()
@@ -132,12 +135,12 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
 
 
 
-    def _set_door_xyz(self, pos):
+    def _set_door_xyz(self, doorPos):
 
 
-        import ipdb
-        ipdb.set_trace()
-        state='a'
+        self.model.body_pos[-1] = doorPos
+
+        
         
 
 
@@ -209,8 +212,13 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
 
 
     def compute_rewards(self, actions, obs):
+
+        obs = obs['state_observation']
            
         fingerCOM , doorGraspPoint = obs[:3], obs[3:6]
+
+
+       
 
         doorAngleTarget = self._state_goal
        
