@@ -185,8 +185,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         
         self._state_goal = task['goal']
         self.obj_init_pos = task['obj_init_pos']
-        self.heightTarget = task['height']
-
+        
+        #self.heightTarget = task['height']
+        self.heightTarget = 0.06
 
         self._set_goal_marker(self._state_goal)
 
@@ -277,7 +278,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         if pickCompletionCriteria():
             self.pickCompleted = True
 
-        print(self.pickCompleted)
+        #print(self.pickCompleted)
 
        
 
@@ -291,13 +292,14 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         def pickReward():
             
+            hScale = 50
 
             if self.pickCompleted and not(objDropped()):
-                return 100*heightTarget
+                return hScale*heightTarget
        
             elif (objPos[2]> (self.blockSize + 0.005)) and (graspDist < 0.1):
                 
-                return 100* min(heightTarget, objPos[2])
+                return hScale* min(heightTarget, objPos[2])
          
             else:
                 return 0

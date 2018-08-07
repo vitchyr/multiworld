@@ -8,78 +8,66 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
+class SawyerDoorOpenEnv(SawyerXYZEnv):
+
     def __init__(
             self,
-            obj_low=None,
-            obj_high=None,
+            doorGrasp_low=None,
+            doorGrasp_high=None,
 
-            reward_type='hand_and_obj_distance',
-            indicator_threshold=0.06,
+            tasks = [{'goalAngle': [0.5236],  'door_init_pos':[0, 1.2, 0.2]}] , 
 
-            obj_init_pos=(0, 0.6, 0.02),
+            goal_low= np.array([0]),
+            goal_high=np.array([1.58825]),
 
-            fix_goal=True,
-            fixed_goal= (1.571) ,
-            #target angle for the door
-            goal_low=None,
-            goal_high=None,
-
-            hide_goal_markers=False,
-
+            hand_init_pos = (0, 0.4, 0.05),
+            #hand_init_pos = (0, 0.5, 0.35) ,
+           
             **kwargs
     ):
+
+    
         self.quick_init(locals())
-        MultitaskEnv.__init__(self)
+       
         SawyerXYZEnv.__init__(
             self,
             model_name=self.model_name,
             **kwargs
         )
-        if obj_low is None:
-            obj_low = self.hand_low
-        if obj_high is None:
-            obj_high = self.hand_high
-
-        if goal_low is None:
-            goal_low = np.hstack((self.hand_low, obj_low))
-        if goal_high is None:
-            goal_high = np.hstack((self.hand_high, obj_high))
-
-
-        self.max_path_length = 150
-
-        self.reward_type = reward_type
-        self.indicator_threshold = indicator_threshold
-
-        self.obj_init_pos = np.array(obj_init_pos)
-
-        self.fix_goal = fix_goal
-        self.fixed_goal = np.array(fixed_goal)
-
-
-
+        if doorGrasp_low is None:
+            doorGrasp_low = self.hand_low
+        if doorGrasp_high is None:
+            doorGrasp_high = self.hand_high
 
         
 
-        self.hide_goal_markers = hide_goal_markers
+        self.max_path_length = 150
 
+
+        self.tasks = tasks
+        self.num_tasks = len(tasks)
+
+
+      
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
         )
-        self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+        self.hand_and_door_space = Box(
+            np.hstack((self.hand_low, doorGrasp_low)),
+            np.hstack((self.hand_high, doorGrasp_high)),
         )
+
+        import ipdb
+        ipdb.set_trace()
+
+        self.goal_space = Box(goal_low, goal_high)
+
+
         self.observation_space = Dict([
-            ('observation', self.hand_and_obj_space),
-            ('desired_goal', self.hand_and_obj_space),
-            ('achieved_goal', self.hand_and_obj_space),
-           
-            ('state_observation', self.hand_and_obj_space),
-            ('state_desired_goal', self.hand_and_obj_space),
-            ('state_achieved_goal', self.hand_and_obj_space),
+            ('state_observation', self.hand_and_door_space),
+            ('desired_goal', self.goal_space),
+            
         ])
 
         self.reset()
@@ -116,9 +104,6 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
         reward , doorOpenRew = self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
-       
-        #info = self._get_info()
-
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
@@ -131,41 +116,55 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
         flat_obs = np.concatenate((e, b))
 
         return dict(
-            observation=flat_obs,
-            desired_goal=self._state_goal,
-            achieved_goal=flat_obs,
             state_observation=flat_obs,
-            state_desired_goal=self._state_goal,
-            state_achieved_goal=flat_obs,
+            desired_goal=self._state_goal,
+           
         )
 
+
+    def get_endeff_pos(self):
+
+
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+
+        return (rightFinger + leftFinger)/2
+
+
+
+
+    def _set_door_xyz(self, pos):
+
+
+        import ipdb
+        ipdb.set_trace()
+        state='a'
+        
+
+
+    def sample_task(self):
+
+
+        task_idx = np.random.randint(0, self.num_tasks)
+    
+        return self.tasks[task_idx]
+
+
+
+    def _set_goal_marker(self):
     
 
-    def get_obj_pos(self):
-        return self.data.get_body_xpos('obj').copy()
+        angle = self._state_goal
 
-    def _set_goal_marker(self, goal):
-        """
-        This should be use ONLY for visualization. Use self._state_goal for
-        logging, learning, etc.
-        """
+        door_pos = self.door_init_pos
+
+        dist = self.doorHalfWidth * np.tan(angle)
+
+        goalSitePos = np.array([door_pos[0], door_pos[1] - dist, door_pos[2]])
+
         self.data.site_xpos[self.model.site_name2id('goal')] = (
-            goal[:3]
+            goalSitePos
         )
-       
-        if self.hide_goal_markers:
-            self.data.site_xpos[self.model.site_name2id('goal'), 2] = (
-                -1000
-            )
-           
 
-    def _set_obj_xyz(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-
-        qpos[9:12] = pos.copy()
-        qvel[9:15] = 0
-        self.set_state(qpos, qvel)
 
     def reset_model(self):
 
@@ -173,12 +172,20 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
 
         self._reset_hand()
         
-        goal = self.sample_goal()
-        self._state_goal = goal['state_desired_goal']
-       
-      
+        task = self.sample_task()
+
+
+        self._state_goal = task['goalAngle']
+        self.door_init_pos = task['door_init_pos']
+
+
+
+        self._set_goal_marker()
+
+        self._set_door_xyz(self.door_init_pos)
 
         self.curr_path_length = 0
+      
        
         return self._get_obs()
 
@@ -188,52 +195,7 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def put_obj_in_hand(self):
-        new_obj_pos = self.data.get_site_xpos('endeffector')
-        new_obj_pos[1] -= 0.01
-        self.do_simulation(-1)
-        self.do_simulation(1)
-        self._set_obj_xyz(new_obj_pos)
-
-  
-    """
-    Multitask functions
-    """
-    def get_goal(self):
-        return {
-            'desired_goal': self._state_goal,
-            'state_desired_goal': self._state_goal,
-        }
-
-
-    def sample_goals(self, batch_size):
-        if self.fix_goal:
-            goals = np.repeat(
-                self.fixed_goal.copy()[None],
-                batch_size,
-                0
-            )
-        else:
-            goals = np.random.uniform(
-                self.hand_and_obj_space.low,
-                self.hand_and_obj_space.high,
-                size=(batch_size, self.hand_and_obj_space.low.size),
-            )
-
-
-        # num_objs_in_hand = int(batch_size * p_obj_in_hand)
-
-        # # Put object in hand
-        # goals[:num_objs_in_hand, 3:] = goals[:num_objs_in_hand, :3].copy()
-        # goals[:num_objs_in_hand, 4] -= 0.01
-
-        # # Put object one the table (not floating)
-        # goals[num_objs_in_hand:, 5] = self.obj_init_pos[2]
-        return {
-            'state_desired_goal': goals,
-            
-        }
-
+   
     
 
     def get_site_pos(self, siteName):
@@ -248,36 +210,30 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
 
     def compute_rewards(self, actions, obs):
            
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        fingerCOM , doorGraspPoint = obs[:3], obs[3:6]
 
-        doorGraspPoint = self.get_site_pos('doorGraspPoint')
-        
-        
-        
         doorAngleTarget = self._state_goal
        
-        
-        fingerCOM = (rightFinger + leftFinger)/2
-
-
+       
         graspDist = np.linalg.norm(doorGraspPoint - fingerCOM)
         
         
 
         graspRew = -graspDist
 
-
-     
-
         def doorOpenReward():
-
 
 
             doorAngle = self.data.get_joint_qpos('doorjoint')
 
             if graspDist < 0.1:
 
-                return max(10 * doorAngle , 0)
+                if doorAngle <= doorAngleTarget:
+
+                    return max(10 * doorAngle,0)
+
+                elif doorAngle> doorAngleTarget:
+                    return max(10*(doorAngleTarget -  (doorAngle - doorAngleTarget)),0)
 
             return 0
 
@@ -287,47 +243,15 @@ class SawyerDoorOpenEnv(MultitaskEnv, SawyerXYZEnv):
         doorOpenRew = doorOpenReward()
 
         reward = graspRew + doorOpenRew
-        #print(reward)
-
+     
        
         return [reward, doorOpenRew] 
-        #returned in a list because that's how compute_reward in multiTask.env expects it
-
+      
    
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
-        # for stat_name in [
-        #     'hand_distance',
-        #     'obj_distance',
-        #     'hand_and_obj_distance',
-        #     'touch_distance',
-        #     'hand_success',
-        #     'obj_success',
-        #     'hand_and_obj_success',
-        #     'touch_success',
-        # ]:
-        #     stat_name = stat_name
-        #     stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-        #     statistics.update(create_stats_ordered_dict(
-        #         '%s%s' % (prefix, stat_name),
-        #         stat,
-        #         always_show_all_stats=True,
-        #     ))
-        #     statistics.update(create_stats_ordered_dict(
-        #         'Final %s%s' % (prefix, stat_name),
-        #         [s[-1] for s in stat],
-        #         always_show_all_stats=True,
-        #     ))
+       
         return statistics
 
-    def get_env_state(self):
-        base_state = super().get_env_state()
-        goal = self._state_goal.copy()
-        return base_state, goal
-
-    def set_env_state(self, state):
-        base_state, goal = state
-        super().set_env_state(base_state)
-        self._state_goal = goal
-        self._set_goal_marker(goal)
+  
