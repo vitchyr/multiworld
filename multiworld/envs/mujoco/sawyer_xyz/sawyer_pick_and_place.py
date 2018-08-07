@@ -14,14 +14,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
 
-            
-            
+            tasks = [{'goal': [0, 0.7, 0.02], 'height': 0.1, 'obj_init_pos':[0, 0.6, 0.02]}] , 
 
-            obj_init_pos=(0, 0.6, 0.02),
-
-            goals = [[0, 0.7, 0.02, 0.1]],
-
-            
             goal_low=None,
             goal_high=None,
 
@@ -55,12 +49,13 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         self.max_path_length = 150
 
-        self.goals = goals
-        self.num_goals = len(goals)
+        self.tasks = tasks
+        self.num_tasks = len(tasks)
 
-        
+        # defaultTask = tasks[0]
 
-        self.obj_init_pos = np.array(obj_init_pos)
+
+        # self.obj_init_pos = np.array(tasksobj_init_pos)
         self.hand_init_pos = np.array(hand_init_pos)
 
         self.blockSize = blockSize
@@ -107,19 +102,11 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         # action[:3] = [0,0,-1]
         # self.do_simulation([1,-1])
      
-
         # print(action[-1])
 
-        # if self.pickCompleted:
-
-
-        #     self.set_xyz_action(action[:3], action_scale = 2/100)
-
-        # else:
+    
         self.set_xyz_action(action[:3])
 
-
-        # print(action[-1])
         self.do_simulation([action[-1], -action[-1]])
         
         # The marker seems to get reset every time you do a simulation
@@ -127,7 +114,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         ob = self._get_obs()
        
 
-        reward , reachRew, pickRew, placeRew , placingDist = self.compute_rewards(action, ob)
+        reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
        
@@ -137,7 +124,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachRew':reachRew,  'pickRew':pickRew, 'placeRew': placeRew, 'reward' : reward, 'placingDist': placingDist}
+        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'reward' : reward, 'placingDist': placingDist}
 
 
 
@@ -181,20 +168,24 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
 
-    def sample_goal(self):
+    def sample_task(self):
 
 
-        goal_idx = np.random.randint(0, self.num_goals)
+        task_idx = np.random.randint(0, self.num_tasks)
     
-        return self.goals[goal_idx]
+        return self.tasks[task_idx]
 
     def reset_model(self):
 
         
 
         self._reset_hand()
+
+        task = self.sample_task()
         
-        self._state_goal = self.sample_goal()
+        self._state_goal = task['goal']
+        self.obj_init_pos = task['obj_init_pos']
+        self.heightTarget = task['height']
 
 
         self._set_goal_marker(self._state_goal)
@@ -204,14 +195,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.curr_path_length = 0
         self.pickCompleted = False
 
-        init_obj = self.obj_init_pos
+   
 
-        heightTarget , placingGoal = self._state_goal[3], self._state_goal[:3]
-
-
-       
-
-        self.maxPlacingDist = np.linalg.norm(np.array([init_obj[0], init_obj[1], heightTarget]) - np.array(placingGoal)) + heightTarget
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         #Can try changing this
 
 
@@ -243,11 +229,11 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         state_obs = obs['state_observation']
 
         endEffPos , objPos = state_obs[0:3], state_obs[3:6]
-
+        
         
        
-        heightTarget = self._state_goal[3]
-        placingGoal = self._state_goal[:3]
+        heightTarget = self.heightTarget
+        placingGoal = self._state_goal
 
         
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
@@ -256,11 +242,27 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
         graspDist = np.linalg.norm(objPos - fingerCOM)
-        graspRew = -graspDist
-
+    
         placingDist = np.linalg.norm(objPos - placingGoal)
-       
-        
+      
+
+        def reachReward():
+
+            graspRew = -graspDist
+
+          
+            #incentive to close fingers when graspDist is small
+            if graspDist < 0.02:
+
+
+                graspRew = -graspDist + max(actions[-1],0)/50
+
+
+
+            return graspRew , graspDist
+
+     
+      
 
 
         def pickCompletionCriteria():
@@ -274,6 +276,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         if pickCompletionCriteria():
             self.pickCompleted = True
+
+        print(self.pickCompleted)
 
        
 
@@ -289,11 +293,11 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             
 
             if self.pickCompleted and not(objDropped()):
-                return 10*heightTarget
+                return 100*heightTarget
        
             elif (objPos[2]> (self.blockSize + 0.005)) and (graspDist < 0.1):
                 
-                return 10* min(heightTarget, objPos[2])
+                return 100* min(heightTarget, objPos[2])
          
             else:
                 return 0
@@ -301,11 +305,11 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         def placeReward():
 
           
-            c1 = 100 ; c2 = 0.01 ; c3 = 0.001
+            c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
             if self.pickCompleted and (graspDist < 0.1) and not(objDropped()):
 
 
-                placeRew = 100*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
+                placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
 
                
                 placeRew = max(placeRew,0)
@@ -318,15 +322,18 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
       
-
+        reachRew, reachDist = reachReward()
         pickRew = pickReward()
         placeRew , placingDist = placeReward()
 
+
+       
+
       
         assert ((placeRew >=0) and (pickRew>=0))
-        reward = graspRew + pickRew + placeRew
+        reward = reachRew + pickRew + placeRew
 
-        return [reward, graspRew, pickRew, placeRew, placingDist] 
+        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist] 
      
 
    

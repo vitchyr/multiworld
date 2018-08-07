@@ -19,7 +19,7 @@ Usage:
     <geom name="floor" type="plane" pos="0 0 -.9" size="10 10 0.5"
           rgba="0 0 0 1" contype="0" conaffinity="0" />
     <geom name="tableTop" type="box" pos="0 0.7 -0.05" size="0.4 0.3 0.05"
-          rgba=".6 .6 .5 0.3" contype="1" conaffinity="1" condim="4" density="6500"/>
+          rgba=".6 .6 .5 0.3" contype="1" conaffinity="1" condim="3" density="6500" friction="10 0.1 0.002"/>
 
     <body name="base" pos="0 0 0">
         <site name="basesite" pos="0 0 0" size="0.01" />

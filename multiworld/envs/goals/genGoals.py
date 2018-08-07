@@ -12,8 +12,36 @@ def read_goals(fileName):
     fobj = open(save_dir+fileName+'.pkl', 'rb')
     goals = pickle.load(fobj)
 
+    import ipdb
+    ipdb.set_trace()
     return goals
 
+def modify(oldName, newName):
+
+    tasks = read_goals(oldName)
+
+
+    new_tasks = []
+
+    
+    for old_task in tasks:
+
+        new_task={}
+       
+        new_task['obj_init_pos'] = np.concatenate([old_task['obj'], [0.02]])
+        new_task['goal'] = np.concatenate([old_task['goal'], [0.02]]) 
+        new_task['height'] = 0.1
+
+        new_tasks.append(new_task)
+
+    
+
+    fobj = open(save_dir+newName+'.pkl', 'wb')
+    pickle.dump(new_tasks, fobj)
+    fobj.close()
+
+#modify('pickPlace_60X30_old', 'pickPlace_60X30')
+read_goals('pickPlace_60X30')
 
 
 def gen_pickPlaceGoals(fileName):
@@ -56,12 +84,12 @@ def visualize_pickPlace(fileName, xRange = [-.3, .3], yRange=[0.5, 0.8]):
     plt.savefig(fileName+'.png')
 
 
-gen_pickPlaceGoals('pickPlace')
+#gen_pickPlaceGoals('pickPlace_60X30')
 
 
-visualize_pickPlace('pickPlace')
+#visualize_pickPlace('pickPlace_60X30')
 
-
+#read_goals('pickPlace_60X30')
 
 
 
