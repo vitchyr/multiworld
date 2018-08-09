@@ -14,7 +14,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
 
-            tasks = [{'goal': [0, 0.7, 0.02], 'height': 0.1, 'obj_init_pos':[0, 0.6, 0.02]}] , 
+            tasks = [{'goal': [0, 0.7, 0.02], 'height': 0.06, 'obj_init_pos':[0, 0.6, 0.02]}] , 
 
             goal_low=None,
             goal_high=None,
@@ -85,15 +85,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
-        pass
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
+        
+        self.viewer.cam.trackbodyid = 0
+        self.viewer.cam.lookat[0] = 0
+        self.viewer.cam.lookat[1] = 1.0
+        self.viewer.cam.lookat[2] = 0.5
+        self.viewer.cam.distance = 0.6
+        self.viewer.cam.elevation = -45
+        self.viewer.cam.azimuth = 270
+        self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
 
@@ -130,10 +130,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
    
     def _get_obs(self):
-        fingerCOM = self.get_endeff_pos()
+        hand = self.get_endeff_pos()
         objPos = self.get_body_com("obj")
       
-        flat_obs = np.concatenate((fingerCOM, objPos))
+        flat_obs = np.concatenate((hand, objPos))
 
         return dict(
             
@@ -143,12 +143,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             
         )
 
-    def get_endeff_pos(self):
-
-        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
-        return (rightFinger + leftFinger)/2
-
-
+    
 
 
     def _get_info(self):
@@ -193,7 +188,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self._state_goal = task['goal']
         self.obj_init_pos = task['obj_init_pos']
         
-        #self.heightTarget = task['height']
+       
         self.heightTarget = 0.06
 
         self._set_goal_marker(self._state_goal)
@@ -236,7 +231,13 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
            
         state_obs = obs['state_observation']
 
-        fingerCOM , objPos = state_obs[0:3], state_obs[3:6]
+        objPos = state_obs[3:6]
+
+        rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
+        fingerCOM  =  (rightFinger + leftFinger)/2
+
+
+
         
         
        

@@ -56,10 +56,12 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
             np.array([1, 1, 1, 1]),
+            dtype = np.float32
         )
         self.hand_and_door_space = Box(
             np.hstack((self.hand_low, doorGrasp_low)),
             np.hstack((self.hand_high, doorGrasp_high)),
+            dtype = np.float32
         )
 
        
@@ -99,19 +101,21 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
        
       
         self.do_simulation([action[-1], -action[-1]])
+
+        self._set_goal_marker()
         # The marker seems to get reset every time you do a simulation
        
         ob = self._get_obs()
        
 
-        reward , doorOpenRew = self.compute_rewards(action, ob)
+        reward , doorOpenRew , doorAngle, doorAngleTarget= self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
             done = False
-        return ob, reward, done, {'doorOpenRew':doorOpenRew, 'reward': reward}
+        return ob, reward, done, {'doorOpenRew':doorOpenRew, 'reward': reward, 'doorAngle': doorAngle, 'doorAngleTarget': doorAngleTarget}
 
     def _get_obs(self):
         e = self.get_endeff_pos()
@@ -160,13 +164,19 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
 
         door_pos = self.door_init_pos
 
-        dist = self.doorHalfWidth * np.tan(angle)
+        # import ipdb
+        # ipdb.set_trace()
 
-        goalSitePos = np.array([door_pos[0], door_pos[1] - dist, door_pos[2]])
+        goal_x = door_pos[0] + self.doorHalfWidth *(1 - np.cos(angle))
+
+        goal_y = door_pos[1] - self.doorHalfWidth*np.sin(angle)
+
+        goalSitePos = np.array([goal_x, goal_y,  door_pos[2]])
 
         self.data.site_xpos[self.model.site_name2id('goal')] = (
             goalSitePos
         )
+
 
 
     def reset_model(self):
@@ -178,7 +188,7 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
         task = self.sample_task()
 
 
-        self._state_goal = task['goalAngle']
+        self._state_goal = task['goalAngle'][0]
         self.door_init_pos = task['door_init_pos']
 
 
@@ -213,7 +223,10 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
 
     def compute_rewards(self, actions, obs):
 
-        obs = obs['state_observation']
+
+        if isinstance(obs, Dict):
+
+            obs = obs['state_observation']
            
         fingerCOM , doorGraspPoint = obs[:3], obs[3:6]
 
@@ -229,31 +242,36 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
 
         graspRew = -graspDist
 
-        def doorOpenReward():
+        def doorOpenReward(doorAngle):
 
 
-            doorAngle = self.data.get_joint_qpos('doorjoint')
+            
 
+            #angleDiff = np.linalg.norm(doorAngle - doorAngleTarget)
+
+            doorRew = 0
             if graspDist < 0.1:
 
                 if doorAngle <= doorAngleTarget:
 
-                    return max(10 * doorAngle,0)
+                    doorRew =  max(10 * doorAngle,0)
 
                 elif doorAngle> doorAngleTarget:
-                    return max(10*(doorAngleTarget -  (doorAngle - doorAngleTarget)),0)
+                    doorRew =  max(10*(doorAngleTarget -  (doorAngle - doorAngleTarget)),0)
 
-            return 0
+
+                
+            return doorRew
 
         
+        doorAngle = self.data.get_joint_qpos('doorjoint')
 
-
-        doorOpenRew = doorOpenReward()
+        doorOpenRew = doorOpenReward(doorAngle)
 
         reward = graspRew + doorOpenRew
      
        
-        return [reward, doorOpenRew] 
+        return [reward, doorOpenRew, doorAngle, doorAngleTarget] 
       
    
 
@@ -261,5 +279,10 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
         statistics = OrderedDict()
        
         return statistics
+
+
+    def  log_diagnostics(self, paths, prefix):
+        pass
+
 
   
