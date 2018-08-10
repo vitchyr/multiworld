@@ -1,6 +1,10 @@
 from collections import OrderedDict
 import numpy as np
-from gym.spaces import Box, Dict
+from gym.spaces import  Dict
+
+from gym.spaces import Box as gymBox
+
+from rllab.spaces import Box as rllabBox
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
@@ -22,6 +26,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             hand_init_pos = (0, 0.4, 0.05),
             #hand_init_pos = (0, 0.5, 0.35) ,
             blockSize = 0.02,
+            rllabMode = False,
 
             **kwargs
     ):
@@ -59,6 +64,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.hand_init_pos = np.array(hand_init_pos)
 
         self.blockSize = blockSize
+
+
+        self.rllabMode = rllabMode
+        
+        if rllabMode == True:
+            Box = rllabBox
+        else:
+            Box = gymBox
+
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -228,10 +242,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
     def compute_rewards(self, actions, obs):
-           
-        state_obs = obs['state_observation']
 
-        objPos = state_obs[3:6]
+        if isinstance(obs, Dict):
+           
+            obs = obs['state_observation']
+
+        objPos = obs[3:6]
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2

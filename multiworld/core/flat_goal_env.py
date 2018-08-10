@@ -1,4 +1,10 @@
-from gym.spaces import Box, Dict
+from gym.spaces import  Dict
+
+from gym.spaces import Box as gymBox
+
+from rllab.spaces import Box as rllabBox
+
+
 import numpy as np
 
 from multiworld.core.wrapper_env import ProxyEnv
@@ -24,6 +30,14 @@ class FlatGoalEnv(ProxyEnv):
         self.obs_keys = obs_keys
         self.goal_keys = goal_keys
         # TODO: handle nested dict
+
+        rllabMode = self.wrapped_env.rllabMode
+
+        if rllabMode:
+            Box = rllabBox
+        else:
+            Box = gymBox
+
         self.observation_space = Box(
             np.hstack([
                 self.wrapped_env.observation_space.spaces[k].low

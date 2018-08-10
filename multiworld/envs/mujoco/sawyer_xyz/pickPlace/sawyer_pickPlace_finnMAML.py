@@ -7,11 +7,11 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
-from  multiworld.envs.mujoco.sawyer_xyz.door.sawyer_door_open import  SawyerDoorOpenEnv
+from  multiworld.envs.mujoco.sawyer_xyz.pickPlace.sawyer_pick_and_place import  SawyerPickPlaceEnv
 import pickle
 
 
-class SawyerDoorOpen_finnMAMLEnv(SawyerDoorOpenEnv):
+class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
 
     def __init__(
             self,
@@ -23,28 +23,26 @@ class SawyerDoorOpen_finnMAMLEnv(SawyerDoorOpenEnv):
         self.quick_init(locals())
 
         self._goal_idx = None
-        #tasks = pickle.load(open('/home/russellm/multiworld/multiworld/envs/goals/doorOpening_60X20X20.pkl', 'rb'))
-        tasks = pickle.load(open('/root/code/multiworld/multiworld/envs/goals/doorOpening_60X20X20.pkl', 'rb'))
+       
+        tasks = pickle.load(open('/root/code/multiworld/multiworld/envs/goals/pickPlace_60X30.pkl', 'rb'))
 
+        SawyerPickPlaceEnv.__init__(self, tasks = tasks, **kwargs)
 
+        self.observation_space = self.hand_and_obj_space
+        
 
-
-
-        #self.tasks = pickle.load(open(tasksFile, 'rb'))
-
-        SawyerDoorOpenEnv.__init__(self, tasks = tasks, **kwargs)
-
-        self.observation_space = self.hand_and_door_space
-          
 
 
     def _get_obs(self):
-        e = self.get_endeff_pos()
-        b = self.get_site_pos('doorGraspPoint')
-        flat_obs = np.concatenate((e, b))
+        hand = self.get_endeff_pos()
+        objPos = self.get_body_com("obj")
+      
+        flat_obs = np.concatenate((hand, objPos))
+
+
+      
 
         return flat_obs
-
 
 
 
@@ -64,9 +62,14 @@ class SawyerDoorOpen_finnMAMLEnv(SawyerDoorOpenEnv):
             self.viewer_setup()
         return ob
 
+   
+
+
+
     def reset_model(self, reset_args = None):
 
-      
+        
+
         goal_idx = reset_args
         if goal_idx is not None:
             self._goal_idx = goal_idx
@@ -75,28 +78,33 @@ class SawyerDoorOpen_finnMAMLEnv(SawyerDoorOpenEnv):
 
         self._reset_hand()
 
-
         task = self.tasks[self._goal_idx]
+        
+        self._state_goal = task['goal']
+        self.obj_init_pos = task['obj_init_pos']
+        
+       
+        self.heightTarget = 0.06
 
-        self._state_goal = task['goalAngle'][0]
-        self.door_init_pos = task['door_init_pos']
+        self._set_goal_marker(self._state_goal)
 
-
-
-        self._set_goal_marker()
-
-        self._set_door_xyz(self.door_init_pos)
+        self._set_obj_xyz(self.obj_init_pos)
 
         self.curr_path_length = 0
-      
-       
+        self.pickCompleted = False
+
+   
+
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+        #Can try changing this
         return self._get_obs()
+
 
 
     def log_diagnostics(self, paths, prefix):
         pass
 
-
+    
     #required by rllab parallel sampler
     def terminate(self):
         """

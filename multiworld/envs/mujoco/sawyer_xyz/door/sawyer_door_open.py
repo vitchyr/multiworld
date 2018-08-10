@@ -281,8 +281,5 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
         return statistics
 
 
-    def  log_diagnostics(self, paths, prefix):
-        pass
-
-
+  
   
