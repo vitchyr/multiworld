@@ -8,6 +8,8 @@ import mujoco_py
 from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 
+from multiworld.envs.env_util import quat_to_zangle, zangle_to_quat
+
 import copy
 
 
@@ -67,14 +69,58 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
             action_scale=1/100,
+            action_zangle_scale = 1/100,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
         self.action_scale = action_scale
+        self.action_zangle_scale = action_zangle_scale
         self.hand_low = np.array(hand_low)
         self.hand_high = np.array(hand_high)
         self.mocap_low = np.hstack(hand_low)
         self.mocap_high = np.hstack(hand_high)
+
+
+    def set_xyzRot_action(self, action):
+        action = np.clip(action, -1, 1)
+        
+        pos_delta = action[:3] * self.action_scale
+
+        new_mocap_pos = self.data.mocap_pos + pos_delta[None]
+        new_mocap_pos[0, :] = np.clip(
+            new_mocap_pos[0, :],
+            self.mocap_low,
+            self.mocap_high,
+        )
+        self.data.set_mocap_pos('mocap', new_mocap_pos)
+
+
+
+        #zangle_delta = action[3] * self.action_zangle_scale
+        
+        zangle_delta = np.random.uniform(-0.1, 0.1)
+
+       
+        new_mocap_zangle = quat_to_zangle(self.data.mocap_quat[0]) + zangle_delta
+
+
+
+        new_mocap_zangle = np.clip(
+            new_mocap_zangle,
+            -3.0,
+            3.0,
+        )
+
+        if new_mocap_zangle < 0:
+            new_mocap_zangle += 2 * np.pi
+
+       
+
+      
+    
+
+        self.data.set_mocap_quat('mocap', zangle_to_quat(new_mocap_zangle))
+       
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)

@@ -126,6 +126,7 @@ Usage:
 <!--  ================= BEGIN GRIPPER ================= /-->
                                                 
 
+                                            <!-- body name="hand" pos="0 0 0.12" quat="-1 0 1 0"-->
 
                                             <body name="hand" pos="0 0 0.12" quat="-1 0 1 0">
 

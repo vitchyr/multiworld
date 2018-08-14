@@ -4,6 +4,7 @@ from collections import OrderedDict
 from numbers import Number
 
 
+from pyquaternion import Quaternion
 
 
 import numpy as np
@@ -110,3 +111,37 @@ def get_asset_full_path(file_name):
     return os.path.join(ENV_ASSET_DIR, file_name)
 
 
+
+
+# def quat_to_zangle(quat):
+#     angle = -(Quaternion(axis = [0,1,0], angle = np.pi).inverse * Quaternion(quat)).angle
+#     if angle < 0:
+#         return angle + 2 * np.pi
+#     return angle
+
+# def zangle_to_quat(zangle):
+#     """
+#     :param zangle in rad
+#     :return: quaternion
+#     """
+#     return (Quaternion(axis=[0,1,0], angle=np.pi) * Quaternion(axis=[0, 0, -1], angle= zangle)).elements
+
+
+
+
+def quat_to_zangle(quat):
+
+    angle = (Quaternion(axis = [0,1,0], angle = (np.pi/2)).inverse * Quaternion(quat)).angle
+  
+    return angle
+    
+
+
+    
+def zangle_to_quat(zangle):
+    """
+    :param zangle in rad
+    :return: quaternion
+    """
+    return (Quaternion(axis = [0,1,0], angle = (np.pi/2)) * Quaternion(axis=[-1, 0, 0], angle= zangle)).elements
+   # return Quaternion(axis=[1, 0, 0], angle= zangle).elements

@@ -3,7 +3,7 @@ import numpy as np
 from gym.spaces import Box, Dict
 
 from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict, get_asset_full_path
+    create_stats_ordered_dict, get_asset_full_path, zangle_to_quat, quat_to_zangle
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
@@ -65,8 +65,8 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         self.blockSize = blockSize
 
         self.action_space = Box(
-            np.array([-1, -1, -1, -1]),
-            np.array([1, 1, 1, 1]),
+            np.array([-1, -1, -1, -1, -1]),
+            np.array([1, 1, 1, 1,1]),
         )
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
@@ -99,10 +99,16 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         # self.viewer.cam.azimuth = 270
         # self.viewer.cam.trackbodyid = -1
 
+
+
+    
+
+   
+
     def step(self, action):
 
 
-        self.set_xyz_action(action[:3])
+        self.set_xyzRot_action(action[:4])
 
 
        
@@ -181,10 +187,9 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         
 
         self._reset_hand()
-        self.put_obj_in_hand()
+        #self.put_obj_in_hand()
 
-        import ipdb
-        ipdb.set_trace()
+       
         
         self._state_goal = self.sample_goal()
 
@@ -226,7 +231,14 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
+
+           
+
+            #self.data.set_mocap_quat('mocap', zangle_to_quat(0.4))
+
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+
+          
             self.do_simulation(None, self.frame_skip)
 
 
@@ -275,7 +287,10 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         return [reward,  placeRew, reachRew] 
      
 
-   
+    def log_diagnostics(self, paths):
+        pass
+
+
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
