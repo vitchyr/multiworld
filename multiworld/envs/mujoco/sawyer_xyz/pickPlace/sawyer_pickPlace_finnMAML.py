@@ -23,8 +23,11 @@ class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
         self.quick_init(locals())
 
         self._goal_idx = None
-       
+
+
+        #tasks = pickle.load(open('/home/russellm/multiworld/multiworld/envs/goals/pickPlace_20X20_6_8.pkl', 'rb'))
         tasks = pickle.load(open('/root/code/multiworld/multiworld/envs/goals/pickPlace_60X30.pkl', 'rb'))
+        #tasks = pickle.load(open('/root/code/multiworld/multiworld/envs/goals/pickPlace_20X20_6_8.pkl', 'rb'))
 
         SawyerPickPlaceEnv.__init__(self, tasks = tasks, **kwargs)
 
@@ -48,7 +51,7 @@ class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
 
     def sample_goals(self, num_goals):
 
-        assert num_goals == len(self.tasks)
+        #assert num_goals == len(self.tasks)
         #no subsampling
 
         return np.array(range(num_goals))
@@ -93,7 +96,7 @@ class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
         self.curr_path_length = 0
         self.pickCompleted = False
 
-   
+        
 
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         #Can try changing this

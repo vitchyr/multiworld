@@ -1,10 +1,7 @@
 from collections import OrderedDict
 import numpy as np
-from gym.spaces import  Dict
+from gym.spaces import  Dict , Box
 
-from gym.spaces import Box as gymBox
-
-from rllab.spaces import Box as rllabBox
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
@@ -26,8 +23,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             hand_init_pos = (0, 0.4, 0.05),
             #hand_init_pos = (0, 0.5, 0.35) ,
             blockSize = 0.02,
-            rllabMode = False,
-
+          
             **kwargs
     ):
         self.quick_init(locals())
@@ -65,14 +61,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         self.blockSize = blockSize
 
-
-        self.rllabMode = rllabMode
-        
-        if rllabMode == True:
-            Box = rllabBox
-        else:
-            Box = gymBox
-
+       
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -89,10 +78,25 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
            
             ('state_observation', self.hand_and_obj_space),
 
-            ('desired_goal', self.goal_space)
+            ('state_desired_goal', self.goal_space),
+            ('state_achieved_goal', self.goal_space),
+
+
+
         ])
 
         self.reset()
+
+
+
+
+    def get_goal(self):
+        return {
+            
+            'state_desired_goal': self._state_goal,
+    }
+
+
 
     @property
     def model_name(self):
@@ -128,7 +132,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         ob = self._get_obs()
        
 
-        reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_rewards(action, ob)
+        reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, ob)
         self.curr_path_length +=1
 
        
@@ -138,6 +142,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             done = True
         else:
             done = False
+
+        #print(pickRew)
+
         return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'reward' : reward, 'placingDist': placingDist}
 
 
@@ -151,10 +158,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         return dict(
             
-            desired_goal=self._state_goal,
+         
             
             state_observation=flat_obs,
+
+            state_desired_goal=self._state_goal,
             
+            state_achieved_goal=objPos,
+
+
         )
 
     
@@ -184,10 +196,30 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
 
+    def sample_goals(self, batch_size):
+        #Required by HER-TD3
+     
+        goals = []
+
+        for i in range(batch_size):
+
+           
+            task = self.tasks[np.random.randint(0, self.num_tasks)]
+            goals.append(task['goal'])
+
+
+        return {
+            
+            'state_desired_goal': goals,
+        }
+
+
     def sample_task(self):
 
 
         task_idx = np.random.randint(0, self.num_tasks)
+
+    
     
         return self.tasks[task_idx]
 
@@ -199,7 +231,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         task = self.sample_task()
         
-        self._state_goal = task['goal']
+        self._state_goal = np.array(task['goal'])
         self.obj_init_pos = task['obj_init_pos']
         
        
@@ -216,6 +248,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         #Can try changing this
+
 
 
 
@@ -239,13 +272,32 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
 
+    def compute_rewards(self, actions, obsBatch):
+        #Required by HER-TD3
 
 
-    def compute_rewards(self, actions, obs):
+        assert isinstance(obsBatch, dict) == True
 
-        if isinstance(obs, Dict):
+
+        obsList = obsBatch['state_observation']
+        rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
+
+
+
+
+        return np.array(rewards)
+
+
+
+
+    def compute_reward(self, actions, obs):
+
+        if isinstance(obs, dict):
            
             obs = obs['state_observation']
+
+        
+
 
         objPos = obs[3:6]
 
@@ -261,7 +313,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         placingGoal = self._state_goal
 
 
+
+
+      
         graspDist = np.linalg.norm(objPos - fingerCOM)
+
+        
     
         placingDist = np.linalg.norm(objPos - placingGoal)
       
@@ -342,9 +399,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
                 return [0 , placingDist]
 
 
-      
+        
         reachRew, reachDist = reachReward()
         pickRew = pickReward()
+
+
+
         placeRew , placingDist = placeReward()
 
 
@@ -363,5 +423,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         statistics = OrderedDict()
        
         return statistics
+
+    def log_diagnostics(self, paths = None ):
+
+
+        pass
+        
+
 
    

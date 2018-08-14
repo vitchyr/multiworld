@@ -1,8 +1,6 @@
 from gym.spaces import  Dict
 
-from gym.spaces import Box as gymBox
-
-from rllab.spaces import Box as rllabBox
+from gym.spaces import Box 
 
 
 import numpy as np
@@ -31,12 +29,6 @@ class FlatGoalEnv(ProxyEnv):
         self.goal_keys = goal_keys
         # TODO: handle nested dict
 
-        rllabMode = self.wrapped_env.rllabMode
-
-        if rllabMode:
-            Box = rllabBox
-        else:
-            Box = gymBox
 
         self.observation_space = Box(
             np.hstack([
