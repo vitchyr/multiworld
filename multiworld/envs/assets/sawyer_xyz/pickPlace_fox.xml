@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"/>
+        <body name="object0" pos="-0.1 0.6 0">
+            <joint limited="false" type="free"/>
+           <!--  <inertial pos="0 0 0" mass="0.1" diaginertia="1 1 1"/> -->
+            <geom conaffinity="0" contype="0" mass="0.1" mesh="fox_mesh" rgba="0.9872412946231839 0.8645992134272698 0.6012641119260476 0" type="mesh" name='objGeom'/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.1" mass="0.1" mesh="fox_convex_mesh0" rgba="0 1 0 0.5" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.1" mass="0.1" mesh="fox_convex_mesh1" rgba="0 1 0 0.5" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.1" mass="0.1" mesh="fox_convex_mesh2" rgba="0 1 0 0.5" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.1" mass="0.1" mesh="fox_convex_mesh3" rgba="0 1 0 0.5" type="mesh"/>
+
+             <site name="objSite" pos="0 0 0" size="0.01"
+              rgba="0 0 1 0.5"/>
+
+           
+        </body>
+
+        <site name="goal" pos="0.3 0.9 0.02" size="0.02"
+              rgba="1 0.5 0.5 0.5"/>
+
+    </worldbody>
+    <asset>
+        <mesh file="fox/Fox.stl" name="fox_mesh" scale="0.010759084794757214 0.010759084794757214 0.00806931359606791"/>
+        <mesh file="fox/Shape_IndexedFaceSet_001.stl" name="fox_convex_mesh0" scale="0.010759084794757214 0.010759084794757214 0.00806931359606791"/>
+        <mesh file="fox/Shape_IndexedFaceSet.stl" name="fox_convex_mesh1" scale="0.010759084794757214 0.010759084794757214 0.00806931359606791"/>
+        <mesh file="fox/Shape_IndexedFaceSet_003.stl" name="fox_convex_mesh2" scale="0.010759084794757214 0.010759084794757214 0.00806931359606791"/>
+        <mesh file="fox/Shape_IndexedFaceSet_002.stl" name="fox_convex_mesh3" scale="0.010759084794757214 0.010759084794757214 0.00806931359606791"/>
+    </asset>
+
+
+    <sensor>
+      
+        <touch name='rightclaw_sensor' site='rightEndEffector'/>
+        <touch name='leftclaw_sensor' site='leftEndEffector'/>
+   
+    </sensor>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
+
+    </actuator>
+
+</mujoco>
+

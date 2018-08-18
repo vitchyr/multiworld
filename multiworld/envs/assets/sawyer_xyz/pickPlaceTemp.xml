@@ -11,6 +11,9 @@
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
+            
+            
+            
         </body>
     </worldbody>
     <asset>

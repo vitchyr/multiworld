@@ -13,7 +13,14 @@
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh5" rgba="0 1 0 0" type="mesh"/>
+
+            <site name="obj" pos="0 0 0" size= '0.01 0.01 0.01' />
+
+
         </body>
+
+        <site name="goal" pos="0.3 0.9 0.02" size="0.02"
+              rgba="1 0.5 0.5 0.5"/>
     </worldbody>
     <asset>
         <mesh file="Elephant/Elephant.stl" name="Elephant_mesh" scale="0.0062182497888854105 0.0062182497888854105 0.004663687341664058"/>

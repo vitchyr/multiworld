@@ -29,6 +29,9 @@ class SawyerPickPlaceEnv_4D(SawyerPickPlaceEnv):
             np.array([-1, -1, -1, -1, -1]),
             np.array([1, 1, 1, 1, 1]),
         )
+
+  
+
     
 
     def step(self, action):
@@ -36,18 +39,21 @@ class SawyerPickPlaceEnv_4D(SawyerPickPlaceEnv):
       
 
         self.set_xyzRot_action(action[:4])
-    
       
 
         self.do_simulation([action[-1], -action[-1]])
         
         # The marker seems to get reset every time you do a simulation
-
-
         self._set_goal_marker(self._state_goal)
+
+
+
+        self._set_objCOM_marker()
+
+        print(self.data.sensordata)
+
         ob = self._get_obs()
        
-
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, ob)
         self.curr_path_length +=1
 

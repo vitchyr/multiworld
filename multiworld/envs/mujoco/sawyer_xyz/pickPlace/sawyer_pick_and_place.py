@@ -22,7 +22,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
             hand_init_pos = (0, 0.4, 0.05),
             #hand_init_pos = (0, 0.5, 0.35) ,
-            blockSize = 0.02,
+
+            liftThresh = 0.03,
+            
           
             **kwargs
     ):
@@ -48,6 +50,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
        
 
 
+        self.liftThresh = liftThresh
+
         self.max_path_length = 150
 
         self.tasks = tasks
@@ -59,9 +63,6 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         # self.obj_init_pos = np.array(tasksobj_init_pos)
         self.hand_init_pos = np.array(hand_init_pos)
 
-        self.blockSize = blockSize
-
-       
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -85,11 +86,6 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         ])
 
-        #self.reset()
-
-
-
-
     def get_goal(self):
         return {
             
@@ -100,7 +96,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        #return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+
+        return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
         
@@ -152,7 +150,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
    
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos = self.get_body_com("obj")
+        objPos =  self.data.get_geom_xpos('objGeom')
       
         flat_obs = np.concatenate((hand, objPos))
 
@@ -183,6 +181,17 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         """
         self.data.site_xpos[self.model.site_name2id('goal')] = (
             goal[:3]
+        )
+
+    def _set_objCOM_marker(self):
+        """
+        This should be use ONLY for visualization. Use self._state_goal for
+        logging, learning, etc.
+
+        """
+        objPos =  self.data.get_geom_xpos('objGeom')
+        self.data.site_xpos[self.model.site_name2id('objSite')] = (
+            objPos
         )
        
        
@@ -223,6 +232,21 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
     
         return self.tasks[task_idx]
 
+    
+
+    def adjust_initObjPos(self, orig_init_pos):
+
+        #This is to account for meshes for the geom and object are not aligned
+        #If this is not done, the object could be initialized in an extreme position
+
+         
+        diff = self.get_body_com('object0')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        adjustedPos = orig_init_pos[:2] + diff
+
+        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
+        return [adjustedPos[0], adjustedPos[1],0]
+
+
     def reset_model(self):
 
         
@@ -230,14 +254,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self._reset_hand()
 
         task = self.sample_task()
-        
+  
         self._state_goal = np.array(task['goal'])
-        
+        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
 
-        self.obj_init_pos = task['obj_init_pos']
+        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         
        
-        self.heightTarget = 0.06
+        self.heightTarget = self.objHeight + self.liftThresh
+
 
         self._set_goal_marker(self._state_goal)
 
@@ -274,6 +299,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
 
+
+
+
     def compute_rewards(self, actions, obsBatch):
         #Required by HER-TD3
 
@@ -294,6 +322,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
     def compute_reward(self, actions, obs):
 
+
         if isinstance(obs, dict):
            
             obs = obs['state_observation']
@@ -302,6 +331,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
         objPos = obs[3:6]
+
+
 
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         fingerCOM  =  (rightFinger + leftFinger)/2
@@ -349,6 +380,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             tolerance = 0.01
 
             if objPos[2] >= (heightTarget - tolerance):
+
+               
+
                 return True
             else:
                 return False
@@ -363,7 +397,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         def objDropped():
 
-            return (objPos[2] < (self.blockSize + 0.005)) and (placingDist >0.02) and (graspDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (graspDist > 0.02) 
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
 
@@ -375,7 +409,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             if self.pickCompleted and not(objDropped()):
                 return hScale*heightTarget
        
-            elif (objPos[2]> (self.blockSize + 0.005)) and (graspDist < 0.1):
+            elif (objPos[2]> (self.objHeight + 0.005)) and (graspDist < 0.1):
+
+
                 
                 return hScale* min(heightTarget, objPos[2])
          
@@ -405,14 +441,13 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         reachRew, reachDist = reachReward()
         pickRew = pickReward()
 
+   
+
+
 
 
         placeRew , placingDist = placeReward()
 
-
-       
-
-      
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
 
