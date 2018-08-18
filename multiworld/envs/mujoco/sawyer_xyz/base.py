@@ -69,7 +69,7 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             hand_low=(-0.5, 0.40, 0.05),
             hand_high=(0.5, 1, 0.5),
             action_scale=1/100,
-            action_zangle_scale = 1/100,
+            action_zangle_scale = 1/10,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
@@ -96,9 +96,9 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
 
 
 
-        #zangle_delta = action[3] * self.action_zangle_scale
+        zangle_delta = action[3] * self.action_zangle_scale
         
-        zangle_delta = np.random.uniform(-0.1, 0.1)
+        #zangle_delta = np.random.uniform(-0.1, 0.1)
 
        
         new_mocap_zangle = quat_to_zangle(self.data.mocap_quat[0]) + zangle_delta
@@ -115,10 +115,6 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             new_mocap_zangle += 2 * np.pi
 
        
-
-      
-    
-
         self.data.set_mocap_quat('mocap', zangle_to_quat(new_mocap_zangle))
        
 

@@ -15,24 +15,24 @@ Usage:
 
 <mujoco>
     <asset>
-        <mesh name="pedestal" file="pedestal.stl" />
-        <mesh name="base" file="base.stl" />
-        <mesh name="l0" file="l0.stl" />
-        <mesh name="head" file="head.stl" />
-        <mesh name="l1" file="l1.stl" />
-        <mesh name="l2" file="l2.stl" />
-        <mesh name="l3" file="l3.stl" />
-        <mesh name="l4" file="l4.stl" />
-        <mesh name="l5" file="l5.stl" />
-        <mesh name="l6" file="l6.stl" />
-        <mesh name="eGripperBase" file="eGripperBase.stl" />
+        <mesh name="pedestal" file="sawyer/pedestal.stl" />
+        <mesh name="base" file="sawyer/base.stl" />
+        <mesh name="l0" file="sawyer/l0.stl" />
+        <mesh name="head" file="sawyer/head.stl" />
+        <mesh name="l1" file="sawyer/l1.stl" />
+        <mesh name="l2" file="sawyer/l2.stl" />
+        <mesh name="l3" file="sawyer/l3.stl" />
+        <mesh name="l4" file="sawyer/l4.stl" />
+        <mesh name="l5" file="sawyer/l5.stl" />
+        <mesh name="l6" file="sawyer/l6.stl" />
+        <mesh name="eGripperBase" file="sawyer/eGripperBase.stl" />
     </asset>
 
     <visual>
         <headlight ambient="0.5 0.5 0.5"  />
     </visual>
 
-    <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes/sawyer"/>
+    <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes"/>
     <size njmax="6000" nconmax="6000"/>
     <option
             gravity="0 0 -9.81"

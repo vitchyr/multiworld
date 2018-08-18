@@ -15,7 +15,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
 
-            tasks = [{'goal': [0, 0.7, 0.02], 'height': 0.06, 'obj_init_pos':[0, 0.6, 0.02]}] , 
+            tasks = [{'goal': np.array([0, 0.7, 0.02]), 'height': 0.06, 'obj_init_pos':np.array([0, 0.6, 0.02])}] , 
 
             goal_low=None,
             goal_high=None,
@@ -85,7 +85,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         ])
 
-        self.reset()
+        #self.reset()
 
 
 
@@ -232,6 +232,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         task = self.sample_task()
         
         self._state_goal = np.array(task['goal'])
+        
+
         self.obj_init_pos = task['obj_init_pos']
         
        
@@ -424,8 +426,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
        
         return statistics
 
-    def log_diagnostics(self, paths = None ):
 
+
+
+    def log_diagnostics(self, paths = None, logger = None):
 
         pass
         

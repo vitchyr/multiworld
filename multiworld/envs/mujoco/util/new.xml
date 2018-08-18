@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+
+    <top>
+    <worldbody>
+        <body name="object0" pos="-0.13021289957587315 -0.036354021377131306 -0.8379735490023056">
+            <joint type="free"/>
+            <geom conaffinity="0" contype="0" mass="0.014285714285714287" mesh="Elephant_mesh" rgba="0.7868883578446967 0.4491585948143949 0.4099369863891 1" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.014285714285714287" mesh="Elephant_convex_mesh5" rgba="0 1 0 0" type="mesh"/>
+        </body>
+    </worldbody>
+    <asset>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Elephant.stl" name="Elephant_mesh" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Shape_IndexedFaceSet_001.stl" name="Elephant_convex_mesh0" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Shape_IndexedFaceSet_005.stl" name="Elephant_convex_mesh1" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Shape_IndexedFaceSet.stl" name="Elephant_convex_mesh2" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Shape_IndexedFaceSet_004.stl" name="Elephant_convex_mesh3" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Shape_IndexedFaceSet_003.stl" name="Elephant_convex_mesh4" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+        <mesh file="/home/russellm/visual_mpc/mjc_models/Elephant/Shape_IndexedFaceSet_002.stl" name="Elephant_convex_mesh5" scale="0.0621824978888541 0.0621824978888541 0.04663687341664057"/>
+    </asset>
+    <sensor>
+        <framepos name="object0_sensor" objname="object0" objtype="body"/>
+    </sensor>
+</top>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
+
+
+        
+    </actuator>
+
+</mujoco>
+

@@ -66,7 +66,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1, -1]),
-            np.array([1, 1, 1, 1,1]),
+            np.array([1, 1, 1, 1, 1]),
         )
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
@@ -113,7 +113,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
 
        
         
-        self.do_simulation([action[-1], -action[-1]])
+        self.do_simulation([1,-1])
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
@@ -169,7 +169,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         qvel = self.data.qvel.flat.copy()
 
         
-
+      
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
@@ -187,7 +187,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         
 
         self._reset_hand()
-        #self.put_obj_in_hand()
+        self.put_obj_in_hand()
 
        
         
@@ -210,19 +210,25 @@ class SawyerDishRackEnv( SawyerXYZEnv):
 
      
 
-
-
         return self._get_obs()
 
 
 
     def put_obj_in_hand(self):
 
-        new_obj_pos = self.data.get_site_xpos('endEffector')
-        new_obj_pos[1] -= 0.01
-        self.do_simulation(-1)
-        self.do_simulation(1)
+
+        for _ in range(20):
+
+            self.do_simulation([1,-1], self.frame_skip)
+
+        new_obj_pos = np.copy(self.data.get_site_xpos('endEffector'))
+        new_obj_pos[2] -= 0.01
+
+      
         self._set_obj_xyz(new_obj_pos)
+
+      
+       
 
 
     def _reset_hand(self):
@@ -232,13 +238,9 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
 
-           
-
-            #self.data.set_mocap_quat('mocap', zangle_to_quat(0.4))
-
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
-          
+
             self.do_simulation(None, self.frame_skip)
 
 

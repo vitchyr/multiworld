@@ -28,10 +28,4 @@
         
     </actuator>
 
-
-    <!-- <contact> -->
-        <!-- <pair geom1= "objbox" geom2="tableTop" solimp='1 1 0' solref='0.02 1'/>
-        <pair geom1= "objbox" geom2="rightclaw_it" solimp='1 1 0' solref='0.02 1'/>
-        <pair geom1= "objbox" geom2="leftclaw_it" solimp='1 1 0' solref='0.02 1'/> -->
-   <!--  </contact> -->
 </mujoco>
