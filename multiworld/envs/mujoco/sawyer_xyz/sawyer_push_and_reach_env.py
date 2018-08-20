@@ -188,7 +188,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             'state_desired_goal': self._state_goal,
         }
 
-    def set_to_goal(self, goal):
+    def set_to_goal(self, goal, set_goal=True):
         hand_goal = goal['state_desired_goal'][:3]
         puck_goal = goal['state_desired_goal'][3:]
         for _ in range(30):

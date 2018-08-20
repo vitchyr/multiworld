@@ -21,6 +21,7 @@ class ImageEnv(ProxyEnv):
         self.quick_init(locals())
         super().__init__(wrapped_env)
         self.wrapped_env.hide_goal_markers = True
+
         self.imsize = imsize
         self.init_camera = init_camera
         self.transpose = transpose
@@ -53,8 +54,8 @@ class ImageEnv(ProxyEnv):
         spaces['image_achieved_goal'] = img_space
         self.observation_space = Dict(spaces)
 
-    def step(self, action):
-        obs, reward, done, info = self.wrapped_env.step(action)
+    def step(self, action, **kwargs):
+        obs, reward, done, info = self.wrapped_env.step(action, **kwargs)
         new_obs = self._update_obs(obs)
         return new_obs, reward, done, info
 
@@ -62,8 +63,10 @@ class ImageEnv(ProxyEnv):
         obs = self.wrapped_env.reset()
         env_state = self.wrapped_env.get_env_state()
         self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+        goal = self.wrapped_env._state_goal.copy()
         self._img_goal = self._get_flat_img()
         self.wrapped_env.set_env_state(env_state)
+        self.wrapped_env._state_goal = goal
         return self._update_obs(obs)
 
     def _update_obs(self, obs):
@@ -79,6 +82,10 @@ class ImageEnv(ProxyEnv):
     def _get_flat_img(self):
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image()
+        # image_obs = self._wrapped_env.get_image(width=200, height=200)
+        # start_x = 60
+        # start_y = 45
+        # image_obs = image_obs[start_x:start_x + self.imsize, start_y:start_y + self.imsize, :]
         if self._render_local:
             cv2.imshow('env', image_obs)
             cv2.waitKey(1)
