@@ -50,7 +50,7 @@ ASSET_BASE_DIR = os.path.join(os.path.dirname(__file__), 'assets/meshes/')
 
 
 def create_object_xml(num_objects, object_mass, friction_params, object_meshes,
-                      finger_sensors, maxlen, minlen, reset_xml, obj_classname = None,
+                      maxlen, minlen, reset_xml, obj_classname = None,
                       block_height = 0.03, block_width = 0.03):
     """
     :param hyperparams:
@@ -62,12 +62,7 @@ def create_object_xml(num_objects, object_mass, friction_params, object_meshes,
 
     save_dict_list = []
 
-    if finger_sensors:
-        sensor_frame = ET.SubElement(root, "sensor")
-        ET.SubElement(sensor_frame, "touch", name = "finger1_sensor", site = "finger1_surf")
-        ET.SubElement(sensor_frame, "touch", name = "finger2_sensor", site = "finger2_surf")
-    else:
-        sensor_frame = None
+  
     f_sliding, f_torsion, f_rolling = friction_params
     world_body = ET.SubElement(root, "worldbody")
 
@@ -154,27 +149,33 @@ def create_object_xml(num_objects, object_mass, friction_params, object_meshes,
             else: object_pos, mass_per_elem, n_cvx_files = loaded_meshes[chosen_mesh]
 
             pos_str = "{} {} {}".format(object_pos[0], object_pos[1], object_pos[2])
+            angle_str = "{} {} {}".format(0, 0, np.random.uniform(0, 6.28))
 
 
             
             ET.SubElement(world_body, 'include', file = 'sawyer_xyz_base.xml')
 
+          
+
+            ET.SubElement(world_body, 'site', name = 'goal', pos = '0.3 0.9 0.02', size = '0.02', rgba='1 0.5 0.5 0.5')
+
             if obj_classname is not None:
-                obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str,
+                obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str, euler=angle_str,
                                     childclass=obj_classname)
-            else: obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str)
+            else: obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str, euler=angle_str)
 
             ET.SubElement(obj, "joint", type="free", limited='false')
+            ET.SubElement(obj, 'inertial', pos='0 0 0', mass=str(object_mass), diaginertia='10000 10000 10000')
 
             #visual mesh
             ET.SubElement(obj, "geom", type="mesh", mesh = chosen_mesh + "_mesh",
                           rgba="{} {} {} 1".format(color1[0], color1[1], color1[2]), mass="{}".format(mass_per_elem),
-                          contype="0", conaffinity="0")
+                          contype="0", conaffinity="0", name='objGeom')
             #contact meshes
             for n in range(n_cvx_files):
                 ET.SubElement(obj, "geom", type="mesh", mesh=chosen_mesh + "_convex_mesh{}".format(n),
                               rgba="0 1 0 0", mass="{}".format(mass_per_elem),
-                              contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
+                              contype="1", conaffinity="1", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
                               )
 
         else:
@@ -184,22 +185,23 @@ def create_object_xml(num_objects, object_mass, friction_params, object_meshes,
                                     childclass=obj_classname)
             else: obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0")
 
-            ET.SubElement(obj, "joint", type="free")
+            ET.SubElement(obj, "joint", type="free", limited='false')
+            ET.SubElement(obj, 'inertial', pos='0 0 0', mass='1', diaginertia='10000 10000 10000')
 
             ET.SubElement(obj, "geom", type="box", size="{} {} {}".format(block_width, l1, block_height),
                           rgba="{} {} {} 1".format(color1[0], color1[1], color1[2]), mass="{}".format(object_mass),
-                          contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
+                          contype="1", conaffinity="1", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
                           )
             ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2),
                           type="box", size="{} {} {}".format(l2, block_width, block_height),
                           rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
-                          contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
+                          contype="1", conaffinity="1", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
                           )
 
 
-        if sensor_frame is None:
-            sensor_frame = ET.SubElement(root, "sensor")
-        ET.SubElement(sensor_frame, "framepos", name=obj_string + '_sensor', objtype="body", objname=obj_string)
+        # if sensor_frame is None:
+        #     sensor_frame = ET.SubElement(root, "sensor")
+        #ET.SubElement(sensor_frame, "framepos", name=obj_string + '_sensor', objtype="body", objname=obj_string)
 
     tree = ET.ElementTree(root)
 
@@ -215,29 +217,41 @@ def create_object_xml(num_objects, object_mass, friction_params, object_meshes,
     return xml_str
 
 
-from jinja2 import Environment, FileSystemLoader
-file_loader = FileSystemLoader( os.path.join(os.path.dirname(__file__), 'assets/templates'))
 
-env = Environment(loader=file_loader)
+def create_xml(fileName = 'temp', objectMass = 0.5, friction_params = [1, 0.1, 0.02], objMesh = 'fox', block_height = None, block_width = None, maxlen = 0.2, minlen = 0.1):
 
-template = env.get_template('pickPlace.xml')
+    if objMesh == None:
+        assert block_width and block_height
 
-objectXML_str = create_object_xml( num_objects = 1, object_mass = 0.1, friction_params = [1 , 0.1, 0.1] , object_meshes = ['Elephant'],
-                      finger_sensors = None, maxlen = 0.2, minlen = 0.1, reset_xml = None, obj_classname = None,
-                      block_height = 0.03, block_width = 0.03)
+    from jinja2 import Environment, FileSystemLoader
+    file_loader = FileSystemLoader( os.path.join(os.path.dirname(__file__), 'assets/templates'))
 
+    env = Environment(loader=file_loader)
 
+    template = env.get_template('pickPlace.xml')
 
-
-output = template.render(objectData=objectXML_str)
-
-
-outfile = os.path.join(os.path.dirname(__file__), 'assets/sawyer_xyz')+'/pickPlaceTempE.xml'
+    objectXML_str = create_object_xml( num_objects = 1, object_mass = objectMass, friction_params = friction_params , object_meshes = [objMesh],
+                          maxlen = maxlen, minlen = minlen, reset_xml = None, obj_classname = None,
+                          block_height = block_height, block_width = block_width)
 
 
+    output = template.render(objectData=objectXML_str)
 
-with open(outfile, 'w') as f:
-  
-    f.write(output)
+    outfile = os.path.join(os.path.dirname(__file__), 'assets/sawyer_xyz')+'/'+fileName+'.xml'
 
-print(output)
+
+
+    with open(outfile, 'w') as f:
+      
+        f.write(output)
+
+    print(output)
+
+#create(maxlen = 0.1, objMesh = 'Fork')
+
+
+for maxlen in [0.10]:
+
+    for objMesh in ['Bowl', 'cupcake', 'Elephant', 'ElephantBowl', 'Fork', 'fox', 'GlassBowl', 'Knife', 'Pawn', 'Queen', 'Rook', 'Spoon', 'ServingBowl']:
+    #for objMesh in ['Fork']:
+        create_xml(maxlen = maxlen, objMesh = objMesh, fileName = 'temp_'+objMesh+str(maxlen))

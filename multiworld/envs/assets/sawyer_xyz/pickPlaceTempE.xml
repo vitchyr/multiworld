@@ -4,16 +4,15 @@
 
     <worldbody>
         <include file="sawyer_xyz_base.xml"/>
+        <site name="goal" pos="0.3 0.9 0.02" rgba="1 0.5 0.5 0.5" size="0.02"/>
         <body name="object0" pos="0 0.7 0">
             <joint limited="false" type="free"/>
-            <geom conaffinity="0" contype="0" mass="0.02" mesh="fox_mesh" rgba="0.9872412946231839 0.8645992134272698 0.6012641119260476 1" type="mesh"/>
+            <inertial diaginertia="10000 10000 10000" mass="1" pos="0 0 0"/>
+            <geom conaffinity="0" contype="0" mass="0.02" mesh="fox_mesh" rgba="0.4830405869909284 0.3602904023515609 0.7103549484021587 1" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.02" mesh="fox_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
-            
-            
-            
         </body>
     </worldbody>
     <asset>
@@ -23,13 +22,18 @@
         <mesh file="fox/Shape_IndexedFaceSet_003.stl" name="fox_convex_mesh2" scale="0.018759084794757214 0.018759084794757214 0.01406931359606791"/>
         <mesh file="fox/Shape_IndexedFaceSet_002.stl" name="fox_convex_mesh3" scale="0.018759084794757214 0.018759084794757214 0.01406931359606791"/>
     </asset>
+
+
     <sensor>
-        <framepos name="object0_sensor" objname="object0" objtype="body"/>
+      
+        <touch name='rightclaw_sensor' site='rightEndEffector'/>
+        <touch name='leftclaw_sensor' site='leftEndEffector'/>
+   
     </sensor>
 
     <actuator>
-        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
-        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="1000"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="1000"  user="1"/>
 
     </actuator>
 

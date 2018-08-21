@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"/>
+        <site name="goal" pos="0.3 0.9 0.02" rgba="1 0.5 0.5 0.5" size="0.02"/>
+        <body name="object0" pos="0 0.7 0">
+            <joint limited="false" type="free"/>
+            <inertial diaginertia="10000 10000 10000" mass="1" pos="0 0 0"/>
+            <geom conaffinity="0" contype="0" mass="0.05" mesh="cupcake_mesh" rgba="0.9824219550658999 0.3277871288932917 0.49913252281870607 1" type="mesh"/>
+            <geom conaffinity="7" contype="7" friction="1 0.1 0.1" mass="0.05" mesh="cupcake_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
+        </body>
+    </worldbody>
+    <asset>
+        <mesh file="cupcake/Cupcake.stl" name="cupcake_mesh" scale="0.026055235082688626 0.026055235082688626 0.02054794466860145"/>
+        <mesh file="cupcake/Shape_IndexedFaceSet.stl" name="cupcake_convex_mesh0" scale="0.026055235082688626 0.026055235082688626 0.02054794466860145"/>
+    </asset>
+
+
+    <sensor>
+      
+        <touch name='rightclaw_sensor' site='rightEndEffector'/>
+        <touch name='leftclaw_sensor' site='leftEndEffector'/>
+   
+    </sensor>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="1000"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="1000"  user="1"/>
+
+    </actuator>
+
+</mujoco>
+

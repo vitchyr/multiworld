@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco>
+    <include file="shared_config.xml"></include>
+
+    <worldbody>
+        <include file="sawyer_xyz_base.xml"/>
+        <site name="goal" pos="0.3 0.9 0.02" rgba="1 0.5 0.5 0.5" size="0.02"/>
+        <body euler="0 0 6.135076687004272" name="object0" pos="0 0.7 0">
+            <joint limited="false" type="free"/>
+            <inertial diaginertia="10000 10000 10000" mass="0.5" pos="0 0 0"/>
+            <geom conaffinity="0" contype="0" mass="0.08333333333333333" mesh="ElephantBowl_mesh" name="objGeom" rgba="0.9612769940877881 0.34331838143779136 0.6912419801998595 1" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.08333333333333333" mesh="ElephantBowl_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.08333333333333333" mesh="ElephantBowl_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.08333333333333333" mesh="ElephantBowl_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.08333333333333333" mesh="ElephantBowl_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.08333333333333333" mesh="ElephantBowl_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
+        </body>
+    </worldbody>
+    <asset>
+        <mesh file="ElephantBowl/ElephantBowl.stl" name="ElephantBowl_mesh" scale="0.029275941322441417 0.029275941322441417 0.029275941322441417"/>
+        <mesh file="ElephantBowl/Shape_IndexedFaceSet_001.stl" name="ElephantBowl_convex_mesh0" scale="0.029275941322441417 0.029275941322441417 0.029275941322441417"/>
+        <mesh file="ElephantBowl/Shape_IndexedFaceSet.stl" name="ElephantBowl_convex_mesh1" scale="0.029275941322441417 0.029275941322441417 0.029275941322441417"/>
+        <mesh file="ElephantBowl/Shape_IndexedFaceSet_004.stl" name="ElephantBowl_convex_mesh2" scale="0.029275941322441417 0.029275941322441417 0.029275941322441417"/>
+        <mesh file="ElephantBowl/Shape_IndexedFaceSet_003.stl" name="ElephantBowl_convex_mesh3" scale="0.029275941322441417 0.029275941322441417 0.029275941322441417"/>
+        <mesh file="ElephantBowl/Shape_IndexedFaceSet_002.stl" name="ElephantBowl_convex_mesh4" scale="0.029275941322441417 0.029275941322441417 0.029275941322441417"/>
+    </asset>
+
+
+    <sensor>
+      
+        <touch name='rightclaw_sensor' site='rightEndEffector'/>
+        <touch name='leftclaw_sensor' site='leftEndEffector'/>
+   
+    </sensor>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="1000"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="1000"  user="1"/>
+
+    </actuator>
+
+</mujoco>
+
