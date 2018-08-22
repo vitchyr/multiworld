@@ -8,6 +8,8 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
+from pyquaternion import Quaternion
+
 #from multiworld.envs.create_xml_multiWorld import create_xml
 
 
@@ -17,15 +19,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             obj_low=None,
             obj_high=None,
 
-            tasks = [{'goal': np.array([0, 0.7, 0.02]), 'height': 0.06, 'obj_init_pos':np.array([0, 0.6, 0.02])}] , 
+            tasks = [{'goal': np.array([0, 0.7, 0.02]),  'obj_init_pos':np.array([0, 0.6, 0.02]), 'obj_init_angle': 0.3}] , 
 
             goal_low=None,
             goal_high=None,
 
             hand_init_pos = (0, 0.4, 0.05),
             #hand_init_pos = (0, 0.5, 0.35) ,
-
-            liftThresh = 0.03,
+            #liftThresh = 0.03,
+            liftThresh = 0.04,
 
             # reset_xml_args = {'meshes': ['fox'], 'massRange':[0.1, 0.5], 'frictionRange':[0.2,1], 'sizeRange':[0.1, 0.15]}
             
@@ -103,14 +105,19 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         #return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
 
-        #objMesh = 'Pawn'
-        objMesh = 'Bowl'
-        size = 0.1
+       
+        # objMesh = 'Elephant'
+        # size = 0.08
+        # mass = 0.1
 
-        return get_asset_full_path('sawyer_xyz/temp_'+str(objMesh)+str(size)+'.xml')
+        # return get_asset_full_path('sawyer_xyz/temp_'+objMesh+str(size)+'_mass'+str(mass)+'.xml')
+        #return get_asset_full_path('sawyer_xyz/temp_Elephant0.08_mass0.1.xml')
+
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
         
+
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.lookat[0] = 0
         self.viewer.cam.lookat[1] = 1.0
@@ -133,6 +140,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.set_xyz_action(action[:3])
 
         self.do_simulation([action[-1], -action[-1]])
+
+       
         
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
@@ -152,7 +161,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #print(pickRew)
 
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'reward' : reward, 'placingDist': placingDist}
+        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
 
 
 
@@ -202,15 +211,38 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('objSite')] = (
             objPos
         )
+    
+
+    def _set_obj_xyz_quat(self, pos, angle):
+
+        quat = Quaternion(axis = [0,0,1], angle = angle).elements
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+
+        qpos[9:12] = pos.copy()
+        qpos[12:16] = quat.copy()
+        qvel[9:15] = 0
+
        
+        self.set_state(qpos, qvel)
+
+
+     
+
+      
        
 
     def _set_obj_xyz(self, pos):
+
+
+       
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
 
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
+
+       
         self.set_state(qpos, qvel)
 
 
@@ -267,6 +299,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self._state_goal = np.array(task['goal'])
         self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
 
+        self.obj_init_angle = task['obj_init_angle']
+
         self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         
        
@@ -276,6 +310,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
 
         self._set_obj_xyz(self.obj_init_pos)
+
+        #self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
 
         self.curr_path_length = 0
         self.pickCompleted = False
@@ -340,6 +376,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
         objPos = obs[3:6]
+
 
 
 
@@ -417,7 +454,6 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
 
-
         def pickReward():
             
             hScale = 50
@@ -455,8 +491,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         
         reachRew, reachDist = reachReward()
         pickRew = pickReward()
-        
-
+       
         
 
         placeRew , placingDist = placeReward()

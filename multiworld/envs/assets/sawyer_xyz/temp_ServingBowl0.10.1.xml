@@ -5,60 +5,60 @@
     <worldbody>
         <include file="sawyer_xyz_base.xml"/>
         <site name="goal" pos="0.3 0.9 0.02" rgba="1 0.5 0.5 0.5" size="0.02"/>
-        <body euler="0 0 4.551134242646008" name="object0" pos="0 0.7 0">
+        <body euler="0 0 0.10051346689057222" name="object0" pos="0 0.7 0">
             <joint limited="false" type="free"/>
-            <inertial diaginertia="10000 10000 10000" mass="0.5" pos="0 0 0"/>
-            <geom conaffinity="0" contype="0" mass="0.00980392156862745" mesh="ServingBowl_mesh" name="objGeom" rgba="0.7483116604189903 0.8168333397092 0.9348122695893446 1" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh5" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh6" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh7" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh8" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh9" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh10" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh11" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh12" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh13" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh14" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh15" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh16" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh17" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh18" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh19" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh20" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh21" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh22" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh23" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh24" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh25" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh26" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh27" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh28" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh29" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh30" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh31" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh32" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh33" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh34" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh35" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh36" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh37" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh38" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh39" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh40" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh41" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh42" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh43" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh44" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh45" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh46" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh47" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh48" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00980392156862745" mesh="ServingBowl_convex_mesh49" rgba="0 1 0 0" type="mesh"/>
+            <inertial diaginertia="10000 10000 10000" mass="0.1" pos="0 0 0"/>
+            <geom conaffinity="0" contype="0" mass="0.00196078431372549" mesh="ServingBowl_mesh" name="objGeom" rgba="0.6615445931906972 0.9027703266196092 0.4855445210749979 1" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh5" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh6" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh7" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh8" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh9" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh10" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh11" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh12" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh13" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh14" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh15" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh16" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh17" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh18" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh19" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh20" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh21" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh22" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh23" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh24" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh25" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh26" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh27" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh28" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh29" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh30" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh31" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh32" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh33" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh34" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh35" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh36" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh37" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh38" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh39" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh40" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh41" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh42" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh43" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh44" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh45" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh46" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh47" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh48" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.00196078431372549" mesh="ServingBowl_convex_mesh49" rgba="0 1 0 0" type="mesh"/>
         </body>
     </worldbody>
     <asset>

@@ -139,10 +139,10 @@ def modify(oldName, newName):
     fobj.close()
 
 
-gen_pickPlaceGoals('pickPlace_20X20_6_8')
+# gen_pickPlaceGoals('pickPlace_20X20_6_8')
 
 
-visualize_pickPlace('pickPlace_20X20_6_8')
+# visualize_pickPlace('pickPlace_20X20_6_8')
 
 #read_goals('pickPlace_20X20_6_8')
 
@@ -168,6 +168,35 @@ def gen_pointMassGoals(fileName):
     fobj = open(save_dir+fileName+'.pkl', 'wb')
     pickle.dump(goals, fobj)
     fobj.close()
+
+
+
+
+
+
+
+def addAngleData(_file):
+
+    fobj = open(_file, 'rb')
+    oldTasks = pickle.load(fobj)
+
+
+    newTasks = []
+    for task in oldTasks:
+        task['obj_init_angle'] = np.random.uniform(0, 6.28)
+        del task['height']
+        newTasks.append(task)
+
+    fobj.close()
+
+    fobj = open('pickPlace_60X30_new.pkl', 'wb')
+    pickle.dump(newTasks, fobj)
+
+    fobj.close()
+
+
+
+#addAngleData('pickPlace_60X30_new.pkl')
 
 
 

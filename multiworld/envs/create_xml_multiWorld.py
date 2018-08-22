@@ -249,9 +249,11 @@ def create_xml(fileName = 'temp', objectMass = 0.5, friction_params = [1, 0.1, 0
 
 #create(maxlen = 0.1, objMesh = 'Fork')
 
+mass = 0.1
 
-for maxlen in [0.10]:
+for maxlen in [0.08, 0.1]:
 
-    for objMesh in ['Bowl', 'cupcake', 'Elephant', 'ElephantBowl', 'Fork', 'fox', 'GlassBowl', 'Knife', 'Pawn', 'Queen', 'Rook', 'Spoon', 'ServingBowl']:
+    #for objMesh in ['Bowl', 'cupcake', 'Elephant', 'ElephantBowl', 'Fork', 'fox', 'GlassBowl', 'Knife', 'Pawn', 'Queen', 'Rook', 'Spoon', 'ServingBowl']:
+    for objMesh in ['Elephant', 'Pawn', 'ServingBowl']:
     #for objMesh in ['Fork']:
-        create_xml(maxlen = maxlen, objMesh = objMesh, fileName = 'temp_'+objMesh+str(maxlen))
+        create_xml(objectMass = mass, maxlen = maxlen, objMesh = objMesh, fileName = 'temp_'+objMesh+str(maxlen)+'_mass'+str(mass))

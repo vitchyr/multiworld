@@ -38,10 +38,9 @@ class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos = self.get_body_com("obj")
+        objPos =  self.data.get_geom_xpos('objGeom')
       
         flat_obs = np.concatenate((hand, objPos))
-
 
       
 
@@ -71,7 +70,6 @@ class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
 
     def reset_model(self, reset_args = None):
 
-        
 
         goal_idx = reset_args
         if goal_idx is not None:
@@ -85,19 +83,24 @@ class SawyerPickPlace_finnMAMLEnv(SawyerPickPlaceEnv):
         
         self._state_goal = task['goal']
         self.obj_init_pos = task['obj_init_pos']
+
+
+        self.obj_init_angle = task['obj_init_angle']
+
+        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
         
        
-        self.heightTarget = 0.06
+        self.heightTarget = self.objHeight + self.liftThresh
+      
 
         self._set_goal_marker(self._state_goal)
 
-        self._set_obj_xyz(self.obj_init_pos)
+        #self._set_obj_xyz(self.obj_init_pos)
+
+        self._set_obj_xyz_quat(self.obj_init_pos, self.obj_init_angle)
 
         self.curr_path_length = 0
         self.pickCompleted = False
-
-        
-
         self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
         #Can try changing this
         return self._get_obs()

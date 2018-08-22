@@ -5,16 +5,16 @@
     <worldbody>
         <include file="sawyer_xyz_base.xml"/>
         <site name="goal" pos="0.3 0.9 0.02" rgba="1 0.5 0.5 0.5" size="0.02"/>
-        <body euler="0 0 0.6633924284116588" name="object0" pos="0 0.7 0">
+        <body euler="0 0 5.23619406065226" name="object0" pos="0 0.7 0">
             <joint limited="false" type="free"/>
-            <inertial diaginertia="10000 10000 10000" mass="0.5" pos="0 0 0"/>
-            <geom conaffinity="0" contype="0" mass="0.07142857142857142" mesh="Elephant_mesh" name="objGeom" rgba="0.7493013066523246 0.44209921947415465 0.7444629965387656 1" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
-            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh5" rgba="0 1 0 0" type="mesh"/>
+            <inertial diaginertia="10000 10000 10000" mass="0.1" pos="0 0 0"/>
+            <geom conaffinity="0" contype="0" mass="0.014285714285714287" mesh="Elephant_mesh" name="objGeom" rgba="0.9861685300211382 0.6152012602898524 0.3091226678459256 1" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.014285714285714287" mesh="Elephant_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.014285714285714287" mesh="Elephant_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.014285714285714287" mesh="Elephant_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.014285714285714287" mesh="Elephant_convex_mesh3" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.014285714285714287" mesh="Elephant_convex_mesh4" rgba="0 1 0 0" type="mesh"/>
+            <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.014285714285714287" mesh="Elephant_convex_mesh5" rgba="0 1 0 0" type="mesh"/>
         </body>
     </worldbody>
     <asset>

@@ -5,10 +5,10 @@
     <worldbody>
         <include file="sawyer_xyz_base.xml"/>
         <site name="goal" pos="0.3 0.9 0.02" rgba="1 0.5 0.5 0.5" size="0.02"/>
-        <body euler="0 0 0.6633924284116588" name="object0" pos="0 0.7 0">
+        <body euler="0 0 0.6637433285420135" name="object0" pos="0 0.7 0">
             <joint limited="false" type="free"/>
             <inertial diaginertia="10000 10000 10000" mass="0.5" pos="0 0 0"/>
-            <geom conaffinity="0" contype="0" mass="0.07142857142857142" mesh="Elephant_mesh" name="objGeom" rgba="0.7493013066523246 0.44209921947415465 0.7444629965387656 1" type="mesh"/>
+            <geom conaffinity="0" contype="0" mass="0.07142857142857142" mesh="Elephant_mesh" name="objGeom" rgba="0.7116572184489682 0.6236200564545289 0.6967597616230844 1" type="mesh"/>
             <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.07142857142857142" mesh="Elephant_convex_mesh2" rgba="0 1 0 0" type="mesh"/>
@@ -18,13 +18,13 @@
         </body>
     </worldbody>
     <asset>
-        <mesh file="Elephant/Elephant.stl" name="Elephant_mesh" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
-        <mesh file="Elephant/Shape_IndexedFaceSet_001.stl" name="Elephant_convex_mesh0" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
-        <mesh file="Elephant/Shape_IndexedFaceSet_005.stl" name="Elephant_convex_mesh1" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
-        <mesh file="Elephant/Shape_IndexedFaceSet.stl" name="Elephant_convex_mesh2" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
-        <mesh file="Elephant/Shape_IndexedFaceSet_004.stl" name="Elephant_convex_mesh3" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
-        <mesh file="Elephant/Shape_IndexedFaceSet_003.stl" name="Elephant_convex_mesh4" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
-        <mesh file="Elephant/Shape_IndexedFaceSet_002.stl" name="Elephant_convex_mesh5" scale="0.0031091248944427052 0.0031091248944427052 0.002331843670832029"/>
+        <mesh file="Elephant/Elephant.stl" name="Elephant_mesh" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
+        <mesh file="Elephant/Shape_IndexedFaceSet_001.stl" name="Elephant_convex_mesh0" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
+        <mesh file="Elephant/Shape_IndexedFaceSet_005.stl" name="Elephant_convex_mesh1" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
+        <mesh file="Elephant/Shape_IndexedFaceSet.stl" name="Elephant_convex_mesh2" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
+        <mesh file="Elephant/Shape_IndexedFaceSet_004.stl" name="Elephant_convex_mesh3" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
+        <mesh file="Elephant/Shape_IndexedFaceSet_003.stl" name="Elephant_convex_mesh4" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
+        <mesh file="Elephant/Shape_IndexedFaceSet_002.stl" name="Elephant_convex_mesh5" scale="0.002487299915554164 0.002487299915554164 0.0018654749366656229"/>
     </asset>
 
 

@@ -224,9 +224,10 @@ class SawyerDoorOpenEnv(SawyerXYZEnv):
     def compute_rewards(self, actions, obs):
 
 
-        if isinstance(obs, Dict):
+        if isinstance(obs, dict):
 
             obs = obs['state_observation']
+
            
         fingerCOM , doorGraspPoint = obs[:3], obs[3:6]
 

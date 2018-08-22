@@ -137,14 +137,14 @@ Usage:
                                             
                                                     <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.04" armature="100" damping="1000" limited="true"  type="slide"/> 
 
-                                                    <site name="rightEndEffector" pos="0.03 0.005 0" size="0.016 0.008 0.012" type='box' />
+                                                    <site name="rightEndEffector" pos="0.0 0.005 0" size="0.044 0.008 0.012" type='box' />
 
                                                 </body>
 
                                                 <body name="leftclaw" pos="0 0.05 0">
                                                     <geom name="leftclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="0 1 1 1.0"  />
                                                     <joint name="l_close" pos="0 0 0" axis="0 1 0" range= "-0.03 0" armature="100" damping="1000" limited="true"  type="slide"/>
-                                                    <site name="leftEndEffector" pos="0.03 -0.005 0" size="0.016 0.008 0.012" type='box' />
+                                                    <site name="leftEndEffector" pos="0.0 -0.005 0" size="0.044 0.008 0.012" type='box' />
 
                                       
                                                 </body>

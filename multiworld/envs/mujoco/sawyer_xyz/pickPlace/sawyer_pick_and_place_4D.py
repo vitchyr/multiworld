@@ -41,6 +41,8 @@ class SawyerPickPlaceEnv_4D(SawyerPickPlaceEnv):
       
 
         self.do_simulation([action[-1], -action[-1]])
+
+      
         
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
