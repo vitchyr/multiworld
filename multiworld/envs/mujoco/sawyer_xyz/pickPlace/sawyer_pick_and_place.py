@@ -23,7 +23,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             hand_init_pos = (0, 0.4, 0.05),
             #hand_init_pos = (0, 0.5, 0.35) ,
 
-            liftThresh = 0.03,
+            liftThresh = 0.04,
             
           
             **kwargs
@@ -51,6 +51,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
         self.liftThresh = liftThresh
+
+        #Make sure that objectGeom is the last geom in the XML 
+        self.objHeight = self.model.geom_pos[-1][2]
+        self.heightTarget = self.objHeight + self.liftThresh
 
         self.max_path_length = 150
 
@@ -96,9 +100,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
     @property
     def model_name(self):
-        #return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
-        return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
+        #return get_asset_full_path('sawyer_xyz/pickPlace_fox.xml')
 
     def viewer_setup(self):
         
@@ -115,12 +119,6 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #debug mode:
 
-        # action[:3] = [0,0,-1]
-        # self.do_simulation([1,-1])
-     
-        # print(action[-1])
-
-    
         self.set_xyz_action(action[:3])
 
         self.do_simulation([action[-1], -action[-1]])
@@ -143,7 +141,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #print(pickRew)
 
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'reward' : reward, 'placingDist': placingDist}
+        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
 
 
 
@@ -240,7 +238,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         #If this is not done, the object could be initialized in an extreme position
 
          
-        diff = self.get_body_com('object0')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
         #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
@@ -256,17 +254,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         task = self.sample_task()
   
         self._state_goal = np.array(task['goal'])
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-
-        self.objHeight = self.data.get_geom_xpos('objGeom')[2]
-        
-       
-        self.heightTarget = self.objHeight + self.liftThresh
-
-
         self._set_goal_marker(self._state_goal)
 
+        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
         self._set_obj_xyz(self.obj_init_pos)
+
+      
 
         self.curr_path_length = 0
         self.pickCompleted = False
@@ -349,7 +342,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
       
-        graspDist = np.linalg.norm(objPos - fingerCOM)
+        reachDist = np.linalg.norm(objPos - fingerCOM)
 
         
     
@@ -358,18 +351,18 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         def reachReward():
 
-            graspRew = -graspDist
+            reachRew = -reachDist
 
           
-            #incentive to close fingers when graspDist is small
-            if graspDist < 0.02:
+            #incentive to close fingers when reachDist is small
+            if reachDist < 0.02:
 
 
-                graspRew = -graspDist + max(actions[-1],0)/50
+                reachRew = -reachDist + max(actions[-1],0)/50
 
 
 
-            return graspRew , graspDist
+            return reachRew , reachDist
 
      
       
@@ -392,12 +385,18 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #print(self.pickCompleted)
 
+        def grasped():
+
+            sensors = self.data.sensordata
+
+
+            return (sensors[0]>0) and (sensors[1]>0)
        
 
 
         def objDropped():
 
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (graspDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
 
@@ -406,13 +405,11 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             
             hScale = 50
 
-            if self.pickCompleted and not(objDropped()):
+            if self.pickCompleted and grasped():
                 return hScale*heightTarget
        
-            elif (objPos[2]> (self.objHeight + 0.005)) and (graspDist < 0.1):
+            elif grasped():
 
-
-                
                 return hScale* min(heightTarget, objPos[2])
          
             else:
@@ -422,7 +419,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
           
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            if self.pickCompleted and (graspDist < 0.1) and not(objDropped()):
+            if self.pickCompleted and (reachDist < 0.1) and not(objDropped()):
 
 
                 placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))

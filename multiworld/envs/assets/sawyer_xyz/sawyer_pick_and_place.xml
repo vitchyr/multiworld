@@ -5,14 +5,14 @@
         <include file="sawyer_xyz_base.xml"></include>
 
         
-        <body name="obj" pos="0 0.6 0.02">
+        <body name="obj" pos="0 0.6 0">
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="0.1" diaginertia="100000 100000 100000"/>
-            <geom name="objbox" type="box" pos="0 0 0"
+            <geom name="objGeom" type="box" pos="0 0 0.02"
                   size="0.02 0.02 0.02" rgba="0 0.5 1 1"
                   contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3" 
             />
-            <site name="obj" pos="0 0 0" size="0.01" />
+           <!--  <site name="obj" pos="0 0 0" size="0.01" /> -->
         </body>
         
 
@@ -20,12 +20,19 @@
               rgba="1 0.5 0.5 0.5"/>
        
     </worldbody>
+
+    <sensor>
+      
+        <touch name='rightclaw_sensor' site='rightEndEffector'/>
+        <touch name='leftclaw_sensor' site='leftEndEffector'/>
+   
+    </sensor>
+
+
     <actuator>
         <position ctrllimited="true" ctrlrange="-1 1" joint="r_close" kp="400"  user="1"/>
         <position ctrllimited="true" ctrlrange="-1 1" joint="l_close" kp="400"  user="1"/>
 
-
-        
     </actuator>
 
 </mujoco>
