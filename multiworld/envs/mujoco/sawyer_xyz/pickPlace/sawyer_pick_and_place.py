@@ -342,7 +342,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
       
-        reachDist = np.linalg.norm(objPos - fingerCOM)
+        graspDist = np.linalg.norm(objPos - fingerCOM)
 
         
     
@@ -351,18 +351,18 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         def reachReward():
 
-            reachRew = -reachDist
+            graspRew = -graspDist
 
           
-            #incentive to close fingers when reachDist is small
-            if reachDist < 0.02:
+            #incentive to close fingers when graspDist is small
+            if graspDist < 0.02:
 
 
-                reachRew = -reachDist + max(actions[-1],0)/50
+                graspRew = -graspDist + max(actions[-1],0)/50
 
 
 
-            return reachRew , reachDist
+            return graspRew , graspDist
 
      
       
@@ -385,18 +385,12 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #print(self.pickCompleted)
 
-        def grasped():
-
-            sensors = self.data.sensordata
-
-
-            return (sensors[0]>0) and (sensors[1]>0)
        
 
 
         def objDropped():
 
-            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (reachDist > 0.02) 
+            return (objPos[2] < (self.objHeight + 0.005)) and (placingDist >0.02) and (graspDist > 0.02) 
             # Object on the ground, far away from the goal, and from the gripper
             #Can tweak the margin limits
 
@@ -405,11 +399,13 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             
             hScale = 50
 
-            if self.pickCompleted and grasped():
+            if self.pickCompleted and not(objDropped()):
                 return hScale*heightTarget
        
-            elif grasped():
+            elif (objPos[2]> (self.objHeight + 0.005)) and (graspDist < 0.1):
 
+
+                
                 return hScale* min(heightTarget, objPos[2])
          
             else:
@@ -419,7 +415,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
           
             c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
-            if self.pickCompleted and (reachDist < 0.1) and not(objDropped()):
+            if self.pickCompleted and (graspDist < 0.1) and not(objDropped()):
 
 
                 placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
