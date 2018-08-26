@@ -143,7 +143,7 @@ class MujocoEnv(gym.Env):
             width=width,
             height=height,
             camera_name=camera_name,
-        )
+        )[::-1, :, :]
 
     def initialize_camera(self, init_fctn):
         sim = self.sim

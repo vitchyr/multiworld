@@ -4,12 +4,16 @@ from gym import spaces
 from pygame import Color
 
 from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict, get_asset_full_path
+    create_stats_ordered_dict
 from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
+
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
 
 
 class Point2DEnv(MultitaskEnv, Serializable):
@@ -21,16 +25,22 @@ class Point2DEnv(MultitaskEnv, Serializable):
             self,
             render_dt_msec=0,
             action_l2norm_penalty=0,  # disabled for now
-            render_onscreen=True,
-            render_size=84,
+            render_onscreen=False,
+            render_size=200,
+            render_target=True,
             reward_type="dense",
             norm_order=1,
-            target_radius = 0.5,
-            boundary_dist = 4,
-            ball_radius = 0.25,
-            walls = [],
+            action_scale=1.0,
+            target_radius=0.5,
+            boundary_dist=4,
+            ball_radius=0.35,
+            walls=[],
             fixed_goal=None,
-            randomize_position_on_reset = True,
+            goal_low=None,
+            goal_high=None,
+            ball_low=None,
+            ball_high=None,
+            randomize_position_on_reset=True,
             **kwargs
     ):
         print("WARNING, ignoring kwargs:", kwargs)
@@ -39,8 +49,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.action_l2norm_penalty = action_l2norm_penalty
         self.render_onscreen = render_onscreen
         self.render_size = render_size
+        self.render_target = render_target
         self.reward_type = reward_type
         self.norm_order = norm_order
+        self.action_scale = action_scale
         self.target_radius = target_radius
         self.boundary_dist = boundary_dist
         self.ball_radius = ball_radius
@@ -50,7 +62,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
         if self.fixed_goal is not None:
             self.fixed_goal = np.array(self.fixed_goal)
 
-        self._max_episode_steps = 50
         self.max_target_distance = self.boundary_dist - self.target_radius
 
         self._target_position = None
@@ -61,19 +72,34 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         o = self.boundary_dist * np.ones(2)
         self.obs_range = spaces.Box(-o, o, dtype='float32')
+
+        if goal_low is None:
+            goal_low = -o
+        if goal_high is None:
+            goal_high = o
+        self.goal_range = spaces.Box(np.array(goal_low), np.array(goal_high), dtype='float32')
+
+        if ball_low is None:
+            ball_low = -o
+        if ball_high is None:
+            ball_high = o
+        self.ball_range = spaces.Box(np.array(ball_low), np.array(ball_high), dtype='float32')
+
         self.observation_space = spaces.Dict([
             ('observation', self.obs_range),
-            ('desired_goal', self.obs_range),
+            ('desired_goal', self.goal_range),
             ('achieved_goal', self.obs_range),
             ('state_observation', self.obs_range),
-            ('state_desired_goal', self.obs_range),
+            ('state_desired_goal', self.goal_range),
             ('state_achieved_goal', self.obs_range),
         ])
 
         self.drawer = None
+        self.goals = None
 
     def step(self, velocities):
-        velocities = np.clip(velocities, a_min=-1, a_max=1)
+        assert self.action_scale <= 1.0
+        velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
         for wall in self.walls:
             new_position = wall.handle_collision(
@@ -85,6 +111,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             a_min=-self.boundary_dist,
             a_max=self.boundary_dist,
         )
+
         distance_to_target = np.linalg.norm(self._position - self._target_position)
         is_success = distance_to_target < self.target_radius
 
@@ -101,17 +128,28 @@ class Point2DEnv(MultitaskEnv, Serializable):
         done = False
         return ob, reward, done, info
 
+    def initialize_camera(self, camera):
+        pass
+
     def reset(self):
-        if not self.fixed_goal is None:
-            self._target_position = self.fixed_goal
-        else:
-            self._target_position = np.random.uniform(
-                size=2, low=-self.max_target_distance, high=self.max_target_distance
-            )
+        self._target_position = self.sample_goal_for_rollout()['state_desired_goal']
         if self.randomize_position_on_reset:
-            self._position = np.random.uniform(
-                size=2, low=-self.boundary_dist, high=self.boundary_dist
-            )
+            self._position = self._sample_position()
+
+        self.goals = None
+        return self._get_obs()
+
+    def _position_inside_wall(self, pos):
+        for wall in self.walls:
+            if wall.contains_point(pos):
+                return True
+        return False
+
+    def _sample_position(self):
+        pos = np.random.uniform(self.ball_range.low, self.ball_range.high)
+        while self._position_inside_wall(pos) is True:
+            pos = np.random.uniform(self.ball_range.low, self.ball_range.high)
+        return pos
 
     def seed(self, s):
         """Do nothing for seed"""
@@ -168,19 +206,25 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'state_desired_goal': self._target_position.copy(),
         }
 
-    def sample_goals(self, batch_size):
+    def sample_goal_for_rollout(self):
         if not self.fixed_goal is None:
-            goals = np.repeat(
-                self.fixed_goal.copy()[None],
-                batch_size,
-                0
-            )
+            goal = np.copy(self.fixed_goal)
         else:
-            goals = np.random.uniform(
-                self.obs_range.low,
-                self.obs_range.high,
-                size=(batch_size, self.obs_range.low.size),
+            goal = np.random.uniform(
+                self.goal_range.low,
+                self.goal_range.high,
             )
+        return {
+            'desired_goal': goal,
+            'state_desired_goal': goal,
+        }
+
+    def sample_goals(self, batch_size):
+        goals = np.random.uniform(
+            self.obs_range.low,
+            self.obs_range.high,
+            size=(batch_size, self.obs_range.low.size),
+        )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -197,13 +241,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.render()
         img = self.drawer.get_image()
         # img = img / 255.0
-        r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
+        # r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
         # img = (-r - g + b).flatten() # GREEN ignored for visualization
-        img = (-r + b).flatten()
-        return img
+        return img.transpose((1, 0, 2))
 
     def set_to_goal(self, goal_dict):
-        goal = goal_dict["desired_goal"]
+        goal = goal_dict["state_desired_goal"]
         self._position = goal
         self._target_position = goal
 
@@ -230,21 +273,47 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 render_onscreen=self.render_onscreen,
             )
         self.drawer.fill(Color('white'))
-        self.drawer.draw_solid_circle(
-            self._target_position,
-            self.target_radius,
-            Color('green'),
-        )
+        if self.render_target:
+            self.drawer.draw_solid_circle(
+                self._target_position,
+                self.target_radius,
+                Color('green'),
+            )
         self.drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
             Color('blue'),
         )
 
+        if self.goals is not None:
+            for goal in self.goals:
+                self.drawer.draw_solid_circle(
+                    goal,
+                    self.ball_radius + 0.1,
+                    Color('red'),
+                )
+            for p1, p2 in zip(np.concatenate(([self._position], self.goals[:-1]), axis=0), self.goals):
+                self.drawer.draw_segment(p1, p2, Color(100, 0, 0, 10))
+
         for wall in self.walls:
             self.drawer.draw_segment(
                 wall.endpoint1,
                 wall.endpoint2,
+                Color('black'),
+            )
+            self.drawer.draw_segment(
+                wall.endpoint2,
+                wall.endpoint3,
+                Color('black'),
+            )
+            self.drawer.draw_segment(
+                wall.endpoint3,
+                wall.endpoint4,
+                Color('black'),
+            )
+            self.drawer.draw_segment(
+                wall.endpoint4,
+                wall.endpoint1,
                 Color('black'),
             )
 
@@ -358,13 +427,15 @@ class Point2DWallEnv(Point2DEnv):
     def __init__(
             self,
             wall_shape="",
-            inner_wall_max_dist = 1,
+            wall_thickness=0.0,
+            inner_wall_max_dist=1,
             **kwargs
     ):
         self.quick_init(locals())
         super().__init__(**kwargs)
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
+        self.wall_thickness = wall_thickness
         if wall_shape == "u":
             self.walls = [
                 # Right wall
@@ -389,7 +460,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
-        if wall_shape == "-":
+        if wall_shape == "-" or wall_shape == "h":
             self.walls = [
                 HorizontalWall(
                     self.ball_radius,
@@ -407,6 +478,380 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
+        if wall_shape == "big-u":
+            self.walls = [
+                VerticalWall(
+                    self.ball_radius,
+                    self.inner_wall_max_dist*2,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist,
+                    self.wall_thickness
+                ),
+                # Left wall
+                VerticalWall(
+                    self.ball_radius,
+                    -self.inner_wall_max_dist*2,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist,
+                    self.wall_thickness
+                ),
+                # Bottom wall
+                HorizontalWall(
+                    self.ball_radius,
+                    self.inner_wall_max_dist,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist*2,
+                    self.wall_thickness
+                ),
+            ]
+        if wall_shape == "easy-u":
+            self.walls = [
+                VerticalWall(
+                    self.ball_radius,
+                    self.inner_wall_max_dist*2,
+                    -self.inner_wall_max_dist*0.5,
+                    self.inner_wall_max_dist,
+                    self.wall_thickness
+                ),
+                # Left wall
+                VerticalWall(
+                    self.ball_radius,
+                    -self.inner_wall_max_dist*2,
+                    -self.inner_wall_max_dist*0.5,
+                    self.inner_wall_max_dist,
+                    self.wall_thickness
+                ),
+                # Bottom wall
+                HorizontalWall(
+                    self.ball_radius,
+                    self.inner_wall_max_dist,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist*2,
+                    self.wall_thickness
+                ),
+            ]
+        if wall_shape == "big-h":
+            self.walls = [
+                # Bottom wall
+                HorizontalWall(
+                    self.ball_radius,
+                    self.inner_wall_max_dist,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist*2,
+                ),
+            ]
+        if wall_shape == "none":
+            self.walls = []
+
+    def generate_subgoals(self, ob, goal, num_subgoals):
+        def avg(p1, p2):
+            return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+
+        subgoals = []
+        if self.wall_shape == "big-u":
+            if num_subgoals == 2:
+                if goal[0] <= 0:
+                    subgoals += [(-3, -3), goal]
+                else:
+                    subgoals += [(3, -3), goal]
+            elif num_subgoals == 4:
+                subgoals += [(0, -3)]
+                if goal[0] <= 0:
+                    subgoals += [(-3, -3), (-3, 2), goal]
+                else:
+                    subgoals += [(3, -3), (3, 2), goal]
+            elif num_subgoals == 8:
+                subgoals += [avg((0, -3), ob), (0, -3)]
+                if goal[0] <= 0:
+                    subgoals += [avg((0, -3), (-3, -3)), (-3, -3), avg((-3, -3), (-3, 2)), (-3, 2), avg((-3, 2), goal), goal]
+                else:
+                    subgoals += [avg((0, -3), (3, -3)), (3, -3), avg((3, -3), (3, 2)), (3, 2), avg((3, 2), goal), goal]
+
+        if len(subgoals) == 0:
+            subgoals = np.tile(goal, num_subgoals)
+
+        return np.array(subgoals)
+
+
+    def sweep_v_fixed_obs(self, agent, qf, obs, tau):
+        nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.tile(obs, (nx * ny, 1))
+        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_tau = np.tile(tau, (nx * ny, 1))
+        sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+        v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
+
+        if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
+            v_vals = -np.exp(-v_vals / agent.reward_scale)
+            vmin = -np.exp(1)
+            vmax = -np.exp(0)
+        else:
+            vmin = -agent.reward_scale*1.0 #np.sqrt(128)*0.70
+            vmax = 0
+
+        return self.get_image_v_fixed_obs(v_vals, vmin, vmax)
+
+    def sweep_v_fixed_goal(self, agent, qf, goal_high_level, tau_high_level):
+        nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_goal = np.tile(goal_high_level, (nx * ny, 1))
+        sweep_tau = np.tile(tau_high_level, (nx * ny, 1))
+        sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+        v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
+
+        if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
+            v_vals = -np.exp(-v_vals / agent.reward_scale)
+            vmin = -np.exp(1)
+            vmax = -np.exp(0)
+        else:
+            vmin = -agent.reward_scale * 1.0  # np.sqrt(128)*0.70
+            vmax = 0
+
+        return self.get_image_v_fixed_goal(v_vals, vmin, vmax)
+
+    def sweep_policy(self, agent, goal_high_level, tau_high_level):
+        nx, ny = (10, 10)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_goal = np.tile(goal_high_level, (nx * ny, 1))
+        sweep_tau = np.tile(tau_high_level, (nx * ny, 1))
+
+        policy_vals = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+        policy_vals = np.reshape(policy_vals, (nx, ny, -1))
+
+        dx = policy_vals[:, :, 0]
+        dy = policy_vals[:, :, 1]
+
+        return self.get_image_policy(xv, yv, dx, dy)
+
+    def sweep_v_fixed_subgoal(self, agent):
+        nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_goal = np.tile(agent.goals[0], (nx * ny, 1))
+        sweep_tau = np.tile(agent.tau, (nx * ny, 1))
+        sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+        v_vals = agent.qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+        v_vals = -np.linalg.norm(v_vals, ord=agent.qf.norm_order, axis=1).reshape((nx, ny))
+
+        if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
+            v_vals = -np.exp(-v_vals / agent.reward_scale)
+            vmin = -np.exp(1)
+            vmax = -np.exp(0)
+        else:
+            vmin = -agent.reward_scale * 1.0  # np.sqrt(128)*0.70
+            vmax = 0
+
+        return self.get_image_v_fixed_subgoal(v_vals, vmin, vmax)
+
+    def sweep_subgoal_policy(self, agent):
+        nx, ny = (10, 10)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_goal = np.tile(agent.goals[0], (nx * ny, 1))
+        sweep_tau = np.tile(agent.tau, (nx * ny, 1))
+
+        policy_vals = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+        policy_vals = np.reshape(policy_vals, (nx, ny, -1))
+
+        dx = policy_vals[:, :, 0]
+        dy = policy_vals[:, :, 1]
+
+        return self.get_image_subgoal_policy(xv, yv, dx, dy)
+
+    def get_image_v_fixed_obs(self, vals, vmin, vmax):
+        fig, ax = self.draw_plt_objects(draw_ball=True)
+
+        ax.imshow(
+            vals,
+            extent=[-4, 4, -4, 4],
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
+
+    def get_image_v_fixed_goal(self, vals, vmin, vmax):
+        fig, ax = self.draw_plt_objects(draw_goal=True)
+
+        ax.imshow(
+            vals,
+            extent=[-4, 4, -4, 4],
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            # aspect='auto',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
+
+    def get_image_v_fixed_subgoal(self, vals, vmin, vmax):
+        fig, ax = self.draw_plt_objects(draw_subgoal=True)
+
+        ax.imshow(
+            vals,
+            extent=[-4, 4, -4, 4],
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            # aspect='auto',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
+
+    def get_image_policy(self, xv, yv, dx, dy):
+        fig, ax = self.draw_plt_objects(draw_ball=True, draw_goal=True)
+
+        dx = np.clip(dx, a_min=-1, a_max=1)
+        dy = np.clip(dy, a_min=-1, a_max=1)
+        ax.quiver(xv, yv, dx, -1*dy, scale=2.5e1)
+
+        return self.plt_to_numpy(fig)
+
+    def get_image_subgoal_policy(self, xv, yv, dx, dy):
+        fig, ax = self.draw_plt_objects(draw_ball=True, draw_goal=True, draw_subgoal=True)
+
+        dx = np.clip(dx, a_min=-1, a_max=1)
+        dy = np.clip(dy, a_min=-1, a_max=1)
+        ax.quiver(xv, yv, dx, -1*dy, scale=2.5e1)
+
+        return self.plt_to_numpy(fig)
+
+    def draw_plt_objects(self, draw_walls=True, draw_ball=False, draw_goal=False, draw_subgoal=False):
+        fig, ax = plt.subplots()
+        ball = plt.Circle(self._position, self.ball_radius, color='b')
+        goal = plt.Circle(self._target_position, self.target_radius, color='g')
+        if self.goals is not None:
+            subgoal = plt.Circle(self.goals[0], self.ball_radius + 0.1, color='r')
+        else:
+            subgoal = None
+
+        ax.set_ylim([-4, 4])
+        ax.set_xlim([-4, 4])
+        ax.set_ylim(ax.get_ylim()[::-1])
+        DPI = fig.get_dpi()
+        fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
+
+        if draw_ball:
+            ax.add_artist(ball)
+        if draw_goal:
+            ax.add_artist(goal)
+        if draw_subgoal:
+            ax.add_artist(subgoal)
+        if draw_walls:
+            for wall in self.walls:
+                ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint2[1], ymax=wall.endpoint1[1])
+                ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
+                ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
+                ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
+                # if wall.endpoint1[1] == wall.endpoint2[1]:
+                #     ax.hlines(y=wall.endpoint1[1], xmin=wall.endpoint1[0], xmax=wall.endpoint2[0])
+                # elif wall.endpoint1[0] == wall.endpoint2[0]:
+                #     ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint1[1], ymax=wall.endpoint2[1])
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+
+        return fig, ax
+
+    def plt_to_numpy(self, fig):
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close()
+        return data
+
+class PointmassExpertPolicy:
+    """
+    """
+    def __init__(
+            self,
+            env,
+            base_policy,
+            prob_expert=0.5,
+    ):
+        self.env = env
+        self.base_policy = base_policy
+        self.prob_expert = prob_expert
+
+    def reset(self):
+        pass
+
+    @staticmethod
+    def point_in_box(point, low, high):
+        return spaces.Box(np.array(low), np.array(high), dtype='float32').contains(point)
+
+    def get_action(self, obs, goal_high_level, tau_high_level):
+        action = [0, 0]
+        if np.random.uniform(0, 1) <= self.prob_expert:
+            br = self.env.ball_radius + self.env.wall_thickness
+            if self.env.wall_shape == "big-u":
+                if self.point_in_box(obs, low=[-2+br, -2-br], high=[2-br, 1+br]):
+                    action = [0, -1]
+                elif self.point_in_box(obs, low=[0, -4], high=[2+br, -2-br]):
+                    action = [1, 0]
+                elif self.point_in_box(obs, low=[-2-br, -4], high=[0, -2-br]):
+                    action = [-1, 0]
+                elif self.point_in_box(obs, low=[2+br, -4], high=[4, 1+br]):
+                    action = [0, 1]
+                elif self.point_in_box(obs, low=[-4, -4], high=[-2-br, 1+br]):
+                    action = [0, 1]
+                elif self.point_in_box(obs, low=[-4, 1+br], high=[4, 4]):
+                    action = goal_high_level - obs
+                    if np.linalg.norm(action) > 1:
+                        action = action / np.linalg.norm(action)
+            elif self.env.wall_shape == "big-h":
+                if self.point_in_box(obs, low=[-2-br, -4], high=[0, 1+br]):
+                    action = [-1, 0]
+                elif self.point_in_box(obs, low=[0, -4], high=[2+br, 1+br]):
+                    action = [1, 0]
+                elif self.point_in_box(obs, low=[-4, -4], high=[-2-br, 1+br]):
+                    action = [0, 1]
+                elif self.point_in_box(obs, low=[2+br, -4], high=[4, 1+br]):
+                    action = [0, 1]
+                elif self.point_in_box(obs, low=[-4, 1+br], high=[4, 4]):
+                    action = goal_high_level - obs
+                    if np.linalg.norm(action) > 1:
+                        action = action / np.linalg.norm(action)
+            elif self.env.wall_shape == "none":
+                action = goal_high_level - obs
+                if np.linalg.norm(action) > 1:
+                    action = action / np.linalg.norm(action)
+        else:
+            action = self.base_policy.eval_np(obs[None], goal_high_level[None], tau_high_level[None])[0]
+
+        return np.array(action), {}
+
 
 if __name__ == "__main__":
     # e = Point2DEnv()
