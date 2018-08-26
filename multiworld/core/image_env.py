@@ -6,12 +6,11 @@ from PIL import Image
 from gym.spaces import Box, Dict
 from multiworld.core.wrapper_env import ProxyEnv
 
-
 class ImageEnv(ProxyEnv):
     def __init__(
             self,
             wrapped_env,
-            imsize=84,
+            imsize=84, #84,
             init_camera=None,
             transpose=False,
             grayscale=False,
@@ -83,17 +82,26 @@ class ImageEnv(ProxyEnv):
     def _get_flat_img(self):
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image()
+        return self.transform_image(image_obs)
+
+    def transform_image(self, img):
+        if img is None:
+            return None
+
         if self._render_local:
-            cv2.imshow('env', image_obs)
+            cv2.imshow('env', img)
             cv2.waitKey(1)
         if self.grayscale:
-            image_obs = Image.fromarray(image_obs).convert('L')
-            image_obs = np.array(image_obs)
+            img = Image.fromarray(img).convert('L')
+            img = np.array(img)
         if self.normalize:
-            image_obs = image_obs / 255.0
+            img = img / 255.0
         if self.transpose:
-            image_obs = image_obs.transpose()
-        return image_obs.flatten()
+            if img.ndim == 3:
+                img = img.transpose((2, 0, 1))
+            else:
+                img = img.transpose()
+        return img.flatten()
 
     def enable_render(self):
         self._render_local = True
@@ -132,6 +140,7 @@ class ImageEnv(ProxyEnv):
             return self.wrapped_env.compute_rewards(actions, obs)
         else:
             raise NotImplementedError()
+
 
 def normalize_image(image):
     assert image.dtype == np.uint8

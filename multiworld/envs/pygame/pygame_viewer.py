@@ -89,6 +89,10 @@ class PygameViewer(object):
         # s = pygame.display.get_surface()
         return pygame.surfarray.array3d(self.screen)
 
+    def get_image_2d(self):
+        # s = pygame.display.get_surface()
+        return pygame.surfarray.array2d(self.screen)
+
     def reinit_screen(self, render_onscreen):
         self.render_onscreen = render_onscreen
         if self.render_onscreen:
