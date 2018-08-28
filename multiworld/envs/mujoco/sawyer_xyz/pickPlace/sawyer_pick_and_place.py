@@ -281,8 +281,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            #self.do_simulation([-1,1], self.frame_skip)
-            self.do_simulation(None, self.frame_skip)
+            self.do_simulation([-1,1], self.frame_skip)
+
+      
+            #self.do_simulation(None, self.frame_skip)
 
 
 
@@ -430,14 +432,55 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
                 return [0 , placingDist]
 
 
-        
+        # def grasped():
+
+        #     sensorData = self.data.sensordata
+
+        #     return (sensorData[0]>0) and (sensorData[1]>0)
+
+
+      
+
+
+        # def pickReward():
+            
+        #     hScale = 50
+
+        #     if self.pickCompleted and grasped():
+        #         return hScale*heightTarget
+       
+        #     elif grasped() and (objPos[2]> (self.objHeight + 0.005)):
+
+
+                
+        #         return hScale* min(heightTarget, objPos[2])
+         
+        #     else:
+        #         return 0
+
+        # def placeReward():
+
+          
+        #     c1 = 1000 ; c2 = 0.01 ; c3 = 0.001
+        #     if self.pickCompleted and grasped():
+
+
+        #         placeRew = 1000*(self.maxPlacingDist - placingDist) + c1*(np.exp(-(placingDist**2)/c2) + np.exp(-(placingDist**2)/c3))
+
+               
+        #         placeRew = max(placeRew,0)
+           
+
+        #         return [placeRew , placingDist]
+
+        #     else:
+        #         return [0 , placingDist]
+
+
         reachRew, reachDist = reachReward()
         pickRew = pickReward()
 
-   
-
-
-
+       
 
         placeRew , placingDist = placeReward()
 
