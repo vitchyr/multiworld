@@ -8,7 +8,7 @@ from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPickPlaceEnv( SawyerXYZEnv):
+class SawyerPushEnv( SawyerXYZEnv):
     def __init__(
             self,
             obj_low=None,
@@ -20,8 +20,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             goal_high=None,
 
             hand_init_pos = (0, 0.4, 0.05),
-            #hand_init_pos = (0, 0.5, 0.35) ,
+          
             blockSize = 0.02,
+
+            rewMode = 'posPlace',
 
             **kwargs
     ):
@@ -52,13 +54,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.tasks = tasks
         self.num_tasks = len(tasks)
 
+        self.rewMode = rewMode
+
         # defaultTask = tasks[0]
 
 
         # self.obj_init_pos = np.array(tasksobj_init_pos)
         self.hand_init_pos = np.array(hand_init_pos)
 
-        self.blockSize = blockSize
+       
 
         self.action_space = Box(
             np.array([-1, -1, -1]),
@@ -86,35 +90,22 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
     def viewer_setup(self):
         pass
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0
-        # self.viewer.cam.lookat[1] = 1.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 0.6
-        # self.viewer.cam.elevation = -45
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
+       
 
     def step(self, action):
 
-        #debug mode:
-
-        # action[:3] = [0,0,-1]
-        # self.do_simulation([1,-1])
      
-        # print(action[-1])
-
-    
+     
         self.set_xyz_action(action[:3])
 
-        #self.do_simulation([action[-1], -action[-1]])
+        self.do_simulation(None)
         
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
        
 
-        reward , reachRew, placeRew  = self.compute_rewards(action, ob)
+        reward , reachDist, placeDist  = self.compute_rewards(action, ob)
         self.curr_path_length +=1
 
        
@@ -124,24 +115,27 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachRew':reachRew,  'placeRew': placeRew, 'reward': reward}
+        return ob, reward, done, { 'reachDist':reachDist,  'placeDist': placeDist, 'epRew': reward}
 
 
-
-   
     def _get_obs(self):
-        e = self.get_endeff_pos()
-        b = self.get_obj_pos()
+        hand = self.get_endeff_pos()
+        objPos =  self.data.get_geom_xpos('objGeom')
       
-        flat_obs = np.concatenate((e, b))
+        flat_obs = np.concatenate((hand, objPos))
 
         return dict(
             
-            desired_goal=self._state_goal,
-            
+        
             state_observation=flat_obs,
+
+            state_desired_goal=self._state_goal,
             
-        )
+            state_achieved_goal=objPos,
+
+
+)
+   
 
     def _get_info(self):
         pass
@@ -175,6 +169,23 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
     
         return self.tasks[task_idx]
 
+    def adjust_initObjPos(self, orig_init_pos):
+
+        #This is to account for meshes for the geom and object are not aligned
+        #If this is not done, the object could be initialized in an extreme position
+
+         
+        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
+        adjustedPos = orig_init_pos[:2] + diff
+
+        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
+        return [adjustedPos[0], adjustedPos[1],0]
+
+
+   
+
+
+
     def reset_model(self):
 
         
@@ -184,11 +195,15 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         task = self.sample_task()
         
         self._state_goal = task['goal']
-        self.obj_init_pos = task['obj_init_pos']
-      
+        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
+        
         self._set_goal_marker(self._state_goal)
 
         self._set_obj_xyz(self.obj_init_pos)
+
+        self.curr_path_length = 0
+
+        self.origPlacingDist = np.linalg.norm( self.obj_init_pos[:2] - self._state_goal[:2])
 
         self.curr_path_length = 0
         
@@ -204,8 +219,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation([1,-1], self.frame_skip)
-            #self.do_simulation(None, self.frame_skip)
+            #self.do_simulation([1,-1], self.frame_skip)
+            self.do_simulation(None, self.frame_skip)
 
 
 
@@ -236,17 +251,27 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         c1 = 1 ; c2 = 1
 
-        reachRew = -np.linalg.norm(objPos - fingerCOM)
+        reachDist = np.linalg.norm(objPos - fingerCOM)
     
-        placeRew = -np.linalg.norm(objPos - placingGoal)
-        
+        placeDist = np.linalg.norm(objPos - placingGoal)
 
-        reward = c1*reachRew + c2*placeRew
+       
+        
+        if self.rewMode == 'normal':
+
+
+            reward = -reachDist - placeDist
+
+        elif self.rewMode == 'posPlace':
+
+            reward = -reachDist + 100* max(0, self.origPlacingDist - placeDist)
+
+
 
       
 
 
-        return [reward, reachRew, placeRew] 
+        return [reward, reachDist, placeDist] 
      
 
    

@@ -4,9 +4,9 @@
 
     <worldbody>
         <include file="sawyer_xyz_base.xml"/>
-        <body name="object0" pos="-0.1 0.6 0">
+        <body name="obj" pos="-0.1 0.6 0">
             <joint limited="false" type="free"/>
-            <inertial pos="0 0 0" mass="0.1" diaginertia="10000 10000 10000"/>
+            <inertial pos="0 0 0" mass="0.01" diaginertia="10000 10000 10000"/>
             <geom conaffinity="0" contype="0" mass="0.5" mesh="fox_mesh" rgba="0.9872412946231839 0.8645992134272698 0.6012641119260476 1" type="mesh" name='objGeom'/>
             <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.1" mesh="fox_convex_mesh0" rgba="0 1 0 0" type="mesh"/>
             <geom conaffinity="1" contype="1" friction="1 0.1 0.02" mass="0.1" mesh="fox_convex_mesh1" rgba="0 1 0 0" type="mesh"/>
