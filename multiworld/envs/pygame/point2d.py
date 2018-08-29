@@ -15,6 +15,8 @@ import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
+from railrl.torch import pytorch_util as ptu
+
 
 class Point2DEnv(MultitaskEnv, Serializable):
     """
@@ -31,9 +33,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             reward_type="dense",
             norm_order=1,
             action_scale=1.0,
-            target_radius=0.5,
+            target_radius=0.60,
             boundary_dist=4,
-            ball_radius=0.35,
+            ball_radius=0.50,
             walls=[],
             fixed_goal=None,
             goal_low=None,
@@ -41,6 +43,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             ball_low=None,
             ball_high=None,
             randomize_position_on_reset=True,
+            sample_realistic_goals=False,
             **kwargs
     ):
         print("WARNING, ignoring kwargs:", kwargs)
@@ -59,6 +62,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.walls = walls
         self.fixed_goal = fixed_goal
         self.randomize_position_on_reset = randomize_position_on_reset
+        self.sample_realistic_goals = sample_realistic_goals
         if self.fixed_goal is not None:
             self.fixed_goal = np.array(self.fixed_goal)
 
@@ -134,7 +138,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def reset(self):
         self._target_position = self.sample_goal_for_rollout()['state_desired_goal']
         if self.randomize_position_on_reset:
-            self._position = self._sample_position()
+            self._position = self._sample_position(self.ball_range.low, self.ball_range.high, realistic=True)
 
         self.goals = None
         return self._get_obs()
@@ -145,10 +149,32 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 return True
         return False
 
-    def _sample_position(self):
-        pos = np.random.uniform(self.ball_range.low, self.ball_range.high)
-        while self._position_inside_wall(pos) is True:
-            pos = np.random.uniform(self.ball_range.low, self.ball_range.high)
+    def realistic_goals(self, g):
+        collision = None
+        for wall in self.walls:
+            wall_collision = wall.contains_points_pytorch(g)
+            wall_collision_result = wall_collision[:, 0]
+            for i in range(wall_collision.shape[1]):
+                wall_collision_result = wall_collision_result * wall_collision[:, i]
+
+            if collision is None:
+                collision = wall_collision_result
+            else:
+                collision = collision | wall_collision_result
+
+        result = collision ^ 1
+
+        # g_np = ptu.get_numpy(g)
+        # for i in range(g_np.shape[0]):
+        #     print(not self._position_inside_wall(g_np[i]), ptu.get_numpy(result[i]))
+
+        return result.float()
+
+    def _sample_position(self, low, high, realistic=True):
+        pos = np.random.uniform(low, high)
+        if realistic:
+            while self._position_inside_wall(pos) is True:
+                pos = np.random.uniform(low, high)
         return pos
 
     def seed(self, s):
@@ -210,20 +236,25 @@ class Point2DEnv(MultitaskEnv, Serializable):
         if not self.fixed_goal is None:
             goal = np.copy(self.fixed_goal)
         else:
-            goal = np.random.uniform(
-                self.goal_range.low,
-                self.goal_range.high,
-            )
+            goal = self._sample_position(self.goal_range.low,
+                                         self.goal_range.high,
+                                         realistic=self.sample_realistic_goals)
         return {
             'desired_goal': goal,
             'state_desired_goal': goal,
         }
 
     def sample_goals(self, batch_size):
-        goals = np.random.uniform(
-            self.obs_range.low,
-            self.obs_range.high,
-            size=(batch_size, self.obs_range.low.size),
+        # goals = np.random.uniform(
+        #     self.obs_range.low,
+        #     self.obs_range.high,
+        #     size=(batch_size, self.obs_range.low.size),
+        # )
+        goals = np.array(
+            [
+                self._sample_position(self.obs_range.low, self.obs_range.high, realistic=self.sample_realistic_goals)
+                for _ in range(batch_size)
+            ]
         )
         return {
             'desired_goal': goals,
@@ -268,8 +299,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             self.drawer = PygameViewer(
                 self.render_size,
                 self.render_size,
-                x_bounds=(-self.boundary_dist, self.boundary_dist),
-                y_bounds=(-self.boundary_dist, self.boundary_dist),
+                x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
                 render_onscreen=self.render_onscreen,
             )
         self.drawer.fill(Color('white'))
@@ -548,7 +579,7 @@ class Point2DWallEnv(Point2DEnv):
             return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
 
         subgoals = []
-        if self.wall_shape == "big-u":
+        if self.wall_shape == "big-u" or self.wall_shape == "easy-u":
             if num_subgoals == 2:
                 if goal[0] <= 0:
                     subgoals += [(-3, -3), goal]
