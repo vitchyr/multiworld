@@ -50,8 +50,7 @@ class SawyerPickPlaceEnv_4D(SawyerPickPlaceEnv):
 
         self._set_objCOM_marker()
 
-        print(self.data.sensordata)
-
+     
         ob = self._get_obs()
        
         reward , reachRew, reachDist, pickRew, placeRew , placingDist = self.compute_reward(action, ob)
