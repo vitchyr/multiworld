@@ -3,13 +3,14 @@ import numpy as np
 from gym.spaces import Box, Dict
 
 from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict, get_asset_full_path
+    create_stats_ordered_dict, get_asset_full_path, zangle_to_quat, quat_to_zangle
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
 
-class SawyerPushEnv( SawyerXYZEnv):
+class SawyerDishRackEnv( SawyerXYZEnv):
     def __init__(
+
             self,
             obj_low=None,
             obj_high=None,
@@ -26,6 +27,7 @@ class SawyerPushEnv( SawyerXYZEnv):
             rewMode = 'posPlace',
 
             **kwargs
+           
     ):
         self.quick_init(locals())
         
@@ -46,8 +48,6 @@ class SawyerPushEnv( SawyerXYZEnv):
         if goal_high is None:
             goal_high = self.hand_high
 
-        self.objHeight = self.model.geom_pos[-1][2]
-
        
 
 
@@ -55,20 +55,15 @@ class SawyerPushEnv( SawyerXYZEnv):
 
         self.tasks = tasks
         self.num_tasks = len(tasks)
+        
 
-        self.rewMode = rewMode
-
-        # defaultTask = tasks[0]
-
-
-        # self.obj_init_pos = np.array(tasksobj_init_pos)
+     
         self.hand_init_pos = np.array(hand_init_pos)
 
-       
-
+     
         self.action_space = Box(
-            np.array([-1, -1, -1]),
-            np.array([1, 1, 1]),
+            np.array([-1, -1, -1, -1, -1]),
+            np.array([1, 1, 1, 1, 1]),
         )
         self.hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low)),
@@ -81,34 +76,38 @@ class SawyerPushEnv( SawyerXYZEnv):
            
             ('state_observation', self.hand_and_obj_space),
 
-            ('state_desired_goal', self.goal_space),
-            ('state_achieved_goal', self.goal_space)
+            ('desired_goal', self.goal_space)
         ])
 
         self.reset()
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        return get_asset_full_path('sawyer_xyz/sawyer_dishRack.xml')
 
     def viewer_setup(self):
         pass
-       
+   
+
+   
 
     def step(self, action):
 
-     
-     
-        self.set_xyz_action(action[:3])
 
-        self.do_simulation(None)
+        self.set_xyzRot_action(action[:4])
+
+
+       
         
+        self.do_simulation([1,-1])
         # The marker seems to get reset every time you do a simulation
-        self._set_goal_marker(self._state_goal)
+
+        #self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
        
 
-        reward , reachDist, placeDist  = self.compute_rewards(action, ob)
+        #reward , placeRew , reachRew = self.compute_rewards(action, ob)
+        reward = 0
         self.curr_path_length +=1
 
        
@@ -118,27 +117,25 @@ class SawyerPushEnv( SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'reachDist':reachDist,  'placeDist': placeDist, 'epRew': reward}
+        return ob, reward, done, { }
 
 
+
+   
     def _get_obs(self):
-        hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
+        e = self.get_endeff_pos()
+        b = self.get_obj_pos()
       
-        flat_obs = np.concatenate((hand, objPos))
+        flat_obs = np.concatenate((e, b))
 
         return dict(
             
-        
-            state_observation=flat_obs,
-
-            state_desired_goal=self._state_goal,
+            desired_goal= None,
+            #self._state_goal,
             
-            state_achieved_goal=objPos,
-
-
-)
-   
+            state_observation=flat_obs,
+            
+        )
 
     def _get_info(self):
         pass
@@ -160,67 +157,68 @@ class SawyerPushEnv( SawyerXYZEnv):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
 
+        
+      
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
 
 
-    def sample_task(self):
+    def sample_goal(self):
 
 
-        task_idx = np.random.randint(0, self.num_tasks)
+        goal_idx = np.random.randint(0, self.num_goals)
     
-        return self.tasks[task_idx]
-
-    def adjust_goalPos(self, orig_goal_pos):
-
-        return np.array([orig_goal_pos[0], orig_goal_pos[1], self.objHeight])
-    
-
-    def adjust_initObjPos(self, orig_init_pos):
-
-        #This is to account for meshes for the geom and object are not aligned
-        #If this is not done, the object could be initialized in an extreme position
-
-         
-        diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
-        adjustedPos = orig_init_pos[:2] + diff
-
-        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],0]
-
-
-   
-
-
+        return self.goals[goal_idx]
 
     def reset_model(self):
 
         
 
         self._reset_hand()
-
-        task = self.sample_task()
-        
-        self._state_goal = self.adjust_goalPos(task['goal'])
+        self.put_obj_in_hand()
 
        
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
         
-        self._set_goal_marker(self._state_goal)
+        #self._state_goal = self.sample_goal()
 
-        self._set_obj_xyz(self.obj_init_pos)
+
+        #self._set_goal_marker(self._state_goal)
+
+      
 
         self.curr_path_length = 0
+       
 
-        self.origPlacingDist = np.linalg.norm( self.obj_init_pos[:2] - self._state_goal[:2])
+        #init_obj = self.obj_init_pos
 
-        self.curr_path_length = 0
+
         
+        #placingGoal =  self._state_goal[:3]
 
 
+     
 
         return self._get_obs()
+
+
+
+    def put_obj_in_hand(self):
+
+
+        for _ in range(20):
+
+            self.do_simulation([1,-1], self.frame_skip)
+
+        new_obj_pos = np.copy(self.data.get_site_xpos('endEffector'))
+        new_obj_pos[2] -= 0.01
+
+      
+        self._set_obj_xyz(new_obj_pos)
+
+      
+       
+
 
     def _reset_hand(self):
 
@@ -228,8 +226,10 @@ class SawyerPushEnv( SawyerXYZEnv):
         
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
+
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            #self.do_simulation([1,-1], self.frame_skip)
+
+
             self.do_simulation(None, self.frame_skip)
 
 
@@ -247,50 +247,45 @@ class SawyerPushEnv( SawyerXYZEnv):
         state_obs = obs['state_observation']
 
         endEffPos , objPos = state_obs[0:3], state_obs[3:6]
-        
+
         
        
-       
-        placingGoal = self._state_goal
+        
+        placingGoal = self._state_goal[:3]
 
         
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         objPos = self.get_body_com("obj")
+
+
         fingerCOM = (rightFinger + leftFinger)/2
 
 
-        c1 = 1 ; c2 = 1
+        placeRew = -np.linalg.norm(placingGoal - objPos)
 
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-    
-        placeDist = np.linalg.norm(objPos - placingGoal)
-
-       
-        
-        if self.rewMode == 'normal':
-
-
-            reward = -reachDist - placeDist
-
-        elif self.rewMode == 'posPlace':
-
-            reward = -reachDist + 100* max(0, self.origPlacingDist - placeDist)
-
-
-
+        reachRew = -np.linalg.norm(objPos - fingerCOM)
       
 
 
-        return [reward, reachDist, placeDist] 
+       
+        reward  = reachRew + placeRew
+
+        
+        
+
+
+       
+        return [reward,  placeRew, reachRew] 
      
 
-   
+    def log_diagnostics(self, paths):
+        pass
+
+
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
        
         return statistics
 
-    def log_diagnostics(self, paths = None, logger = None):
-
-        pass
+   

@@ -7,10 +7,10 @@
         
         <body name="obj" pos="-0.3 0.5 0.08" quat= '0 0 1 1'>
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
-            <inertial pos="0 0 0" mass="0.001" diaginertia="1 1 1"/>
+            <inertial pos="0 0 0" mass="0.001" diaginertia="0.01 0.01 0.01"/>
             <geom name="objbox" type="cylinder" pos="0 0 0"
                   size="0.07 0.01" rgba="0 0.5 1 1"
-                  contype="1" conaffinity="1" friction="20.0 0.1 0.1" condim="4" 
+                  contype="1" conaffinity="1" friction="1.0 0.1 0.02" condim="4" 
             />
             <site name="obj" pos="0 0 0" size="0.01" />
         </body>

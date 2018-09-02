@@ -129,7 +129,7 @@ class SawyerDishRackEnv( SawyerXYZEnv):
             done = True
         else:
             done = False
-        return ob, reward, done, { 'placeRew': placeRew, 'reward' : reward, 'reachRew': reachRew}
+        return ob, reward, done, { }
 
 
 
@@ -298,5 +298,3 @@ class SawyerDishRackEnv( SawyerXYZEnv):
         statistics = OrderedDict()
        
         return statistics
-
-   

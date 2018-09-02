@@ -65,5 +65,17 @@ class FlatGoalEnv(ProxyEnv):
             self._goal = np.hstack([obs[k] for k in self.goal_keys])
         return np.hstack([obs[k] for k in self.obs_keys])
 
+
+    def get_flat_obs(self):
+        obs = self.wrapped_env._get_obs()
+
+        return np.hstack([obs[k] for k in self.obs_keys])
+
+
+        
+
+
+
+
     def get_goal(self):
         return self._goal

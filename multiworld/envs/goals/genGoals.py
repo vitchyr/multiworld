@@ -11,6 +11,8 @@ def read_goals(fileName):
 
     fobj = open(save_dir+fileName+'.pkl', 'rb')
     goals = pickle.load(fobj)
+    import ipdb
+    ipdb.set_trace()
 
    
     return goals
@@ -139,11 +141,12 @@ def modify(oldName, newName):
     fobj.close()
 
 
-gen_pickPlaceGoals('pickPlace_20X20_6_8')
+# gen_pickPlaceGoals('pickPlace_20X20_6_8')
 
 
-visualize_pickPlace('pickPlace_20X20_6_8')
+# visualize_pickPlace('pickPlace_20X20_6_8')
 
+read_goals('pickPlace_60X30')
 #read_goals('pickPlace_20X20_6_8')
 
 

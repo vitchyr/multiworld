@@ -133,8 +133,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
     def step(self, action):
 
-        #debug mode:
-
+        
         self.set_xyz_action(action[:3])
 
         self.do_simulation([action[-1], -action[-1]])
@@ -157,7 +156,8 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         #print(pickRew)
 
-        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist}
+        return ob, reward, done, { 'reachRew':reachRew, 'reachDist': reachDist, 'pickRew':pickRew, 'placeRew': placeRew, 'epRew' : reward, 'placingDist': placingDist} 
+                                    #'epObs': ob['state_observation']}
 
 
 
@@ -181,7 +181,19 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         )
 
-    
+    def set_obs_manual(self, obs):
+
+        assert len(obs) == 6
+
+        handPos = obs[:3] ; objPos = obs[3:]
+
+        self.data.set_mocap_pos('mocap', handPos)
+
+        self.do_simulation(None)
+
+
+        self._set_obj_xyz(objPos)
+        
 
 
     def _get_info(self):
@@ -208,7 +220,9 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
             objPos
         )
        
-       
+
+   
+     
 
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -220,8 +234,7 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
 
     def sample_goals(self, batch_size):
-        #Required by HER-TD3
-     
+      
         goals = []
 
         for i in range(batch_size):
@@ -246,6 +259,11 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
     
         return self.tasks[task_idx]
 
+
+
+    def adjust_goalPos(self, orig_goal_pos):
+
+        return np.array([orig_goal_pos[0], orig_goal_pos[1], self.objHeight])
     
 
     def adjust_initObjPos(self, orig_init_pos):
@@ -257,22 +275,28 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
-        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
-        return [adjustedPos[0], adjustedPos[1],0]
+        #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height. Placing distance considers the geom_pos (see get_obs)
+        return np.array([adjustedPos[0], adjustedPos[1],0])
 
 
-    def reset_model(self):
 
-        
+    def change_task(self, task):
 
-        self._reset_hand()
 
-        task = self.sample_task()
-  
-        self._state_goal = np.array(task['goal'])
+        self._state_goal = self.adjust_goalPos(task['goal'])
         self._set_goal_marker(self._state_goal)
 
+        #self._set_goal_marker(self._state_goal)
         self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
+
+        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
+
+
+    def reset_arm_and_object(self):
+
+        self._reset_hand()
+  
+      
         self._set_obj_xyz(self.obj_init_pos)
 
       
@@ -280,11 +304,13 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
         self.curr_path_length = 0
         self.pickCompleted = False
 
+    def reset_model(self):
+
    
+        task = self.sample_task()
 
-        self.maxPlacingDist = np.linalg.norm(np.array([self.obj_init_pos[0], self.obj_init_pos[1], self.heightTarget]) - np.array(self._state_goal)) + self.heightTarget
-        #Can try changing this
-
+        self.change_task(task)
+        self.reset_arm_and_object()
 
 
 
@@ -292,16 +318,10 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
     def _reset_hand(self):
 
-
-        
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation([-1,1], self.frame_skip)
-
-      
-            #self.do_simulation(None, self.frame_skip)
-
 
 
     def get_site_pos(self, siteName):
@@ -322,9 +342,6 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
 
         obsList = obsBatch['state_observation']
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
-
-
-
 
         return np.array(rewards)
 
@@ -434,35 +451,36 @@ class SawyerPickPlaceEnv( SawyerXYZEnv):
                 placeRew = max(placeRew,0)
            
 
-                return [placeRew , placingDist]
+                return placeRew
 
             else:
-                return [0 , placingDist]
+                return 0
 
 
         
-
+        #print(self.maxPlacingDist)
         reachRew, reachDist = reachReward()
 
         if self.rewMode == 'orig':
             pickRew = orig_pickReward()
-            placeRew , placingDist = placeReward(cond = (graspDist < 0.1) and not(objDropped()))
-
+            placeRew  = placeReward(cond = self.pickCompleted and (graspDist < 0.1) and not(objDropped()))        
 
         else:
 
            
             assert(self.rewMode == 'general')
             pickRew = general_pickReward()
-            placeRew , placingDist = placeReward(cond = grasped())
+            placeRew  = placeReward(cond = self.pickCompleted and grasped())
        
-
-        
+     
 
         assert ((placeRew >=0) and (pickRew>=0))
         reward = reachRew + pickRew + placeRew
 
-        return [reward, reachRew, reachDist, pickRew, placeRew, placingDist] 
+        #print(placingDist)
+       
+
+        return [reward, reachRew, reachDist, pickRew, placeRew, min(placingDist, self.maxPlacingDist)] 
      
 
    
