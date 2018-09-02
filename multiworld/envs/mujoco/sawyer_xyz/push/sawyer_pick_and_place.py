@@ -12,18 +12,23 @@ class SawyerPickPlaceEnv( SawyerPushEnv):
     def __init__(
             self,
             tasks = [{'goal': np.array([0, 0.7, 0.02]), 'height': 0.06, 'obj_init_pos':np.array([0, 0.6, 0.02])}] , 
-            liftThresh = 0.04,
             rewMode = 'orig',
+            liftThresh = 0.04,
             **kwargs
     ):
   
         self.quick_init(locals())
-        
+
+       
         SawyerPushEnv.__init__(
             self,
             tasks = tasks,
+
             **kwargs
         )
+
+
+        
         self.rewMode = rewMode
         self.heightTarget = self.objHeight + liftThresh
         self.action_space = Box(

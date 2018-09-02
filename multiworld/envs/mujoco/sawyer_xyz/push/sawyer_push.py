@@ -58,10 +58,7 @@ class SawyerPushEnv( SawyerXYZEnv):
 
         self.rewMode = rewMode
 
-        # defaultTask = tasks[0]
-
-
-        # self.obj_init_pos = np.array(tasksobj_init_pos)
+     
         self.hand_init_pos = np.array(hand_init_pos)
 
        
@@ -85,14 +82,32 @@ class SawyerPushEnv( SawyerXYZEnv):
             ('state_achieved_goal', self.goal_space)
         ])
 
-        self.reset()
 
+    def get_goal(self):
+        return {
+            
+            'state_desired_goal': self._state_goal,
+    }
+
+
+
+      
     @property
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def viewer_setup(self):
         pass
+
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0
+        # self.viewer.cam.lookat[1] = 1.0
+        # self.viewer.cam.lookat[2] = 0.5
+        # self.viewer.cam.distance = 0.6
+        # self.viewer.cam.elevation = -45
+        # self.viewer.cam.azimuth = 270
+        # self.viewer.cam.trackbodyid = -1
+        
        
 
     def step(self, action):
@@ -108,7 +123,7 @@ class SawyerPushEnv( SawyerXYZEnv):
         ob = self._get_obs()
        
 
-        reward , reachDist, placeDist  = self.compute_rewards(action, ob)
+        reward , reachDist, placeDist  = self.compute_reward(action, ob)
         self.curr_path_length +=1
 
        
@@ -142,8 +157,7 @@ class SawyerPushEnv( SawyerXYZEnv):
 
     def _get_info(self):
         pass
-    def get_obj_pos(self):
-        return self.data.get_body_xpos('obj').copy()
+   
 
     def _set_goal_marker(self, goal):
         """
@@ -163,6 +177,37 @@ class SawyerPushEnv( SawyerXYZEnv):
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
+
+    def set_obs_manual(self, obs):
+
+        assert len(obs) == 6
+
+        handPos = obs[:3] ; objPos = obs[3:]
+
+        self.data.set_mocap_pos('mocap', handPos)
+
+        self.do_simulation(None)
+
+
+        self._set_obj_xyz(objPos)
+        
+
+    def sample_goals(self, batch_size):
+      
+        goals = []
+
+        for i in range(batch_size):
+
+           
+            task = self.tasks[np.random.randint(0, self.num_tasks)]
+            goals.append(task['goal'])
+
+
+        return {
+            
+            'state_desired_goal': goals,
+        }
+
 
 
     def sample_task(self):
@@ -189,38 +234,43 @@ class SawyerPushEnv( SawyerXYZEnv):
         #The convention we follow is that body_com[2] is always 0, and geom_pos[2] is the object height
         return [adjustedPos[0], adjustedPos[1],0]
 
-
-   
-
+    def change_task(self, task):
 
 
-    def reset_model(self):
-
-        
-
-        self._reset_hand()
-
-        task = self.sample_task()
-        
         self._state_goal = self.adjust_goalPos(task['goal'])
-
-       
-        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-        
         self._set_goal_marker(self._state_goal)
 
-        self._set_obj_xyz(self.obj_init_pos)
-
-        self.curr_path_length = 0
+        #self._set_goal_marker(self._state_goal)
+        self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
 
         self.origPlacingDist = np.linalg.norm( self.obj_init_pos[:2] - self._state_goal[:2])
 
+
+    def reset_arm_and_object(self):
+
+        self._reset_hand()
+  
+      
+        self._set_obj_xyz(self.obj_init_pos)
+
+      
+
         self.curr_path_length = 0
-        
+        self.pickCompleted = False
+
+    def reset_model(self):
+
+   
+        task = self.sample_task()
+
+        self.change_task(task)
+        self.reset_arm_and_object()
 
 
 
         return self._get_obs()
+
+
 
     def _reset_hand(self):
 
@@ -229,7 +279,6 @@ class SawyerPushEnv( SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            #self.do_simulation([1,-1], self.frame_skip)
             self.do_simulation(None, self.frame_skip)
 
 
@@ -239,10 +288,21 @@ class SawyerPushEnv( SawyerXYZEnv):
         return self.data.site_xpos[_id].copy()
 
 
+    def compute_rewards(self, actions, obsBatch):
+        #Required by HER-TD3
+
+
+        assert isinstance(obsBatch, dict) == True
+
+
+        obsList = obsBatch['state_observation']
+        rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
+
+        return np.array(rewards)
 
 
 
-    def compute_rewards(self, actions, obs):
+    def compute_reward(self, actions, obs):
            
         state_obs = obs['state_observation']
 
@@ -277,11 +337,7 @@ class SawyerPushEnv( SawyerXYZEnv):
             reward = -reachDist + 100* max(0, self.origPlacingDist - placeDist)
 
 
-
-      
-
-
-        return [reward, reachDist, placeDist] 
+        return [reward, reachDist, min(placeDist, self.origPlacingDist*1.5)] 
      
 
    
