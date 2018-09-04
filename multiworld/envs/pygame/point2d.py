@@ -100,6 +100,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.goals = None
+        self.sweep_goal = None
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -604,14 +605,15 @@ class Point2DWallEnv(Point2DEnv):
         return np.array(subgoals)
 
 
-    def sweep_v_fixed_obs(self, agent, qf, obs, tau):
+    def sweep_v_fixed_obs(self, agent, qf, obs, tau, post_process_func=lambda x: x):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
 
-        sweep_obs = np.tile(obs, (nx * ny, 1))
-        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_obs = post_process_func(np.tile(obs, (nx * ny, 1)))
+        sweep_goal = post_process_func(np.stack((xv, yv), axis=2).reshape((-1, 2)))
+
         sweep_tau = np.tile(tau, (nx * ny, 1))
         sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
         v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
@@ -626,6 +628,20 @@ class Point2DWallEnv(Point2DEnv):
             vmax = 0
 
         return self.get_image_v_fixed_obs(v_vals, vmin, vmax)
+
+    def sweep_rew_fixed_obs(self, obs, post_process_func=lambda x: x):
+        nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.tile(post_process_func(obs.reshape((1, -1))), (nx * ny, 1))
+        if self.sweep_goal is None:
+            self.sweep_goal = post_process_func(np.stack((xv, yv), axis=2).reshape((-1, 2)))
+
+        rew_vals = -np.linalg.norm(sweep_obs - self.sweep_goal, ord=self.norm_order, axis=-1).reshape((nx, ny))
+        vmin, vmax = None, None
+        return self.get_image_rew_fixed_obs(rew_vals, vmin, vmax)
 
     def sweep_v_fixed_goal(self, agent, qf, goal_high_level, tau_high_level):
         nx, ny = (50, 50)
@@ -724,6 +740,21 @@ class Point2DWallEnv(Point2DEnv):
 
         return self.plt_to_numpy(fig)
 
+    def get_image_rew_fixed_obs(self, vals, vmin, vmax):
+        fig, ax = self.draw_plt_objects(draw_ball=True)
+
+        ax.imshow(
+            vals,
+            extent=[-4, 4, -4, 4],
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
+
     def get_image_v_fixed_goal(self, vals, vmin, vmax):
         fig, ax = self.draw_plt_objects(draw_goal=True)
 
@@ -776,10 +807,8 @@ class Point2DWallEnv(Point2DEnv):
 
     def draw_plt_objects(self, draw_walls=True, draw_ball=False, draw_goal=False, draw_subgoal=False):
         fig, ax = plt.subplots()
-        ball = plt.Circle(self._position, self.ball_radius, color='b')
-        goal = plt.Circle(self._target_position, self.target_radius, color='g')
         if self.goals is not None:
-            subgoal = plt.Circle(self.goals[0], self.ball_radius + 0.1, color='r')
+            subgoal = plt.Circle(self.goals[0], (self.ball_radius + 0.1) / 2, color='r')
         else:
             subgoal = None
 
@@ -790,8 +819,10 @@ class Point2DWallEnv(Point2DEnv):
         fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
 
         if draw_ball:
+            ball = plt.Circle(self._position, self.ball_radius / 2, color='b')
             ax.add_artist(ball)
         if draw_goal:
+            goal = plt.Circle(self._target_position, self.target_radius / 2, color='g')
             ax.add_artist(goal)
         if draw_subgoal:
             ax.add_artist(subgoal)
