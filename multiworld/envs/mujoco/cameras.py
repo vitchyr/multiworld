@@ -57,6 +57,14 @@ def init_sawyer_camera_v3(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
+def sawyer_pick_and_place_camera(camera):
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = .67
+    camera.lookat[2] = .1
+    camera.distance = .7
+    camera.elevation = 0
+    camera.azimuth = 180
+    camera.trackbodyid = 0
 
 def init_sawyer_camera_v4(camera):
     """
@@ -69,6 +77,15 @@ def init_sawyer_camera_v4(camera):
     camera.elevation = -35
     camera.azimuth = 270
     camera.trackbodyid = -1
+
+def sawyer_pick_and_place_camera_slanted_angle(camera):
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = .67
+    camera.lookat[2] = .1
+    camera.distance = .65
+    camera.elevation = -37.85
+    camera.azimuth = 180
+    camera.trackbodyid = 0
 
 
 def init_sawyer_camera_v5(camera):
@@ -134,9 +151,6 @@ def sawyer_door_env_camera(camera):
     camera.trackbodyid = -1
 
 def sawyer_pusher_camera_upright(camera):
-    """
-    Top down basically. Sees through the arm.
-    """
     camera.trackbodyid = 0
     camera.distance = .45
     camera.lookat[0] = 0
@@ -153,6 +167,14 @@ def sawyer_pusher_camera_ahead(camera):
     camera.lookat[2] = 0.5
     camera.distance = 0.3
     camera.elevation = -45
+
+def sawyer_pusher_camera_upright_v2(camera):
+    camera.trackbodyid = 0
+    camera.distance = .45
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.45
+    camera.elevation = -60
     camera.azimuth = 270
     camera.trackbodyid = -1
 
