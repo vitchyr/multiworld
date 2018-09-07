@@ -307,18 +307,18 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 self.drawer = PygameViewer(
                     screen_width=width,
                     screen_height=height,
-                    x_bounds=(-self.boundary_dist, self.boundary_dist),
-                    y_bounds=(-self.boundary_dist, self.boundary_dist),
+                    x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                    y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
                     render_onscreen=self.render_onscreen,
                 )
                 self.render_size = width
         self.render()
         img = self.drawer.get_image()
         if self.images_are_rgb:
-            return img.transpose((1, 0, 2)).flatten()
+            return img.transpose((1, 0, 2))
         else:
             r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
-            img = (-r + b).flatten()
+            img = (-r + b)
             return img
 
     def set_to_goal(self, goal_dict):
@@ -669,28 +669,30 @@ class Point2DWallEnv(Point2DEnv):
 
         return np.array(subgoals)
 
-
-    def sweep_v_fixed_obs(self, agent, qf, obs, tau, post_process_func=lambda x: x):
+    def sweep_v_fixed_obs(self, agent, qf, obs, tau, post_process_func=lambda x: x, scale='auto'):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
 
-        sweep_obs = post_process_func(np.tile(obs, (nx * ny, 1)))
-        sweep_goal = post_process_func(np.stack((xv, yv), axis=2).reshape((-1, 2)))
+        sweep_obs = np.tile(post_process_func(obs.reshape((1, -1))), (nx * ny, 1))
+        if self.sweep_goal is None:
+            self.sweep_goal = post_process_func(np.stack((xv, yv), axis=2).reshape((-1, 2)))
 
         sweep_tau = np.tile(tau, (nx * ny, 1))
-        sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+        sweep_actions = agent.eval_np(sweep_obs, self.sweep_goal, sweep_tau)
+        v_vals = qf.eval_np(sweep_obs, sweep_actions, self.sweep_goal, sweep_tau)
         v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
 
-        if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
-            v_vals = -np.exp(-v_vals / agent.reward_scale)
-            vmin = -np.exp(1)
-            vmax = -np.exp(0)
-        else:
-            vmin = -agent.reward_scale*1.0 #np.sqrt(128)*0.70
-            vmax = 0
+        vmin, vmax = None, None
+        if scale == 'auto':
+            if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
+                v_vals = -np.exp(-v_vals / agent.reward_scale)
+                vmin = -np.exp(1)
+                vmax = -np.exp(0)
+            else:
+                vmin = -agent.reward_scale*1.0 #np.sqrt(128)*0.70
+                vmax = 0
 
         return self.get_image_v_fixed_obs(v_vals, vmin, vmax)
 
@@ -873,7 +875,7 @@ class Point2DWallEnv(Point2DEnv):
     def draw_plt_objects(self, draw_walls=True, draw_ball=False, draw_goal=False, draw_subgoal=False):
         fig, ax = plt.subplots()
         if self.goals is not None:
-            subgoal = plt.Circle(self.goals[0], (self.ball_radius + 0.1) / 2, color='r')
+            subgoal = plt.Circle(self.goals[0], (self.ball_radius + 0.1) * 0.70, color='r')
         else:
             subgoal = None
 
@@ -884,10 +886,10 @@ class Point2DWallEnv(Point2DEnv):
         fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
 
         if draw_ball:
-            ball = plt.Circle(self._position, self.ball_radius / 2, color='b')
+            ball = plt.Circle(self._position, self.ball_radius * 0.70, color='b')
             ax.add_artist(ball)
         if draw_goal:
-            goal = plt.Circle(self._target_position, self.target_radius / 2, color='g')
+            goal = plt.Circle(self._target_position, self.target_radius * 0.70, color='g')
             ax.add_artist(goal)
         if draw_subgoal:
             ax.add_artist(subgoal)
