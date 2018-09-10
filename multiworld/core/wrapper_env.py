@@ -62,7 +62,7 @@ class NormalizedBoxEnv(ProxyEnv, Serializable):
         self._obs_means = obs_means
         self._obs_stds = obs_stds
         ub = np.ones(self._wrapped_env.action_space.shape)
-        self.action_space = Box(-1 * ub, ub)
+        self.action_space = Box(-1 * ub, ub , dtype = np.float32)
         self.obs_to_normalize_keys=obs_to_normalize_keys
 
     def estimate_obs_stats(self, obs_batch, override_values=False):

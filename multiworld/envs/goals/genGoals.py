@@ -4,6 +4,8 @@ import pickle
 
 import numpy as np
 
+from matplotlib import pyplot as plt
+
 save_dir = '/home/russellm/multiworld/multiworld/envs/goals/'
 
 
@@ -11,8 +13,9 @@ def read_goals(fileName):
 
     fobj = open(save_dir+fileName+'.pkl', 'rb')
     goals = pickle.load(fobj)
-    import ipdb
-    ipdb.set_trace()
+
+    #import IPython
+    #IPython.embed()
 
    
     return goals
@@ -79,8 +82,8 @@ def gen_pickPlaceGoals(fileName):
 
         task={}
 
-        xs = np.random.uniform(-.1, .1, size=2)
-        ys = np.random.uniform(0.6, 0.8, size = 2)
+        xs = np.random.uniform(-.15, .15, size=2)
+        ys = np.random.uniform(0.5, 0.8, size = 2)
 
         task['obj_init_pos'] = np.array([xs[0], ys[0], 0.02])
         task['goal'] = np.array([xs[1], ys[1], 0.02])
@@ -95,7 +98,7 @@ def gen_pickPlaceGoals(fileName):
 
 
 
-def visualize_pickPlace(fileName, xRange = [-.1, .1], yRange=[0.6, 0.8]):
+def visualize_pickPlace(fileName, xRange = [-.15, .15], yRange=[0.5, 0.8]):
 
     tasks = np.array(read_goals(fileName))
     from matplotlib import pyplot as plt
@@ -141,36 +144,36 @@ def modify(oldName, newName):
     fobj.close()
 
 
-# gen_pickPlaceGoals('pickPlace_20X20_6_8')
+def plotOrigDistances(fileName):
+
+   
+
+    tasks = np.array(read_goals(fileName))
+
+    OrigDistances = [np.linalg.norm(tasks[i]['obj_init_pos'][:2] - tasks[i]['goal'][:2]) for i in range(len(tasks))]
+
+    for i in range(len(OrigDistances)):
+        plt.plot(np.arange(5), OrigDistances[i]*np.ones(5), label = 'Task'+str(i))
+    
+
+    plt.legend(ncol = 3)
+    plt.savefig('origDistances/'+fileName)
+
+for size in ['20X20', '20X20_val', '30X30_val', '60X30', '60X30_val']:
+
+    plt.clf()
+
+    plotOrigDistances('pickPlace_'+size)
+
+#gen_pickPlaceGoals('pickPlace_30X30_val')
 
 
-# visualize_pickPlace('pickPlace_20X20_6_8')
+#visualize_pickPlace('pickPlace_30X30_val')
 
-read_goals('pickPlace_60X30')
+#read_goals('pickPlace_20X20')
 #read_goals('pickPlace_20X20_6_8')
 
 
-
-
-def gen_pointMassGoals(fileName):
-
-    goals = []
-    for count in range(20):
-
-
-        theta = np.random.uniform(0, 2*np.pi)
-        # i = np.random.uniform(-.1, .1)
-        # j = np.random.uniform(0.6, 0.8)
-
-        i = 0.2* np.cos(theta)
-        j = 0.2*np.sin(theta)
-
-        goals.append([i,j])
-
-
-    fobj = open(save_dir+fileName+'.pkl', 'wb')
-    pickle.dump(goals, fobj)
-    fobj.close()
 
 
 

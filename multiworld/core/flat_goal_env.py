@@ -39,6 +39,7 @@ class FlatGoalEnv(ProxyEnv):
                 self.wrapped_env.observation_space.spaces[k].high
                 for k in obs_keys
             ]),
+            dtype = np.float32
         )
 
         if len(goal_keys)>0:
@@ -51,6 +52,7 @@ class FlatGoalEnv(ProxyEnv):
                     self.wrapped_env.observation_space.spaces[k].high
                     for k in goal_keys
                 ]),
+                dtype = np.float32
             )
         self._goal = None
 

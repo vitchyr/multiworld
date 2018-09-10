@@ -13,22 +13,14 @@ class SawyerPushEnv( SawyerXYZEnv):
             self,
             obj_low=None,
             obj_high=None,
-
             tasks = [{'goal': [0, 0.7, 0.02], 'obj_init_pos':[0, 0.6, 0.02]}] , 
-
             goal_low=None,
             goal_high=None,
-
             hand_init_pos = (0, 0.4, 0.05),
-          
-          
-
             rewMode = 'posPlace',
-
             **kwargs
     ):
-        self.quick_init(locals())
-        
+        self.quick_init(locals())        
         SawyerXYZEnv.__init__(
             self,
             model_name=self.model_name,
@@ -47,22 +39,11 @@ class SawyerPushEnv( SawyerXYZEnv):
             goal_high = self.hand_high
 
         self.objHeight = self.model.geom_pos[-1][2]
-
-       
-
-
         self.max_path_length = 150
-
-        self.tasks = tasks
+        self.tasks = np.array(tasks)
         self.num_tasks = len(tasks)
-
         self.rewMode = rewMode
-
-     
         self.hand_init_pos = np.array(hand_init_pos)
-
-       
-
         self.action_space = Box(
             np.array([-1, -1, -1]),
             np.array([1, 1, 1]),
@@ -71,26 +52,17 @@ class SawyerPushEnv( SawyerXYZEnv):
             np.hstack((self.hand_low, obj_low)),
             np.hstack((self.hand_high, obj_high)),
         )
-
         self.goal_space = Box(goal_low, goal_high)
-
-        self.observation_space = Dict([
-           
+        self.observation_space = Dict([           
             ('state_observation', self.hand_and_obj_space),
-
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space)
         ])
 
-
     def get_goal(self):
-        return {
-            
+        return {            
             'state_desired_goal': self._state_goal,
     }
-
-
-
       
     @property
     def model_name(self):
@@ -98,7 +70,6 @@ class SawyerPushEnv( SawyerXYZEnv):
 
     def viewer_setup(self):
         pass
-
         # self.viewer.cam.trackbodyid = 0
         # self.viewer.cam.lookat[0] = 0
         # self.viewer.cam.lookat[1] = 1.0
@@ -107,18 +78,15 @@ class SawyerPushEnv( SawyerXYZEnv):
         # self.viewer.cam.elevation = -45
         # self.viewer.cam.azimuth = 270
         # self.viewer.cam.trackbodyid = -1
-        
-       
-
+               
     def step(self, action):
 
-     
-     
         self.set_xyz_action(action[:3])
-
         self.do_simulation(None)
         
         # The marker seems to get reset every time you do a simulation
+
+        
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
        
@@ -126,8 +94,6 @@ class SawyerPushEnv( SawyerXYZEnv):
         reward , reachDist, placeDist  = self.compute_reward(action, ob)
         self.curr_path_length +=1
 
-       
-        #info = self._get_info()
 
         if self.curr_path_length == self.max_path_length:
             done = True
@@ -210,12 +176,13 @@ class SawyerPushEnv( SawyerXYZEnv):
 
 
 
-    def sample_task(self):
+  
+
+    def sample_tasks(self, num_tasks):
 
 
-        task_idx = np.random.randint(0, self.num_tasks)
-    
-        return self.tasks[task_idx]
+        indices = np.random.choice(np.arange(self.num_tasks), num_tasks)
+        return self.tasks[indices]
 
     def adjust_goalPos(self, orig_goal_pos):
 
@@ -261,7 +228,7 @@ class SawyerPushEnv( SawyerXYZEnv):
     def reset_model(self):
 
    
-        task = self.sample_task()
+        task = self.sample_tasks(1)[0]
 
         self.change_task(task)
         self.reset_arm_and_object()
@@ -337,6 +304,8 @@ class SawyerPushEnv( SawyerXYZEnv):
             reward = -reachDist + 100* max(0, self.origPlacingDist - placeDist)
 
 
+        #print (min(placeDist, self.origPlacingDist*1.5))
+
         return [reward, reachDist, min(placeDist, self.origPlacingDist*1.5)] 
      
 
@@ -347,6 +316,14 @@ class SawyerPushEnv( SawyerXYZEnv):
        
         return statistics
 
-    def log_diagnostics(self, paths = None, logger = None):
+    def log_diagnostics(self, paths = None, prefix = '', logger = None):
 
-        pass
+        for key in paths[0]['env_infos']:
+
+      
+
+            logger.record_tabular(prefix+ 'sum_'+key, np.mean([sum(path['env_infos'][key]) for path in paths]) )
+            logger.record_tabular(prefix+'max_'+key, np.mean([max(path['env_infos'][key]) for path in paths]) )
+            logger.record_tabular(prefix+'min_'+key, np.mean([min(path['env_infos'][key]) for path in paths]) )
+
+            logger.record_tabular(prefix + 'last_'+key, np.mean([path['env_infos'][key][-1] for path in paths]) )

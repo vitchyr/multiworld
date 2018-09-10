@@ -13,6 +13,7 @@ class FinnMamlEnv(ProxyEnv):
    
     def __init__(self, wrapped_env):
         self.quick_init(locals())
+        self._goal_idx = 3
         super(FinnMamlEnv, self).__init__(wrapped_env)
 
    
@@ -34,7 +35,10 @@ class FinnMamlEnv(ProxyEnv):
         elif self._goal_idx is None:
             self._goal_idx = np.random.randint(1)
 
+        #print(self._goal_idx)
 
+
+        
         task = self.tasks[self._goal_idx]
 
 
