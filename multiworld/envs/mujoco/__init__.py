@@ -2,7 +2,6 @@ import gym
 from gym.envs.registration import register
 import logging
 
-from multiworld.envs.mujoco.cameras import sawyer_door_env_camera
 
 LOGGER = logging.getLogger(__name__)
 
@@ -32,6 +31,19 @@ def register_custom_envs():
         },
     )
     register(
+        id='SawyerReachXYEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
+        tags={
+            'git-commit-hash': '9cab5da',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'reward_type': 'vectorized_hand_distance',
+            'norm_order': 2,
+            'hide_goal_markers': True,
+        }
+    )
+    register(
         id='Image48SawyerReachXYEnv-v0',
         entry_point=create_image_48_sawyer_reach_xy_env_v0,
         tags={
@@ -45,6 +57,14 @@ def register_custom_envs():
         tags={
             'git-commit-hash': 'c5e15f7',
             'author': 'vitchyr'
+        },
+    )
+    register(
+        id='Image84SawyerReachXYEnv-v1',
+        entry_point=create_image_84_sawyer_reach_xy_env_v1,
+        tags={
+            'git-commit-hash': '9cab5da',
+            'author': 'Soroush'
         },
     )
 
@@ -367,6 +387,7 @@ def register_custom_envs():
         )
     )
 
+
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera
@@ -386,6 +407,25 @@ def create_image_84_sawyer_reach_xy_env_v0():
     from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera
 
     wrapped_env = gym.make('SawyerReachXYEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_xyz_reacher_camera,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_reach_xy_env_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera
+    from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv
+
+    kwargs = {
+        'reward_type': 'vectorized_hand_distance',
+        'norm_order': 2,
+        'hide_goal_markers': True,
+    }
+    wrapped_env = SawyerReachXYEnv(**kwargs)
     return ImageEnv(
         wrapped_env,
         84,
