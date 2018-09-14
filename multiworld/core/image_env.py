@@ -25,7 +25,27 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             threshold=10,
             image_length=None,
             presampled_goals=None,
+            non_presampled_goal_img_is_garbage=False,
     ):
+        """
+
+        :param wrapped_env:
+        :param imsize:
+        :param init_camera:
+        :param transpose:
+        :param grayscale:
+        :param normalize:
+        :param reward_type:
+        :param threshold:
+        :param image_length:
+        :param presampled_goals:
+        :param non_presampled_goal_img_is_garbage: Set this option to True if
+        you want to allow the code to work without presampled goals,
+        but where the underlying env doesn't support set_to_goal. As the name,
+        implies this will make it so that the goal image is garbage if you
+        don't provide pre-sampled goals. The main use case is if you want to
+        use an ImageEnv to pre-sample a bunch of goals.
+        """
         self.quick_init(locals())
         super().__init__(wrapped_env)
         self.wrapped_env.hide_goal_markers = True
@@ -34,6 +54,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.transpose = transpose
         self.grayscale = grayscale
         self.normalize = normalize
+        self.non_presampled_goal_img_is_garbage = non_presampled_goal_img_is_garbage
 
         if image_length is not None:
             self.image_length = image_length
@@ -55,7 +76,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # sim.add_render_context(viewer)
         self._render_local = False
         img_space = Box(0, 1, (self.image_length,))
-        self._img_goal = None
+        self._img_goal = img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
@@ -84,11 +105,11 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.action_space = self.wrapped_env.action_space
         self.reward_type = reward_type
         self.threshold = threshold
-        self.num_goals_presampled = 0
-
-    def set_presampled_goals(self, presampled_goals):
         self._presampled_goals = presampled_goals
-        self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
+        if self._presampled_goals is None:
+            self.num_goals_presampled = 0
+        else:
+            self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
@@ -113,6 +134,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.wrapped_env.set_goal(goal)
             for key in goal:
                 obs[key] = goal[key]
+        elif self.non_presampled_goal_img_is_garbage:
+            # This is use mainly for debugging or pre-sampling goals.
+            self._img_goal = self._get_flat_img()
         else:
             env_state = self.wrapped_env.get_env_state()
             self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
