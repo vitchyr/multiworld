@@ -164,7 +164,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 return True
         return False
 
-    def realistic_goals(self, g):
+    def realistic_goals(self, g, use_double=False):
         collision = None
         for wall in self.walls:
             wall_collision = wall.contains_points_pytorch(g)
@@ -320,6 +320,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
             img = (-r + b)
             return img
+
+    def update_goals(self, goals):
+        self.goals = goals
 
     def set_to_goal(self, goal_dict):
         goal = goal_dict["state_desired_goal"]
@@ -724,7 +727,7 @@ class Point2DWallEnv(Point2DEnv):
         v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
 
         if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
-            v_vals = -np.exp(-v_vals / agent.reward_scale)
+            v_vals = -np.exp(-1.5* v_vals / agent.reward_scale)
             vmin = -np.exp(1)
             vmax = -np.exp(0)
         else:
