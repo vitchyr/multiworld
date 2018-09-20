@@ -40,6 +40,9 @@ class SawyerPushEnv( SawyerXYZEnv):
 
         self.objHeight = self.model.geom_pos[-1][2]
         self.max_path_length = 150
+        #import pickle
+        #tasks = np.array(pickle.load(open('/home/russellm/multiworld/multiworld/envs/goals/Push_20X20.pkl', 'rb'))) 
+        #tasks = np.array(pickle.load(open('/root/code/multiworld/multiworld/envs/goals/Push_20X20.pkl', 'rb')))     
         self.tasks = np.array(tasks)
         self.num_tasks = len(tasks)
         self.rewMode = rewMode
@@ -83,18 +86,10 @@ class SawyerPushEnv( SawyerXYZEnv):
 
         self.set_xyz_action(action[:3])
         self.do_simulation(None)
-        
-        # The marker seems to get reset every time you do a simulation
-
-        
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-       
-
         reward , reachDist, placeDist  = self.compute_reward(action, ob)
         self.curr_path_length +=1
-
-
         if self.curr_path_length == self.max_path_length:
             done = True
         else:
@@ -104,26 +99,17 @@ class SawyerPushEnv( SawyerXYZEnv):
 
     def _get_obs(self):
         hand = self.get_endeff_pos()
-        objPos =  self.data.get_geom_xpos('objGeom')
-      
+        objPos =  self.data.get_geom_xpos('objGeom')      
         flat_obs = np.concatenate((hand, objPos))
 
-        return dict(
-            
-        
+        return dict(        
             state_observation=flat_obs,
-
-            state_desired_goal=self._state_goal,
-            
+            state_desired_goal=self._state_goal,        
             state_achieved_goal=objPos,
-
-
 )
    
-
     def _get_info(self):
         pass
-   
 
     def _set_goal_marker(self, goal):
         """
@@ -133,13 +119,10 @@ class SawyerPushEnv( SawyerXYZEnv):
         self.data.site_xpos[self.model.site_name2id('goal')] = (
             goal[:3]
         )
-       
-       
-
+              
     def _set_obj_xyz(self, pos):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-
         qpos[9:12] = pos.copy()
         qvel[9:15] = 0
         self.set_state(qpos, qvel)
@@ -147,36 +130,23 @@ class SawyerPushEnv( SawyerXYZEnv):
     def set_obs_manual(self, obs):
 
         assert len(obs) == 6
-
         handPos = obs[:3] ; objPos = obs[3:]
-
         self.data.set_mocap_pos('mocap', handPos)
-
         self.do_simulation(None)
-
-
         self._set_obj_xyz(objPos)
         
 
     def sample_goals(self, batch_size):
       
         goals = []
-
         for i in range(batch_size):
-
            
             task = self.tasks[np.random.randint(0, self.num_tasks)]
             goals.append(task['goal'])
 
-
-        return {
-            
+        return { 
             'state_desired_goal': goals,
         }
-
-
-
-  
 
     def sample_tasks(self, num_tasks):
 
@@ -188,13 +158,10 @@ class SawyerPushEnv( SawyerXYZEnv):
 
         return np.array([orig_goal_pos[0], orig_goal_pos[1], self.objHeight])
     
-
     def adjust_initObjPos(self, orig_init_pos):
 
         #This is to account for meshes for the geom and object are not aligned
         #If this is not done, the object could be initialized in an extreme position
-
-         
         diff = self.get_body_com('obj')[:2] - self.data.get_geom_xpos('objGeom')[:2]
         adjustedPos = orig_init_pos[:2] + diff
 
@@ -203,127 +170,77 @@ class SawyerPushEnv( SawyerXYZEnv):
 
     def change_task(self, task):
 
-
         self._state_goal = self.adjust_goalPos(task['goal'])
         self._set_goal_marker(self._state_goal)
-
         #self._set_goal_marker(self._state_goal)
         self.obj_init_pos = self.adjust_initObjPos(task['obj_init_pos'])
-
         self.origPlacingDist = np.linalg.norm( self.obj_init_pos[:2] - self._state_goal[:2])
-
 
     def reset_arm_and_object(self):
 
-        self._reset_hand()
-  
-      
+        self._reset_hand()      
         self._set_obj_xyz(self.obj_init_pos)
-
-      
-
         self.curr_path_length = 0
         self.pickCompleted = False
 
-    def reset_model(self):
+    def reset_model(self, reset_arg= None):
 
-   
-        task = self.sample_tasks(1)[0]
+        if reset_arg == None:
+            task = self.sample_tasks(1)[0]
+        else:
+            assert type(reset_arg) == int
+            task = self.tasks[reset_arg]
 
         self.change_task(task)
         self.reset_arm_and_object()
-
-
-
         return self._get_obs()
-
-
 
     def _reset_hand(self):
 
-
-        
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_init_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-
-
     def get_site_pos(self, siteName):
         _id = self.model.site_names.index(siteName)
         return self.data.site_xpos[_id].copy()
 
-
     def compute_rewards(self, actions, obsBatch):
         #Required by HER-TD3
-
-
         assert isinstance(obsBatch, dict) == True
-
-
         obsList = obsBatch['state_observation']
         rewards = [self.compute_reward(action, obs)[0] for  action, obs in zip(actions, obsList)]
-
         return np.array(rewards)
-
-
 
     def compute_reward(self, actions, obs):
            
         state_obs = obs['state_observation']
-
-        endEffPos , objPos = state_obs[0:3], state_obs[3:6]
-        
-        
-       
-       
+        endEffPos , objPos = state_obs[0:3], state_obs[3:6] 
         placingGoal = self._state_goal
-
-        
         rightFinger, leftFinger = self.get_site_pos('rightEndEffector'), self.get_site_pos('leftEndEffector')
         objPos = self.get_body_com("obj")
         fingerCOM = (rightFinger + leftFinger)/2
 
-
         c1 = 1 ; c2 = 1
-
-        reachDist = np.linalg.norm(objPos - fingerCOM)
-    
+        reachDist = np.linalg.norm(objPos - fingerCOM)   
         placeDist = np.linalg.norm(objPos - placingGoal)
 
-       
-        
         if self.rewMode == 'normal':
-
-
             reward = -reachDist - placeDist
-
         elif self.rewMode == 'posPlace':
-
             reward = -reachDist + 100* max(0, self.origPlacingDist - placeDist)
-
-
-        #print (min(placeDist, self.origPlacingDist*1.5))
-
         return [reward, reachDist, min(placeDist, self.origPlacingDist*1.5)] 
      
-
-   
-
     def get_diagnostics(self, paths, prefix=''):
-        statistics = OrderedDict()
-       
+        statistics = OrderedDict()       
         return statistics
 
     def log_diagnostics(self, paths = None, prefix = '', logger = None):
 
         for key in paths[0]['env_infos']:
-
-      
-
             logger.record_tabular(prefix+ 'sum_'+key, np.mean([sum(path['env_infos'][key]) for path in paths]) )
             logger.record_tabular(prefix+'max_'+key, np.mean([max(path['env_infos'][key]) for path in paths]) )
             logger.record_tabular(prefix+'min_'+key, np.mean([min(path['env_infos'][key]) for path in paths]) )
-
             logger.record_tabular(prefix + 'last_'+key, np.mean([path['env_infos'][key][-1] for path in paths]) )
+

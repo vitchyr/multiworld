@@ -79,9 +79,9 @@ class MujocoEnv(gym.Env):
 
     # -----------------------------
 
-    def reset(self):
+    def reset(self , reset_arg = None):
         self.sim.reset()
-        ob = self.reset_model()
+        ob = self.reset_model(reset_arg = reset_arg)
         if self.viewer is not None:
             self.viewer_setup()
         return ob

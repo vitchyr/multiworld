@@ -67,7 +67,7 @@ class SawyerPickPlaceEnv( SawyerPushEnv):
 
     def change_task(self, task):
 
-
+       
         self._state_goal = self.adjust_goalPos(task['goal'])
         self._set_goal_marker(self._state_goal)
 

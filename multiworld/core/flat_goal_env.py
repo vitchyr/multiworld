@@ -61,8 +61,8 @@ class FlatGoalEnv(ProxyEnv):
         flat_obs = np.hstack([obs[k] for k in self.obs_keys])
         return flat_obs, reward, done, info
 
-    def reset(self):
-        obs = self.wrapped_env.reset()
+    def reset(self, reset_args = None):
+        obs = self.wrapped_env.reset(reset_args)
         if len(self.goal_keys)>0:
             self._goal = np.hstack([obs[k] for k in self.goal_keys])
         return np.hstack([obs[k] for k in self.obs_keys])
