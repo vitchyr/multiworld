@@ -360,3 +360,13 @@ class MultiSawyerEnv(BaseMujocoEnv, MultitaskEnv, SawyerXYZEnv):
             rand_quat = Quaternion(axis=[0, 0, -1], angle= rot).elements
             goal[i] = np.concatenate((obji_xyz, rand_quat))
         return goal
+
+
+if __name__ == '__main__':
+    env = MultiSawyerEnv()
+    import cv2
+    img = env.render()[0]
+    # import ipdb; ipdb.set_trace()
+
+    cv2.imshow('window', img)
+    cv2.waitKey(10000)
