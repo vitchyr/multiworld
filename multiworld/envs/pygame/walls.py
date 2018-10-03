@@ -106,9 +106,9 @@ class Segment(object):
 
 class VerticalWall(Wall):
     def __init__(self, min_dist, x_pos, bottom_y, top_y, thickness=0.0):
-        assert bottom_y < top_y
         min_y = bottom_y - min_dist - thickness
         max_y = top_y + min_dist + thickness
+        assert min_y < max_y
         min_x = x_pos - min_dist - thickness
         max_x = x_pos + min_dist + thickness
         super().__init__(
@@ -127,11 +127,11 @@ class VerticalWall(Wall):
 
 class HorizontalWall(Wall):
     def __init__(self, min_dist, y_pos, left_x, right_x, thickness=0.0):
-        assert left_x < right_x
         min_y = y_pos - min_dist - thickness
         max_y = y_pos + min_dist + thickness
         min_x = left_x - min_dist - thickness
         max_x = right_x + min_dist + thickness
+        assert min_x < max_x
         super().__init__(
             min_x=min_x,
             max_x=max_x,

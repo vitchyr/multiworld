@@ -115,7 +115,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.goals = None
-        self.sweep_goal = None
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -645,6 +644,17 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist*2,
                 ),
             ]
+        if wall_shape == "box":
+            self.walls = [
+                # Bottom wall
+                VerticalWall(
+                    self.ball_radius,
+                    0,
+                    0,
+                    0,
+                    self.wall_thickness
+                ),
+            ]
         if wall_shape == "none":
             self.walls = []
 
@@ -680,68 +690,42 @@ class Point2DWallEnv(Point2DEnv):
 
         return np.array(subgoals)
 
-    def sweep_v_fixed_obs(self, agent, qf, vf, obs, tau,
-                          post_process_func=identity, post_process_func_kwargs={}):
+    def sweep_v_fixed_obs(self, agent, qf, vf, obs, tau):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
 
-        sweep_obs = np.tile(
-            post_process_func(obs.reshape((1, -1)), **post_process_func_kwargs),
-            (nx * ny, 1)
-        )
-        if self.sweep_goal is None:
-            self.sweep_goal = post_process_func(
-                np.stack((xv, yv), axis=2).reshape((-1, 2)),
-                **post_process_func_kwargs
-            )
-
+        sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
+        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
         sweep_tau = np.tile(tau, (nx * ny, 1))
         if vf is not None:
-            v_vals = vf.eval_np(sweep_obs, self.sweep_goal, sweep_tau)
+            v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
         else:
-            sweep_actions = agent.eval_np(sweep_obs, self.sweep_goal, sweep_tau)
-            v_vals = qf.eval_np(sweep_obs, sweep_actions, self.sweep_goal, sweep_tau)
+            sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+            v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
         v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
-
         return self.get_image_fixed_obs(v_vals)
 
-    def sweep_rew_fixed_obs(self, obs, scaling=1.0,
-                            post_process_func=identity, post_process_func_kwargs={}):
+    def sweep_rew_fixed_obs(self, obs):
         nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
 
-        sweep_obs = np.tile(
-            post_process_func(obs.reshape((1, -1)), **post_process_func_kwargs),
-            (nx * ny, 1)
-        )
-        if self.sweep_goal is None:
-            x = np.linspace(-4, 4, nx)
-            y = np.linspace(-4, 4, ny)
-            xv, yv = np.meshgrid(x, y)
-            self.sweep_goal = post_process_func(
-                np.stack((xv, yv), axis=2).reshape((-1, 2)),
-                **post_process_func_kwargs
-            )
-
-        rew_vals = -np.linalg.norm((sweep_obs - self.sweep_goal) * scaling, ord=self.norm_order, axis=-1).reshape((nx, ny))
+        sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
+        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        rew_vals = -np.linalg.norm(sweep_obs - sweep_goal, ord=self.norm_order, axis=-1).reshape((nx, ny))
         return self.get_image_fixed_obs(rew_vals)
 
-    def sweep_realistic_rew(self, post_process_func=identity, realistic_rew_func=None):
+    def sweep_realistic_rew(self):
         nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
 
-        if self.sweep_goal is None:
-            x = np.linspace(-4, 4, nx)
-            y = np.linspace(-4, 4, ny)
-            xv, yv = np.meshgrid(x, y)
-            self.sweep_goal = post_process_func(np.stack((xv, yv), axis=2).reshape((-1, 2)))
-
-        if realistic_rew_func is None:
-            rew_vals = ptu.get_numpy(self.realistic_goals(self.sweep_goal))
-        else:
-            rew_vals = ptu.get_numpy(realistic_rew_func(self.sweep_goal))
-        rew_vals = rew_vals.reshape((nx, ny))
-
+        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        rew_vals = ptu.get_numpy(self.realistic_goals(sweep_goal)).reshape((nx, ny))
         return self.get_image_fixed_obs(rew_vals)
 
     def sweep_v_fixed_goal(self, agent, qf, vf, goal_high_level, tau_high_level):
