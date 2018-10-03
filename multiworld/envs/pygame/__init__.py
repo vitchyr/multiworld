@@ -46,7 +46,7 @@ def register_custom_envs():
         id='Point2DWallEnv-easy-u-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': '9cab5da',
+            'git-commit-hash': '7a95dff', #'9cab5da',
             'author': 'Soroush'
         },
         kwargs={
@@ -62,10 +62,32 @@ def register_custom_envs():
     )
 
     register(
+        id='Point2DWallEnvBox-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '7a95dff', #'9cab5da',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'box',
+            'wall_thickness': 2.0,
+            'render_size': 48,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'render_target': False,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-4, 3.90),
+            'ball_high': (-3.90, 4),
+        },
+    )
+
+    register(
         id='Image84Point2DWallEnvEasyU-v0',
         entry_point=create_image_84_point2d_wall_easy_u_v0,
         tags={
-            'git-commit-hash': '9cab5da',
+            'git-commit-hash': '7a95dff', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -74,7 +96,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvEasyU-v1',
         entry_point=create_image_84_point2d_wall_easy_u_v1,
         tags={
-            'git-commit-hash': '9cab5da',
+            'git-commit-hash': '7a95dff', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -83,7 +105,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnv-v0',
         entry_point=create_image_84_point2d_wall_v0,
         tags={
-            'git-commit-hash': '9cab5da',
+            'git-commit-hash': '7a95dff', #'9cab5da',
             'author': 'Soroush'
         },
     )
