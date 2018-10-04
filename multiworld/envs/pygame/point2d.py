@@ -1,13 +1,9 @@
 from collections import OrderedDict
 
 import numpy as np
-from collections import OrderedDict
 from gym import spaces
 from pygame import Color
 
-from multiworld.envs.env_util import get_stat_in_paths, \
-    create_stats_ordered_dict
-from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import (
@@ -16,14 +12,6 @@ from multiworld.envs.env_util import (
 )
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
-
-from railrl.pythonplusplus import identity
-
-import matplotlib
-matplotlib.use('agg')
-import matplotlib.pyplot as plt
-
-from railrl.torch import pytorch_util as ptu
 
 
 class Point2DEnv(MultitaskEnv, Serializable):
@@ -61,6 +49,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             import logging
             LOGGER = logging.getLogger(__name__)
             LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
+        render_dt_msec=10.
+        render_onscreen=True
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
@@ -316,7 +306,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
                     render_onscreen=self.render_onscreen,
                 )
                 self.render_size = width
-        self.render()
+        self.render(tick=False)
         img = self.drawer.get_image()
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
@@ -324,6 +314,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
             img = (-r + b)
             return img
+
+    def set_goal(self, goal):
+        self._target_position = goal
 
     def update_goals(self, goals):
         self.goals = goals
@@ -342,7 +335,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = position
         self._target_position = goal
 
-    def render(self, close=False):
+    def render(self, close=False, tick=True):
         if close:
             self.drawer = None
             return
@@ -401,7 +394,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             )
 
         self.drawer.render()
-        self.drawer.tick(self.render_dt_msec)
+        if tick:
+            self.drawer.tick(self.render_dt_msec)
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -993,8 +987,8 @@ if __name__ == "__main__":
     # e = Point2DEnv()
     import matplotlib.pyplot as plt
 
-    # e = Point2DWallEnv("-", render_size=84)
-    e = ImageEnv(Point2DWallEnv(wall_shape="u", render_size=84))
+    e = Point2DWallEnv("-", render_size=84)
+    # e = make('Point2DWallEnvBox-v1')
     for i in range(10):
         e.reset()
         for j in range(50):

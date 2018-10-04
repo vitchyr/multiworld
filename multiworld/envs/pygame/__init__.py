@@ -82,6 +82,53 @@ def register_custom_envs():
             'ball_high': (-3.90, 4),
         },
     )
+    register(
+        id='Point2DWallBox-State-Debug-Env-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '8e18d46',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 1.,
+            'wall_shape': 'box',
+            'wall_thickness': 2.0,
+            'render_size': 48,
+            'render_dt_msec': 10,
+            'render_onscreen': True,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'render_target': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-4, 3.90),
+            'ball_high': (-3.90, 4),
+        },
+    )
+    register(
+        id='Point2DWallBox-State-Debug-Fixed-Env-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '8e18d46',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 1.,
+            'wall_shape': 'box',
+            'wall_thickness': 2.0,
+            'render_size': 48,
+            'render_dt_msec': 1,
+            'render_onscreen': False,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'render_target': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-4, 3.90),
+            'ball_high': (-3.90, 4),
+            'fixed_goal': (3, -3),
+        },
+    )
 
     register(
         id='Image84Point2DWallEnvEasyU-v0',
