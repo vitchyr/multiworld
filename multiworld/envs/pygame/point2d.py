@@ -315,7 +315,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             img = (-r + b)
             return img
 
-    def set_goal(self, goal):
+    def set_goal(self, goal_dict):
+        goal = goal_dict["state_desired_goal"]
         self._target_position = goal
 
     def update_goals(self, goals):
