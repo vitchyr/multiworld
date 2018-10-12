@@ -32,7 +32,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             target_radius=0.60,
             boundary_dist=4,
             ball_radius=0.50,
-            walls=[],
+            walls=None,
             fixed_goal=None,
             goal_low=None,
             goal_high=None,
@@ -43,6 +43,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             images_are_rgb=False,  # else black and white
             **kwargs
     ):
+        if walls is None:
+            walls = []
         if walls is None:
             walls = []
         if len(kwargs) > 0:
@@ -986,13 +988,16 @@ class PointmassExpertPolicy:
 
 if __name__ == "__main__":
     # e = Point2DEnv()
+    import gym
     import matplotlib.pyplot as plt
 
-    e = Point2DWallEnv("-", render_size=84)
-    # e = make('Point2DWallEnvBox-v1')
-    for i in range(10):
+    # e = Point2DWallEnv("-", render_size=84)
+    e = gym.make('Point2DWallBox-State-Debug-Env-v0')
+    for i in range(1000):
+        print("resetting")
+        import ipdb; ipdb.set_trace()
         e.reset()
-        for j in range(50):
+        for j in range(5):
             e.step(np.random.rand(2))
             e.render()
             im = e.get_image()
