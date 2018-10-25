@@ -24,6 +24,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
 
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.02, -0.15, 0.6),
+
             goal_low=(-0.25, 0.3, 0.02, -.2, .4, -.2, .4),
             goal_high=(0.25, 0.875, 0.02, .2, .8, .2, .8),
 
@@ -99,6 +100,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         self._goal_always_on_same_side = goal_always_on_same_side
 
         self._set_puck_xys(self._sample_puck_xys())
+        self.reset()
 
     @property
     def model_name(self):
@@ -190,10 +192,10 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         if self._always_start_on_same_side:
             return np.array([-.1, 0.6]), np.array([0.1, 0.6])
         else:
-            if np.random.randint(0, 2) == 0:
-                return np.array([0.1, 0.6]), np.array([-.1, 0.6])
-            else:
-                return np.array([-.1, 0.6]), np.array([0.1, 0.6])
+            # if np.random.randint(0, 2) == 0:
+            #     return np.array([0.1, 0.6]), np.array([-.1, 0.6])
+            # else:
+            return np.array([-.1, 0.6]), np.array([0.1, 0.6])
 
     def _set_goal_marker(self, goal):
         """
@@ -224,12 +226,12 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         pos1, pos2 = puck_xys
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[7:10] = np.hstack((pos1.copy(), np.array([self.init_puck_z])))
-        qpos[10:14] = np.array([1, 0, 0, 0])
+        qpos[8:11] = np.hstack((pos1.copy(), np.array([self.init_puck_z])))
+        qpos[11:15] = np.array([1, 0, 0, 0])
 
-        qpos[14:17] = np.hstack((pos2.copy(), np.array([self.init_puck_z])))
-        qpos[17:21] = np.array([1, 0, 0, 0])
-        qvel[14:21] = 0
+        qpos[15:18] = np.hstack((pos2.copy(), np.array([self.init_puck_z])))
+        qpos[18:22] = np.array([1, 0, 0, 0])
+        qvel[15:22] = 0
         self.set_state(qpos, qvel)
 
     def reset_model(self):
@@ -240,7 +242,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
 
         if not (
             self.puck_space.contains(self.get_puck1_pos()[:2])
-            and self.puck_space.contains(self.get_puck2_pos()[:2])
+            or self.puck_space.contains(self.get_puck2_pos()[:2])
         ):
             self._set_puck_xys(self._sample_puck_xys())
         goal = self.sample_goal()
@@ -318,9 +320,9 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
                 goal_low = self.goal_low.copy()
                 goal_high = self.goal_high.copy()
                 # first puck
-                goal_high[3] = 0
+                goal_high[3] = -0.05
                 # second puck
-                goal_low[5] = 0
+                goal_low[5] = 0.05
                 goals = np.random.uniform(
                     goal_low,
                     goal_high,

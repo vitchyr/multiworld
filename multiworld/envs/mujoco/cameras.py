@@ -200,6 +200,26 @@ def sawyer_pusher_camera_upright_v2(camera):
     camera.azimuth = 270
     camera.trackbodyid = -1
 
+def sawyer_pusher_camera_upright_v3(camera):
+    camera.trackbodyid = 0
+    camera.distance = .325
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.45
+    camera.elevation = -65
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+
+def sawyer_pusher_camera_upright_v4(camera):
+    camera.trackbodyid = 0
+    camera.distance = .35
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.75
+    camera.lookat[2] = 0.45
+    camera.elevation = -80
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+
 def sawyer_pusher_camera_top_down(camera):
     camera.trackbodyid = 0
     cam_dist = 0.1

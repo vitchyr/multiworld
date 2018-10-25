@@ -48,28 +48,40 @@ char_to_action = {
 }
 
 
-# env = SawyerPushAndReachXYEnv()
+# env = SawyerPushAndReachXYEnv(
+# reward_type='state_distance',
+#             hand_low=(-0.28, 0.3, 0.05),
+#             hand_high=(0.28, 0.9, 0.3),
+#             puck_low=(-.4, .2),
+#             puck_high=(.4, 1),
+#             goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+#             goal_high=(0.25, 0.875, 0.02, .2, .8),
+#             num_resets_before_puck_reset=int(1),
+# )
 # env = SawyerPushAndReachXYZEnv()
-env = SawyerDoorHookEnv(
-    # goal_low=(-0.1, 0.525, 0.05, 0),
-    # goal_high=(0.0, 0.65, .075, 0.523599),
-    # hand_low=(-0.1, 0.525, 0.05),
-    # hand_high=(0., 0.65, .075),
-    # max_angle=0.523599,
-    # xml_path='sawyer_xyz/sawyer_door_pull_hook_30.xml',
-
-    goal_low=(-0.1, 0.4, 0.1, 0),
-    goal_high=(0.05, 0.65, .25, .93),
-    hand_low=(-0.1, 0.4, 0.1),
-    hand_high=(0.05, 0.65, .25),
-    max_angle=.93,
-    xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
-    reset_free=True,
-)
+# env = SawyerDoorHookEnv(
+#     # goal_low=(-0.1, 0.525, 0.05, 0),
+#     # goal_high=(0.0, 0.65, .075, 0.523599),
+#     # hand_low=(-0.1, 0.525, 0.05),
+#     # hand_high=(0., 0.65, .075),
+#     # max_angle=0.523599,
+#     # xml_path='sawyer_xyz/sawyer_door_pull_hook_30.xml',
+#
+#     goal_low=(-0.1, 0.4, 0.1, 0),
+#     goal_high=(0.05, 0.65, .25, .93),
+#     hand_low=(-0.1, 0.4, 0.1),
+#     hand_high=(0.05, 0.65, .25),
+#     max_angle=.93,
+#     xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+#     reset_free=True,
+# )
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
-# env = SawyerPushAndReachXYDoublePuckEnv()
+env = SawyerPushAndReachXYDoublePuckEnv(
+always_start_on_same_side=False,
+goal_always_on_same_side=True,
+)
 # env = SawyerPushAndReachXYZDoublePuckEnv()
 # env = gym.make('SawyerDoorPullEnv-v0')
 
@@ -104,8 +116,8 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(10)
-    obs, reward, _, info = env.step(action[:NDIM])
-    print(env.data.qpos[-1])
+    goal = env.sample_goal()
+    env.set_to_goal(goal)
     env.render()
     if done:
         obs = env.reset()

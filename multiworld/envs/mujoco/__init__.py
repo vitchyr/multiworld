@@ -29,6 +29,19 @@ def register_custom_envs():
             'hide_goal_markers': False,
         },
     )
+
+    register(
+        id='SawyerReachXYEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
+        tags={
+            'git-commit-hash': '2d95c75',
+            'author': 'murtaza'
+        },
+        kwargs={
+            'hide_goal_markers': False,
+        },
+    )
+
     register(
         id='Image48SawyerReachXYEnv-v0',
         entry_point=create_image_48_sawyer_reach_xy_env_v0,
@@ -162,6 +175,25 @@ def register_custom_envs():
             goal_high=(0.25, 0.875, 0.02, .2, .8),
             num_resets_before_puck_reset=int(1e6),
             num_resets_before_hand_reset=int(1e6),
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachXYEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '2d95c75',
+            'author': 'murtaza'
+        },
+        kwargs=dict(
+            reward_type='state_distance',
+            hand_low=(-0.28, 0.3, 0.05),
+            hand_high=(0.28, 0.9, 0.3),
+            puck_low=(-.4, .2),
+            puck_high=(.4, 1),
+            goal_low=(-0.25, 0.3, 0.02, -.2, .4),
+            goal_high=(0.25, 0.875, 0.02, .2, .8),
+            num_resets_before_puck_reset=int(1),
         )
     )
 
@@ -334,6 +366,27 @@ def register_custom_envs():
             reset_free=True,
         )
     )
+
+    register(
+        id='SawyerDoorHookEnv-v5',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'ffdb56e',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.45, 0.1, 0),
+            goal_high=(0.05, 0.65, .25, .83),
+            hand_low=(-0.1, 0.45, 0.1),
+            hand_high=(0.05, 0.65, .25),
+            max_angle=.83,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reward_type='angle_diff_and_hand_distance',
+            reset_free=False,
+        )
+    )
+
     register(
         id='SawyerDoorHookResetFreeEnv-v5',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
