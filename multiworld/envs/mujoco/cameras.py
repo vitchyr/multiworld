@@ -102,20 +102,12 @@ def init_sawyer_camera_v5(camera):
 
 
 def sawyer_xyz_reacher_camera(camera):
-    # TODO: reformat or delete
-    camera.trackbodyid = 0
-    camera.distance = 1.0
-
-    # 3rd person view
-    cam_dist = 0.3
-    rotation_angle = 270
-    cam_pos = np.array([0, 1.0, 0.5, cam_dist, -30, rotation_angle])
-
-    for i in range(3):
-        camera.lookat[i] = cam_pos[i]
-    camera.distance = cam_pos[3]
-    camera.elevation = cam_pos[4]
-    camera.azimuth = cam_pos[5]
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.3
+    camera.distance = 0.4
+    camera.elevation = -35
+    camera.azimuth = 270
     camera.trackbodyid = -1
 
 
