@@ -48,16 +48,9 @@ char_to_action = {
 }
 
 
-# env = SawyerPushAndReachXYEnv(
-# reward_type='state_distance',
-#             hand_low=(-0.28, 0.3, 0.05),
-#             hand_high=(0.28, 0.9, 0.3),
-#             puck_low=(-.4, .2),
-#             puck_high=(.4, 1),
-#             goal_low=(-0.25, 0.3, 0.02, -.2, .4),
-#             goal_high=(0.25, 0.875, 0.02, .2, .8),
-#             num_resets_before_puck_reset=int(1),
-# )
+env = SawyerPushAndReachXYEnv(
+    xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+)
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerDoorHookEnv(
 #     # goal_low=(-0.1, 0.525, 0.05, 0),
@@ -78,10 +71,10 @@ char_to_action = {
 # env = SawyerReachXYEnv()
 # env = SawyerReachXYZEnv()
 # env = SawyerPickAndPlaceEnv()
-env = SawyerPushAndReachXYDoublePuckEnv(
-always_start_on_same_side=False,
-goal_always_on_same_side=True,
-)
+# env = SawyerPushAndReachXYDoublePuckEnv(
+# always_start_on_same_side=False,
+# goal_always_on_same_side=True,
+# )
 # env = SawyerPushAndReachXYZDoublePuckEnv()
 # env = gym.make('SawyerDoorPullEnv-v0')
 
