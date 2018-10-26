@@ -194,7 +194,7 @@ def sawyer_pusher_camera_upright_v2(camera):
 
 def sawyer_pusher_camera_upright_v3(camera):
     camera.trackbodyid = 0
-    camera.distance = .325
+    camera.distance = .275
     camera.lookat[0] = 0
     camera.lookat[1] = 0.85
     camera.lookat[2] = 0.45

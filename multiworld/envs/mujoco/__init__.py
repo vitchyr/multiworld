@@ -425,6 +425,69 @@ def register_custom_envs():
         )
     )
 
+    register(
+        id='SawyerPushAndReachXYEnv-No-Arena-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '611d1fe',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            hand_low=(-0.15, 0.4, 0.02),
+            hand_high=(0.15, 0.7, 0.02),
+            puck_low=(-.1, .4),
+            puck_high=(.1, .7),
+            goal_low=(-0.15, 0.4, 0.02, -.1, .5),
+            goal_high=(0.15, 0.7, 0.02, .1, .7),
+            num_resets_before_puck_reset=1,
+            num_resets_before_hand_reset=1,
+            xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachXYEnv-No-Arena-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '611d1fe',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.5, 0.02),
+            hand_high=(0.1, 0.7, 0.02),
+            puck_low=(-.1, .5),
+            puck_high=(.1, .7),
+            goal_low=(-0.1, 0.5, 0.02, -.1, .5),
+            goal_high=(0.1, 0.7, 0.02, .1, .7),
+            num_resets_before_puck_reset=1,
+            num_resets_before_hand_reset=1,
+            xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachXYEnv-No-Arena-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '611d1fe',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            hand_low=(-0.075, 0.5, 0.02),
+            hand_high=(0.075, 0.6, 0.02),
+            puck_low=(-0.075, 0.5),
+            puck_high=(0.075, 0.6),
+            goal_low=(-0.075, 0.5, 0.02, -0.075, 0.5),
+            goal_high=(0.075, 0.6, 0.02, 0.075, 0.6),
+            num_resets_before_puck_reset=1,
+            num_resets_before_hand_reset=1,
+            xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+        )
+    )
+
 
 def create_image_48_sawyer_reach_xy_env_v0():
     from multiworld.core.image_env import ImageEnv
