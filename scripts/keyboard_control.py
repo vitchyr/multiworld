@@ -48,39 +48,10 @@ char_to_action = {
 }
 
 
-# env = SawyerPushAndReachXYEnv(
-#     xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
-# )
 import gym
 import multiworld
 import pygame
 env = gym.make('SawyerPushAndReachXYDOoublePuckEnv-No-Arena-v0')
-# env = SawyerPushAndReachXYZEnv()
-# env = SawyerDoorHookEnv(
-#     # goal_low=(-0.1, 0.525, 0.05, 0),
-#     # goal_high=(0.0, 0.65, .075, 0.523599),
-#     # hand_low=(-0.1, 0.525, 0.05),
-#     # hand_high=(0., 0.65, .075),
-#     # max_angle=0.523599,
-#     # xml_path='sawyer_xyz/sawyer_door_pull_hook_30.xml',
-#
-#     goal_low=(-0.1, 0.4, 0.1, 0),
-#     goal_high=(0.05, 0.65, .25, .93),
-#     hand_low=(-0.1, 0.4, 0.1),
-#     hand_high=(0.05, 0.65, .25),
-#     max_angle=.93,
-#     xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
-#     reset_free=True,
-# )
-# env = SawyerReachXYEnv()
-# env = SawyerReachXYZEnv()
-# env = SawyerPickAndPlaceEnv()
-# env = SawyerPushAndReachXYDoublePuckEnv(
-# always_start_on_same_side=False,
-# goal_always_on_same_side=True,
-# )
-# env = SawyerPushAndReachXYZDoublePuckEnv()
-# env = gym.make('SawyerDoorPullEnv-v0')
 
 NDIM = env.action_space.low.size
 lock_action = False

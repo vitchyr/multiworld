@@ -33,9 +33,6 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
 
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
-            always_start_on_same_side=True,
-            goal_always_on_same_side=True,
-
             xml_path='sawyer_xyz/sawyer_push_two_puck.xml',
             **kwargs
     ):
@@ -99,8 +96,6 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         self.reset_counter = 0
         self.num_resets_before_puck_reset = num_resets_before_puck_reset
         self.num_resets_before_hand_reset = num_resets_before_hand_reset
-        self._always_start_on_same_side = always_start_on_same_side
-        self._goal_always_on_same_side = goal_always_on_same_side
 
         self._set_puck_xys(self._sample_puck_xys())
         self.reset()
@@ -188,13 +183,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         return self.data.get_body_xpos('puck2').copy()
 
     def _sample_puck_xys(self):
-        if self._always_start_on_same_side:
-            return np.array([-.1, 0.6]), np.array([0.1, 0.6])
-        else:
-            # if np.random.randint(0, 2) == 0:
-            #     return np.array([0.1, 0.6]), np.array([-.1, 0.6])
-            # else:
-            return np.array([-.1, 0.6]), np.array([0.1, 0.6])
+        return np.array([-.1, 0.6]), np.array([0.1, 0.6])
 
     def _set_goal_marker(self, goal):
         """
@@ -315,24 +304,11 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
                 0
             )
         else:
-            if self._goal_always_on_same_side:
-                goal_low = self.goal_low.copy()
-                goal_high = self.goal_high.copy()
-                # first puck
-                goal_high[3] = -0.05
-                # second puck
-                goal_low[5] = 0.05
-                goals = np.random.uniform(
-                    goal_low,
-                    goal_high,
-                    size=(batch_size, self.goal_low.size),
-                )
-            else:
-                goals = np.random.uniform(
-                    self.goal_low,
-                    self.goal_high,
-                    size=(batch_size, self.goal_low.size),
-                )
+            goals = np.random.uniform(
+                self.goal_low,
+                self.goal_high,
+                size=(batch_size, self.goal_low.size),
+            )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
