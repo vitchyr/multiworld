@@ -35,9 +35,12 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
             num_resets_before_hand_reset=1,
             always_start_on_same_side=True,
             goal_always_on_same_side=True,
+
+            xml_path='sawyer_xyz/sawyer_push_two_puck.xml',
             **kwargs
     ):
         self.quick_init(locals())
+        self.model_name = get_asset_full_path(xml_path)
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
@@ -102,10 +105,6 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_puck_xys(self._sample_puck_xys())
         self.reset()
 
-    @property
-    def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_push_two_puck.xml')
-
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.lookat[0] = 0
@@ -118,7 +117,7 @@ class SawyerPushAndReachXYZDoublePuckEnv(MultitaskEnv, SawyerXYZEnv):
 
     def step(self, action):
         self.set_xyz_action(action)
-        u = np.zeros(7)
+        u = np.zeros(8)
         self.do_simulation(u)
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()

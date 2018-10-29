@@ -444,6 +444,7 @@ def register_custom_envs():
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
             xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+            norm_order=2,
         )
     )
 
@@ -466,6 +467,32 @@ def register_custom_envs():
             num_resets_before_puck_reset=1,
             num_resets_before_hand_reset=1,
             xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+            norm_order=2,
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachXYDoublePuckEnv-No-Arena-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_and_reach_env_two_pucks:SawyerPushAndReachXYZDoublePuckEnv',
+        tags={
+            'git-commit-hash': '611d1fe',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            reward_type='state_distance',
+            hand_low=(-0.2, 0.3, 0.02),
+            hand_high=(0.2, 0.8, 0.02),
+            puck_low=(-.175, .4),
+            puck_high=(.175, .8),
+            goal_low=(-0.15, 0.4, 0.02, -.15, .5, 0.05, .5),
+            goal_high=(0.15, 0.7, 0.02, -.05, .7, .15, .7, ),
+            num_resets_before_puck_reset=1,
+            num_resets_before_hand_reset=1,
+            xml_path='sawyer_xyz/sawyer_push_two_puck_no_arena.xml',
+            norm_order=2,
+            always_start_on_same_side=False,
+            goal_always_on_same_side=False,
         )
     )
 

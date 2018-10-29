@@ -48,9 +48,13 @@ char_to_action = {
 }
 
 
-env = SawyerPushAndReachXYEnv(
-    xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
-)
+# env = SawyerPushAndReachXYEnv(
+#     xml_path='sawyer_xyz/sawyer_push_puck_no_arena.xml',
+# )
+import gym
+import multiworld
+import pygame
+env = gym.make('SawyerPushAndReachXYDOoublePuckEnv-No-Arena-v0')
 # env = SawyerPushAndReachXYZEnv()
 # env = SawyerDoorHookEnv(
 #     # goal_low=(-0.1, 0.525, 0.05, 0),
