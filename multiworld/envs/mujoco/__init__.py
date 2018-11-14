@@ -48,15 +48,6 @@ def register_custom_envs():
             'author': 'murtaza'
         },
     )
-    register(
-        id='Image84SawyerReachXYEnv-v1',
-        entry_point=create_image_84_sawyer_reach_xy_env_v1,
-        tags={
-            'git-commit-hash': '9cab5da',
-            'author': 'Soroush'
-        },
-    )
-
 
     """
     Pushing Tasks, XY

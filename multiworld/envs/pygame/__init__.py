@@ -176,6 +176,31 @@ def register_custom_envs():
             'fixed_goal': (3, -3),
         },
     )
+    register(
+        id='Point2DWallBox-FullStartAndGoal-Env-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '9972d57',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 1.,
+            'wall_shape': 'box',
+            'wall_thickness': 2.0,
+            'render_size': 48,
+            'render_dt_msec': 10,
+            'render_onscreen': False,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'render_target': False,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-4, -4),
+            'ball_high': (4, 4),
+            'goal_low': (-4, -4),
+            'goal_high': (4, 4),
+        },
+    )
 
     register(
         id='Image84Point2DWallEnvEasyU-v0',
