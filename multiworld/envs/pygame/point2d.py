@@ -51,8 +51,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
             import logging
             LOGGER = logging.getLogger(__name__)
             LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
-        render_dt_msec=10.
-        render_onscreen=True
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
