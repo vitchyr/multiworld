@@ -24,14 +24,6 @@ import time
 
 from multiworld.core.image_env import ImageEnv
 from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_upright_v2
-#[0.33802861 0.72943006 0.15373863]
-#[-0.3326288   0.70221613  0.14004561]
-#[0.32792462 0.23910806 0.10462233]
-#[-0.32757104  0.24410117  0.10482]
-#fix_z = 0.087
-
-low = [-0.31, 0.24, 0.0845]
-high = [0.32, 0.7, 0.14]
 
 
 def quat_to_zangle(quat):
@@ -50,8 +42,6 @@ def zangle_to_quat(zangle):
 BASE_DIR = '/'.join(str.split(multiworld.__file__, '/')[:-2])
 asset_base_path = BASE_DIR + '/multiworld/envs/assets/multi_object_sawyer_xyz/'
 
-low_bound = np.array([-0.27, 0.52, 0.05, 0, -1])
-high_bound = np.array([0.27, 0.95, 0.1, 2 * np.pi - 0.001, 1])
 NEUTRAL_JOINTS = np.array([1.65474475, - 0.53312487, - 0.65980174, 1.1841825, 0.62772584, 1.11682223, 1.31015104, -0.05, 0.05])
 
 class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
@@ -68,13 +58,15 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         randomize_initial_pos = False, state_goal = None,
         randomize_goal_at_reset = True,
         hand_z_position=0.089,
-        fix_z = True, fix_gripper = True, fix_rotation = True,
+        fix_z = True, fix_gripper = True, fix_rotation = True, randomize_object_reset = False,
         fix_reset_pos = True, do_render = False,
         match_orientation = False,
         workspace_low = np.array([-0.31, 0.24, 0]),
         workspace_high = np.array([0.32, 0.7, 0.14]),
         hand_low = np.array([-0.31, 0.24, 0.0]),
         hand_high = np.array([0.32, 0.7, 0.14]),
+
+
     ):
         self.quick_init(locals())
 
@@ -137,6 +129,8 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.match_orientation = match_orientation
         self.goal_dim_per_object = 7 if match_orientation else 3
         self.cylinder_radius = cylinder_radius
+        o = np.array([self.samp_xyz_rot() for i in range(num_objects)])
+        self._object_reset_poses = np.array([self.samp_xyz_rot() for i in range(num_objects)])
         # self.finger_sensors = False # turning this off for now
 
         action_bounds = [1, 1, ]
@@ -148,7 +142,6 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
             action_bounds.append(1)
         action_bounds = np.array(action_bounds)
         self.action_space = Box(-action_bounds, action_bounds, dtype=np.float32)
-        # action space is 5-dim: x, y, z, ? ?
 
         self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
         obs_dim = 3 * num_objects + 3
@@ -176,63 +169,11 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self.sim.data.qpos[7:9] = np.clip(self.sim.data.qpos[7:9], [-0.055, 0.0027], [-0.0027, 0.055])
 
     def samp_xyz_rot(self):
-        low = self.object_low[:3] # + self._maxlen / 2 + 0.02
-        high = self.object_high[:3] # - self._maxlen / 2 + 0.02
+        low = self.object_low[:3]
+        high = self.object_high[:3]
         rand_xyz = np.random.uniform(low, high)
         rand_xyz[-1] = 0.02
         return rand_xyz, np.random.uniform(-np.pi / 2, np.pi / 2)
-
-    def project_point(self, point, camera):
-        model_matrix = np.zeros((4, 4))
-        model_matrix[:3, :3] = self.sim.data.get_camera_xmat(camera).T
-        model_matrix[-1, -1] = 1
-
-        fovy_radians = np.deg2rad(self.sim.model.cam_fovy[self.sim.model.camera_name2id(camera)])
-        uh = 1. / np.tan(fovy_radians / 2)
-        uw = uh / (self._frame_width / self._frame_height)
-        extent = self.sim.model.stat.extent
-        far, near = self.sim.model.vis.map.zfar * extent, self.sim.model.vis.map.znear * extent
-        view_matrix = np.array([[uw, 0., 0., 0.],                        #matrix definition from
-                                [0., uh, 0., 0.],                        #https://stackoverflow.com/questions/18404890/how-to-build-perspective-projection-matrix-no-api
-                                [0., 0., far / (far - near), -1.],
-                                [0., 0., -2*far*near/(far - near), 0.]]) #Note Mujoco doubles this quantity
-
-        MVP_matrix = view_matrix.dot(model_matrix)
-        world_coord = np.ones((4, 1))
-        world_coord[:3, 0] = point - self.sim.data.get_camera_xpos(camera)
-
-        clip = MVP_matrix.dot(world_coord)
-        ndc = clip[:3] / clip[3]  # everything should now be in -1 to 1!!
-        col, row = (ndc[0] + 1) * self._frame_width / 2, (-ndc[1] + 1) * self._frame_height / 2
-
-        return self._frame_height - row, col                 #rendering flipped around in height
-
-    def get_desig_pix(self, cams, target_width, round=True):
-        qpos_dim = self._n_joints      # the states contains pos and vel
-        assert self.sim.data.qpos.shape[0] == qpos_dim + 7 * self.num_objects
-        desig_pix = np.zeros([len(cams), self.num_objects, 2], dtype=np.int)
-        ratio = self._frame_width / target_width
-        for icam, cam in range(cams):
-            for i in range(self.num_objects):
-                fullpose = self.sim.data.qpos[i * 7 + qpos_dim:(i + 1) * 7 + qpos_dim].squeeze()
-                d = self.project_point(fullpose[:3], cam)
-                d = np.stack(d) / ratio
-                if round:
-                    d = np.around(d).astype(np.int)
-                desig_pix[iscam, i] = d
-        return desig_pix
-
-    def get_goal_pix(self, cams, target_width, goal_obj_pose, round=True):
-        goal_pix = np.zeros([len(cams), self.num_objects, 2], dtype=np.int)
-        ratio = self._frame_width / target_width
-        for icam, cam in range(cams):
-            for i in range(self.num_objects):
-                g = self.project_point(goal_obj_pose[i, :3], cam)
-                g = np.stack(g) / ratio
-                if round:
-                    g= np.around(g).astype(np.int)
-                goal_pix[icam, i] = g
-        return goal_pix
 
     def snapshot_noarm(self):
         raise NotImplementedError
@@ -249,10 +190,7 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self._reset_hand()
 
         gripper_pos = np.array([-0.03, 0.3, self.hand_z_position]) # self.init_hand_xyz.copy()
-        # gripper_pos[1] = 0.68
-        # gripper_pos[2] = 0.02
         last_rands = [gripper_pos]
-        # if not self._initialized:
 
         for i in range(self.num_objects):
             obji_xyz, rot = self.samp_xyz_rot()
@@ -326,14 +264,13 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         self._previous_target_qpos = np.zeros(self._base_sdim)
         self._previous_target_qpos[:3] = self.sim.data.get_body_xpos('hand')
         self._previous_target_qpos[3] = quat_to_zangle(self.sim.data.get_body_xquat('hand'))
-        self._previous_target_qpos[-1] = low_bound[-1]
+        self._previous_target_qpos[-1] = self.workspace_low[-1]
 
         self._init_dynamics()
         if self._randomize_goal_at_reset:
             self._state_goal = self.sample_goal()
 
         obs = self._get_obs(finger_force)
-        # print(obs["state_observation"][3:])
         return obs
 
     def _reset_hand(self):
@@ -378,22 +315,14 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
             q = self.data.get_body_xquat(name).copy()
 
             fullpose = np.concatenate((xyz, q))
-            # fullpose = self.sim.data.qpos[i * 7 + self._n_joints:(i + 1) * 7 + self._n_joints].squeeze().copy()
-            # fullpose[:3] = self.sim.data.sensordata[touch_offset + i * 3:touch_offset + (i + 1) * 3]
 
             obs['object_poses_full'][i, :] = fullpose
             obs['object_poses'][i, :3] = fullpose[:3]
-            # obs['object_poses'][i, 2] = quat_to_zangle(fullpose[3:])
 
         flat_obs = self.get_endeff_pos()
         object_poses_full = obs['object_poses_full'].copy().flatten()
         object_poses_xyz = obs['object_poses'].copy().flatten()
         state_obs = np.concatenate((flat_obs, object_poses_xyz))
-
-        # import pdb; pdb.set_trace()
-
-        # print(state_obs[3:]) # , self._state_goal.flatten())
-
         obs['observation']= state_obs
         obs['desired_goal'] = self._state_goal.flatten()
         obs['achieved_goal'] = object_poses_xyz
@@ -404,17 +333,6 @@ class MultiSawyerEnv(MultitaskEnv, SawyerXYZEnv):
         # copy non-image data for environment's use (if needed)
         self._last_obs = copy.deepcopy(obs)
         # get images
-        if self.do_render:
-            self.render()
-            # obs['images'] = self.render()
-            # obs['img'] = obs['images'][0]
-
-        # obj_image_locations = np.zeros((2, self.num_objects + 1, 2))
-        # for i, cam in enumerate(['maincam', 'leftcam']):
-        #     obj_image_locations[i, 0] = self.project_point(self.sim.data.get_body_xpos('hand')[:3], cam)
-        #     for j in range(self.num_objects):
-        #         obj_image_locations[i, j + 1] = self.project_point(obs['object_poses_full'][j, :3], cam)
-        # obs['obj_image_locations'] = obj_image_locations
         return obs
 
 
