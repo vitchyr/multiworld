@@ -28,6 +28,21 @@ def register_custom_envs():
         },
     )
     register(
+        id='Point2DEnv-NoGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': 'adea6f5',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'render_onscreen': False,
+            'render_target': False,
+        },
+    )
+    register(
         id='Point2DLargeEnv-onscreen-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
