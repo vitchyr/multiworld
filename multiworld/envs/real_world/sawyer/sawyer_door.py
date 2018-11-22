@@ -34,7 +34,7 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         if self.use_state_based_door_angle:
             raise NotImplementedError()
         else:
-            achieved_goal = self.get_endeffector_pose()
+            achieved_goal = self._get_endeffector_pose()
 
         state_obs = super()._get_obs()
         return dict(
@@ -76,6 +76,9 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
     def set_to_goal(self, goal):
         goal = goal['state_desired_goal']
         super().set_to_goal(goal)
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
 
 if __name__=="__main__":
     env = SawyerDoorEnv()
