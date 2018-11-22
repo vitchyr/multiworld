@@ -22,7 +22,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             transpose=False,
             grayscale=False,
             normalize=False,
-            reward_type='wrapped_env',
+            reward_type='image_distance',
             threshold=10,
             image_length=None,
             presampled_goals=None,
