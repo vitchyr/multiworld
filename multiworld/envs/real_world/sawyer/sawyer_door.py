@@ -1,9 +1,10 @@
 from collections import OrderedDict
-from eval_util import get_stat_in_paths, create_stats_ordered_dict
 from gym.spaces import Dict
 import sawyer_control.envs.sawyer_door as sawyer_door
 from multiworld.core.serializable import Serializable
 from multiworld.core.multitask_env import MultitaskEnv
+from multiworld.envs.env_util import create_stats_ordered_dict, get_stat_in_paths
+
 
 class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
     ''' Must Wrap with Image Env to use!'''
