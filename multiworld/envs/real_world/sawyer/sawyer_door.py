@@ -32,9 +32,10 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
 
     def _get_obs(self):
         if self.use_state_based_door_angle:
-            achieved_goal = self.get_endeffector_pose()
-        else:
             raise NotImplementedError()
+        else:
+            achieved_goal = self.get_endeffector_pose()
+
         state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
