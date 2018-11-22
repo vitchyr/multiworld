@@ -1,3 +1,5 @@
+from collections import OrderedDict
+from eval_util import get_stat_in_paths, create_stats_ordered_dict
 from gym.spaces import Dict
 import sawyer_control.envs.sawyer_door as sawyer_door
 from multiworld.core.serializable import Serializable
@@ -79,6 +81,26 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
 
     def set_goal(self, goal):
         self._state_goal = goal['state_desired_goal']
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'hand_distance',
+            'hand_success',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+                ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+                ))
+        return statistics
 
 if __name__=="__main__":
     env = SawyerDoorEnv()
