@@ -4,7 +4,7 @@ import sawyer_control.envs.sawyer_door as sawyer_door
 from multiworld.core.serializable import Serializable
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import create_stats_ordered_dict, get_stat_in_paths
-
+import numpy as np
 
 class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
     ''' Must Wrap with Image Env to use!'''
@@ -29,6 +29,13 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         info = self._get_info()
         done = False
         return observation, reward, done, info
+
+    def _get_info(self):
+        hand_distance = np.linalg.norm(self._state_goal - self._get_endeffector_pose())
+        return dict(
+            hand_distance=hand_distance,
+            hand_success=(hand_distance<self.indicator_threshold).astype(float)
+        )
 
     def compute_rewards(self, actions, obs):
         raise NotImplementedError('Use Image based reward')
