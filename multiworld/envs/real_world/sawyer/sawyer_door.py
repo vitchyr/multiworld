@@ -34,7 +34,6 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         hand_distance = np.linalg.norm(self._state_goal - self._get_endeffector_pose())
         return dict(
             hand_distance=hand_distance,
-            hand_success=(hand_distance<self.indicator_threshold).astype(float)
         )
 
     def compute_rewards(self, actions, obs):
@@ -94,7 +93,6 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
-            'hand_success',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
