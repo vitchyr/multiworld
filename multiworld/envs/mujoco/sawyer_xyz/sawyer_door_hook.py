@@ -157,7 +157,7 @@ class SawyerDoorHookEnv(
             r = - angle_diff * self.target_angle_scale
 
         elif self.reward_type == 'hand_success':
-            r = -(angle_diff < self.indicator_threshold[0] and pos_dist <
+            r = -(angle_diff > self.indicator_threshold[0] or pos_dist >
                   self.indicator_threshold[1]).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
@@ -185,8 +185,11 @@ class SawyerDoorHookEnv(
         # Do this to make sure the robot isn't in some weird configuration.
         angles[:7] = self.init_arm_angles
         self.set_state(angles.flatten(), velocities.flatten())
+        self._set_hand_pos(np.array([-.05, .635,  .225]))
+
+    def _set_hand_pos(self, pos):
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([-.05, .635,  .225]))
+            self.data.set_mocap_pos('mocap', pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
     @property
