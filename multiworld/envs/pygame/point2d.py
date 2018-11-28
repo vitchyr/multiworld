@@ -114,7 +114,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         ])
 
         self.drawer = None
-        self.goals = None
+        self.subgoals = None
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -156,7 +156,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         if self.randomize_position_on_reset:
             self._position = self._sample_position(self.ball_range.low, self.ball_range.high, realistic=True)
 
-        self.goals = None
+        self.subgoals = None
         return self._get_obs()
 
     def _position_outside_arena(self, pos):
@@ -326,7 +326,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             return img
 
     def update_goals(self, goals):
-        self.goals = goals
+        self.subgoals = goals
 
     def set_to_goal(self, goal_dict):
         goal = goal_dict["state_desired_goal"]
@@ -368,14 +368,14 @@ class Point2DEnv(MultitaskEnv, Serializable):
             Color('blue'),
         )
 
-        if self.goals is not None:
-            for goal in self.goals:
+        if self.subgoals is not None:
+            for goal in self.subgoals:
                 self.drawer.draw_solid_circle(
                     goal,
                     self.ball_radius + 0.1,
                     Color('red'),
                 )
-            for p1, p2 in zip(np.concatenate(([self._position], self.goals[:-1]), axis=0), self.goals):
+            for p1, p2 in zip(np.concatenate(([self._position], self.subgoals[:-1]), axis=0), self.subgoals):
                 self.drawer.draw_segment(p1, p2, Color(100, 0, 0, 10))
 
         for wall in self.walls:
@@ -658,7 +658,7 @@ class Point2DWallEnv(Point2DEnv):
         if wall_shape == "none":
             self.walls = []
 
-    def generate_subgoals(self, num_subgoals):
+    def generate_expert_subgoals(self, num_subgoals):
         def avg(p1, p2):
             return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
         ob_and_goal = self._get_obs()
@@ -690,7 +690,7 @@ class Point2DWallEnv(Point2DEnv):
 
         return np.array(subgoals)
 
-    def sweep_v_fixed_obs(self, agent, qf, vf, obs, tau):
+    def get_image_v(self, agent, qf, vf, obs, tau):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
@@ -705,9 +705,9 @@ class Point2DWallEnv(Point2DEnv):
             sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
             v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
         v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
-        return self.get_image_fixed_obs(v_vals)
+        return self.get_image_plt(v_vals)
 
-    def sweep_rew_fixed_obs(self, obs):
+    def get_image_rew(self, obs):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
@@ -716,9 +716,9 @@ class Point2DWallEnv(Point2DEnv):
         sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
         sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
         rew_vals = -np.linalg.norm(sweep_obs - sweep_goal, ord=self.norm_order, axis=-1).reshape((nx, ny))
-        return self.get_image_fixed_obs(rew_vals)
+        return self.get_image_plt(rew_vals)
 
-    def sweep_realistic_rew(self):
+    def get_image_realistic_rew(self):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
@@ -726,178 +726,40 @@ class Point2DWallEnv(Point2DEnv):
 
         sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
         rew_vals = ptu.get_numpy(self.realistic_goals(sweep_goal)).reshape((nx, ny))
-        return self.get_image_fixed_obs(rew_vals)
+        return self.get_image_plt(rew_vals)
 
-    def sweep_v_fixed_goal(self, agent, qf, vf, goal_high_level, tau_high_level):
-        nx, ny = (50, 50)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
-        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
-        sweep_goal = np.tile(goal_high_level, (nx * ny, 1))
-        sweep_tau = np.tile(tau_high_level, (nx * ny, 1))
-        if vf is not None:
-            v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        else:
-            sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-            v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
-        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
-
-        if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
-            v_vals = -np.exp(-1.5* v_vals / agent.reward_scale)
-            vmin = -np.exp(1)
-            vmax = -np.exp(0)
-        else:
-            vmin = -agent.reward_scale * 1.0  # np.sqrt(128)*0.70
-            vmax = 0
-
-        return self.get_image_fixed_goal(v_vals, vmin, vmax)
-
-    def sweep_policy(self, agent, goal_high_level, tau_high_level):
-        nx, ny = (10, 10)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
-        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
-        sweep_goal = np.tile(goal_high_level, (nx * ny, 1))
-        sweep_tau = np.tile(tau_high_level, (nx * ny, 1))
-
-        policy_vals = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        policy_vals = np.reshape(policy_vals, (nx, ny, -1))
-
-        dx = policy_vals[:, :, 0]
-        dy = policy_vals[:, :, 1]
-
-        return self.get_image_policy(xv, yv, dx, dy)
-
-    def sweep_v_fixed_subgoal(self, agent):
-        nx, ny = (50, 50)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
-        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
-        sweep_goal = np.tile(agent.goals[0], (nx * ny, 1))
-        sweep_tau = np.tile(agent.tau, (nx * ny, 1))
-        sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        v_vals = agent.qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
-        v_vals = -np.linalg.norm(v_vals, ord=agent.qf.norm_order, axis=1).reshape((nx, ny))
-
-        if hasattr(agent, 'exponential_constraint') and agent.exponential_constraint:
-            v_vals = -np.exp(-v_vals / agent.reward_scale)
-            vmin = -np.exp(1)
-            vmax = -np.exp(0)
-        else:
-            vmin = -agent.reward_scale * 1.0  # np.sqrt(128)*0.70
-            vmax = 0
-
-        return self.get_image_fixed_subgoal(v_vals, vmin, vmax)
-
-    def sweep_subgoal_policy(self, agent):
-        nx, ny = (10, 10)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
-        sweep_obs = np.stack((xv, yv), axis=2).reshape((-1, 2))
-        sweep_goal = np.tile(agent.goals[0], (nx * ny, 1))
-        sweep_tau = np.tile(agent.tau, (nx * ny, 1))
-
-        policy_vals = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        policy_vals = np.reshape(policy_vals, (nx, ny, -1))
-
-        dx = policy_vals[:, :, 0]
-        dy = policy_vals[:, :, 1]
-
-        return self.get_image_subgoal_policy(xv, yv, dx, dy)
-
-    def get_image_fixed_obs(self, vals, vmin=None, vmax=None):
-        fig, ax = self.draw_plt_objects(draw_ball=True)
-
-        ax.imshow(
-            vals,
-            extent=[-4, 4, -4, 4],
-            cmap=plt.get_cmap('plasma'),
-            interpolation='nearest',
-            vmax=vmax,
-            vmin=vmin,
-            origin='bottom',  # <-- Important! By default top left is (0, 0)
-        )
-
-        return self.plt_to_numpy(fig)
-
-    def get_image_fixed_goal(self, vals, vmin=None, vmax=None):
-        fig, ax = self.draw_plt_objects(draw_goal=True)
-
-        ax.imshow(
-            vals,
-            extent=[-4, 4, -4, 4],
-            cmap=plt.get_cmap('plasma'),
-            interpolation='nearest',
-            # aspect='auto',
-            vmax=vmax,
-            vmin=vmin,
-            origin='bottom',  # <-- Important! By default top left is (0, 0)
-        )
-
-        return self.plt_to_numpy(fig)
-
-    def get_image_fixed_subgoal(self, vals, vmin=None, vmax=None):
-        fig, ax = self.draw_plt_objects(draw_subgoal=True)
-
-        ax.imshow(
-            vals,
-            extent=[-4, 4, -4, 4],
-            cmap=plt.get_cmap('plasma'),
-            interpolation='nearest',
-            # aspect='auto',
-            vmax=vmax,
-            vmin=vmin,
-            origin='bottom',  # <-- Important! By default top left is (0, 0)
-        )
-
-        return self.plt_to_numpy(fig)
-
-    def get_image_policy(self, xv, yv, dx, dy):
-        fig, ax = self.draw_plt_objects(draw_ball=True, draw_goal=True)
-
-        dx = np.clip(dx, a_min=-1, a_max=1)
-        dy = np.clip(dy, a_min=-1, a_max=1)
-        ax.quiver(xv, yv, dx, -1*dy, scale=2.5e1)
-
-        return self.plt_to_numpy(fig)
-
-    def get_image_subgoal_policy(self, xv, yv, dx, dy):
-        fig, ax = self.draw_plt_objects(draw_ball=True, draw_goal=True, draw_subgoal=True)
-
-        dx = np.clip(dx, a_min=-1, a_max=1)
-        dy = np.clip(dy, a_min=-1, a_max=1)
-        ax.quiver(xv, yv, dx, -1*dy, scale=2.5e1)
-
-        return self.plt_to_numpy(fig)
-
-    def draw_plt_objects(self, draw_walls=True, draw_ball=False, draw_goal=False, draw_subgoal=False):
+    def get_image_plt(self,
+                      vals,
+                      vmin=None, vmax=None,
+                      extent=[-4, 4, -4, 4],
+                      small_markers=False,
+                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False):
         fig, ax = plt.subplots()
-        if self.goals is not None:
-            subgoal = plt.Circle(self.goals[0], (self.ball_radius + 0.1) * 0.70, color='r')
-        else:
-            subgoal = None
-
-        ax.set_ylim([-4, 4])
-        ax.set_xlim([-4, 4])
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
         ax.set_ylim(ax.get_ylim()[::-1])
         DPI = fig.get_dpi()
         fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
 
-        if draw_ball:
-            ball = plt.Circle(self._position, self.ball_radius * 0.70, color='b')
+        marker_factor = 0.60
+        if small_markers:
+            marker_factor = 0.10
+
+        if draw_state:
+            if small_markers:
+                color = 'cyan'
+            else:
+                color = 'blue'
+            ball = plt.Circle(self._position, self.ball_radius * marker_factor, color=color)
             ax.add_artist(ball)
         if draw_goal:
-            goal = plt.Circle(self._target_position, self.target_radius * 0.70, color='g')
+            goal = plt.Circle(self._target_position, self.target_radius * marker_factor, color='green')
             ax.add_artist(goal)
-        if draw_subgoal:
+        if draw_subgoals:
+            if self.subgoals is not None:
+                subgoal = plt.Circle(self.subgoals[0], (self.ball_radius + 0.1) * marker_factor, color='red')
+            else:
+                subgoal = None
             ax.add_artist(subgoal)
         if draw_walls:
             for wall in self.walls:
@@ -905,10 +767,6 @@ class Point2DWallEnv(Point2DEnv):
                 ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
                 ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
                 ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
-                # if wall.endpoint1[1] == wall.endpoint2[1]:
-                #     ax.hlines(y=wall.endpoint1[1], xmin=wall.endpoint1[0], xmax=wall.endpoint2[0])
-                # elif wall.endpoint1[0] == wall.endpoint2[0]:
-                #     ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint1[1], ymax=wall.endpoint2[1])
 
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
@@ -917,7 +775,17 @@ class Point2DWallEnv(Point2DEnv):
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
 
-        return fig, ax
+        ax.imshow(
+            vals,
+            extent=extent,
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
 
     def plt_to_numpy(self, fig):
         fig.canvas.draw()
@@ -986,7 +854,6 @@ class PointmassExpertPolicy:
             action = self.base_policy.eval_np(obs[None], goal_high_level[None], tau_high_level[None])[0]
 
         return np.array(action), {}
-
 
 
 if __name__ == "__main__":
