@@ -324,13 +324,13 @@ def create_image_84_sawyer_reach_xy_env_v1():
 
 def create_image_84_sawyer_reach_xy_env_v2():
     from multiworld.core.image_env import ImageEnv
-    from multiworld.envs.mujoco.cameras import sawyer_xyz_reacher_camera_v0
+    from multiworld.envs.mujoco.cameras import init_sawyer_camera_v1
 
     wrapped_env = gym.make('SawyerReachXYEnv-v2')
     return ImageEnv(
         wrapped_env,
         84,
-        init_camera=sawyer_xyz_reacher_camera_v0,
+        init_camera=init_sawyer_camera_v1,
         transpose=True,
         normalize=True,
     )
