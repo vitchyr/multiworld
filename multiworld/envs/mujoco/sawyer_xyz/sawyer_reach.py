@@ -7,6 +7,8 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 
+import matplotlib.pyplot as plt
+
 
 class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
     def __init__(
@@ -245,7 +247,89 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
 
+        x_bounds = np.array([self.hand_space.low[0] - 0.05, self.hand_space.high[0] + 0.05])
+        y_bounds = np.array([self.hand_space.low[1] - 0.05, self.hand_space.high[1] + 0.05])
+        self.vis_bounds = np.concatenate((x_bounds, y_bounds))
+
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         action = np.hstack((action, delta_z))
         return super().step(action)
+
+    def get_states_sweep(self, nx, ny):
+        x = np.linspace(self.vis_bounds[0], self.vis_bounds[1], nx)
+        y = np.linspace(self.vis_bounds[2], self.vis_bounds[3], ny)
+        xv, yv = np.meshgrid(x, y)
+        zv = self.hand_z_position * np.ones(xv.shape)
+        states = np.stack((xv, yv, zv), axis=2).reshape((nx*ny, -1))
+        return states
+
+    def get_image_plt(self,
+                      vals,
+                      vmin=None, vmax=None,
+                      extent=None,
+                      imsize=84,
+                      small_markers=False,
+                      draw_walls=True, draw_state=True, draw_goal=False):
+        if extent is None:
+            extent = self.vis_bounds
+
+        # if vmin is None and vmax is None:
+        #     nx, ny = vals.shape[0], vals.shape[1]
+        #     vals_within_boundary = vals[int(nx/6):-int(nx/6), int(ny/6):-int(ny/6)]
+        #     vmin, vmax = np.min(vals_within_boundary), np.max(vals_within_boundary)
+
+        fig, ax = plt.subplots()
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.set_xlim(ax.get_xlim()[::-1])
+        DPI = fig.get_dpi()
+        fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
+
+        marker_factor = 0.60
+        if small_markers:
+            marker_factor = 0.10
+
+        hand_low, hand_high = self.hand_space.low, self.hand_space.high
+        ax.vlines(x=hand_low[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted')
+        ax.hlines(y=hand_low[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted')
+        ax.vlines(x=hand_high[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted')
+        ax.hlines(y=hand_high[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted')
+
+        if draw_state:
+            if small_markers:
+                color = 'cyan'
+            else:
+                color = 'blue'
+            ball = plt.Circle(self.get_endeff_pos()[:2], 0.03 * marker_factor, color=color)
+            ax.add_artist(ball)
+        if draw_goal:
+            goal = plt.Circle(self._state_goal[:2], 0.03 * marker_factor, color='green')
+            ax.add_artist(goal)
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+
+        ax.imshow(
+            vals,
+            extent=extent,
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
+
+    def plt_to_numpy(self, fig):
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close()
+        return data
