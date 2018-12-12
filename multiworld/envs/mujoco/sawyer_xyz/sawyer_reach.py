@@ -17,6 +17,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
             norm_order=1,
             indicator_threshold=0.06,
 
+            fix_reset=True,
+            fixed_reset=(0, 0.5, 0.02),
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.3),
             hide_goal_markers=False,
@@ -31,6 +33,8 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
 
+        self.fix_reset = fix_reset
+        self.fixed_reset = np.array(fixed_reset)
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
@@ -122,8 +126,12 @@ class SawyerReachXYZEnv(SawyerXYZEnv, MultitaskEnv):
         return self._get_obs()
 
     def _reset_hand(self):
+        if self.fix_reset:
+            new_mocap_pos = self.fixed_reset
+        else:
+            new_mocap_pos = np.random.uniform(self.hand_space.low, self.hand_space.high)
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([0, 0.5, 0.02]))
+            self.data.set_mocap_pos('mocap', new_mocap_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
@@ -247,8 +255,8 @@ class SawyerReachXYEnv(SawyerReachXYZEnv):
             ('proprio_achieved_goal', self.hand_space),
         ])
 
-        x_bounds = np.array([self.hand_space.low[0] - 0.05, self.hand_space.high[0] + 0.05])
-        y_bounds = np.array([self.hand_space.low[1] - 0.05, self.hand_space.high[1] + 0.05])
+        x_bounds = np.array([self.hand_space.low[0] - 0.03, self.hand_space.high[0] + 0.03])
+        y_bounds = np.array([self.hand_space.low[1] - 0.03, self.hand_space.high[1] + 0.03])
         self.vis_bounds = np.concatenate((x_bounds, y_bounds))
 
     def step(self, action):
