@@ -342,6 +342,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = position
         self._target_position = goal
 
+    def get_states_sweep(self, nx, ny):
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+        states = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        return states
+
     def render(self, close=False):
         if close:
             self.drawer = None
@@ -634,6 +641,23 @@ class Point2DWallEnv(Point2DEnv):
                     self.wall_thickness
                 ),
             ]
+        if wall_shape == "flappy-bird":
+            self.walls = [
+                VerticalWall(
+                    self.ball_radius,
+                    self.inner_wall_max_dist*1.667,
+                    -self.inner_wall_max_dist*0.5,
+                    self.inner_wall_max_dist*4,
+                    self.wall_thickness
+                ),
+                VerticalWall(
+                    self.ball_radius,
+                    -self.inner_wall_max_dist*1.667,
+                    -self.inner_wall_max_dist*4,
+                    self.inner_wall_max_dist*0.5,
+                    self.wall_thickness
+                ),
+            ]
         if wall_shape == "big-h":
             self.walls = [
                 # Bottom wall
@@ -686,7 +710,7 @@ class Point2DWallEnv(Point2DEnv):
                     subgoals += [avg((0, -3), (3, -3)), (3, -3), avg((3, -3), (3, 2)), (3, 2), avg((3, 2), goal), goal]
 
         if len(subgoals) == 0:
-            subgoals = np.tile(goal, num_subgoals)
+            subgoals = np.tile(goal, num_subgoals).reshape(-1, 2)
 
         return np.array(subgoals)
 
