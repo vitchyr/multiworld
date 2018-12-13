@@ -220,12 +220,13 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             return sampled_goals
         if batch_size > 1:
             warnings.warn("Sampling goal images is slow")
-        img_goals = np.zeros((batch_size, self.image_length))
+        img_goals = []
         goals = self.wrapped_env.sample_goals(batch_size)
         for i in range(batch_size):
             goal = self.unbatchify_dict(goals, i)
             self.wrapped_env.set_to_goal(goal)
-            img_goals[i, :] = self._get_flat_img()
+            img_goals.append(self._get_flat_img().copy())
+        img_goals = np.array(img_goals)
         goals['desired_goal'] = img_goals
         goals['image_desired_goal'] = img_goals
         return goals
@@ -259,6 +260,13 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 always_show_all_stats=True,
             ))
         return statistics
+
+
+    def get_image_for_vae(self):
+        goal = self.sample_goals(1)
+        img = goal['image_desired_goal'][0].reshape(self.imsize,self.imsize, self.channels)
+        img = img[:, :, ::-1]
+        return img
 
 def normalize_image(image):
     assert image.dtype == np.uint8
