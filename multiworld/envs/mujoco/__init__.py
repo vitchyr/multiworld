@@ -65,7 +65,7 @@ def register_custom_envs():
         id='SawyerReachXYEnv-v3',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
         tags={
-            'git-commit-hash': 'ba1c76a',
+            'git-commit-hash': '887848a',
             'author': 'Soroush'
         },
         kwargs={
@@ -80,7 +80,7 @@ def register_custom_envs():
         id='Image84SawyerReachXYEnv-v3',
         entry_point=create_image_84_sawyer_reach_xy_env_v3,
         tags={
-            'git-commit-hash': 'ba1c76a',
+            'git-commit-hash': '887848a',
             'author': 'Soroush'
         },
     )
