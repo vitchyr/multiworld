@@ -147,6 +147,15 @@ def register_custom_envs():
         },
     )
 
+    register(
+        id='Image84Point2DWallEnvFlappyBird-v2',
+        entry_point=create_image_84_point2d_wall_flappy_bird_v2,
+        tags={
+            'git-commit-hash': '487d6f7', #'9cab5da',
+            'author': 'Soroush'
+        },
+    )
+
 def create_image_84_point2d_wall_flappy_bird_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.pygame.point2d import Point2DWallEnv
@@ -190,6 +199,35 @@ def create_image_84_point2d_wall_flappy_bird_v1():
         'ball_high': (-3, 0.5),
         'goal_low': (3, -0.5),
         'goal_high': (3.5, 1.5),
+    }
+    wrapped_env = Point2DWallEnv(**kwargs)
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+
+def create_image_84_point2d_wall_flappy_bird_v2():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.pygame.point2d import Point2DWallEnv
+
+    kwargs = {
+        'action_scale': 0.25,
+        'wall_shape': 'flappy-bird',
+        'wall_thickness': 0.50,
+        'render_target': False,
+        'render_size': 84,
+        'images_are_rgb': True,
+        'sample_realistic_goals': True,
+        'norm_order': 2,
+        'reward_type': 'vectorized_dense',
+        'ball_low': (-3.5, -3.0),
+        'ball_high': (-3, -0.5),
+        'goal_low': (3, 0.5),
+        'goal_high': (3.5, 3.0),
     }
     wrapped_env = Point2DWallEnv(**kwargs)
     return ImageEnv(
