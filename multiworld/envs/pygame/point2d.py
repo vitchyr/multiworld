@@ -133,7 +133,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         distance_to_target = np.linalg.norm(
             self._position - self._target_position
         )
-        is_success = distance_to_target < self.target_radius
+        is_success = distance_to_target < 1.0
 
         ob = self._get_obs()
         reward = self.compute_reward(velocities, ob)
@@ -205,30 +205,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_desired_goal=self._target_position.copy(),
             state_achieved_goal=self._position.copy(),
         )
-
-    def get_diagnostics(self, paths, prefix=''):
-        statistics = OrderedDict()
-        for stat_name in [
-            'radius',
-            'target_position',
-            'distance_to_target',
-            'velocity',
-            'speed',
-            'is_success',
-        ]:
-            stat_name = stat_name
-            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-            statistics.update(create_stats_ordered_dict(
-                '%s%s' % (prefix, stat_name),
-                stat,
-                always_show_all_stats=True,
-                ))
-            statistics.update(create_stats_ordered_dict(
-                'Final %s%s' % (prefix, stat_name),
-                [s[-1] for s in stat],
-                always_show_all_stats=True,
-                ))
-        return statistics
 
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
@@ -409,25 +385,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer.render()
         self.drawer.tick(self.render_dt_msec)
-
-    def get_diagnostics(self, paths, prefix=''):
-        statistics = OrderedDict()
-        for stat_name in [
-            'distance_to_target',
-        ]:
-            stat_name = stat_name
-            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-            statistics.update(create_stats_ordered_dict(
-                '%s%s' % (prefix, stat_name),
-                stat,
-                always_show_all_stats=True,
-                ))
-            statistics.update(create_stats_ordered_dict(
-                'Final %s%s' % (prefix, stat_name),
-                [s[-1] for s in stat],
-                always_show_all_stats=True,
-                ))
-        return statistics
 
     """Static visualization/utility methods"""
 

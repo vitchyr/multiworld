@@ -151,7 +151,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvFlappyBird-v2',
         entry_point=create_image_84_point2d_wall_flappy_bird_v2,
         tags={
-            'git-commit-hash': '487d6f7', #'9cab5da',
+            'git-commit-hash': '9676f61', #'9cab5da',
             'author': 'Soroush'
         },
     )
