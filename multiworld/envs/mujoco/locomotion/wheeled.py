@@ -7,14 +7,24 @@ from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_asset_full_path
 
+from collections import OrderedDict
+from multiworld.envs.env_util import (
+    get_stat_in_paths,
+    create_stats_ordered_dict,
+)
+
 
 class WheeledEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def __init__(
             self,
             reward_type='dense',
             norm_order=2,
-
+            action_scale=20,
             frame_skip=3,
+            car_low=list([-2.10, -2.10]),
+            car_high=list([2.10, 2.10]),
+            goal_low=list([-2.10, -2.10]),
+            goal_high=list([2.10, 2.10]),
             *args,
             **kwargs):
         self.quick_init(locals())
@@ -25,34 +35,58 @@ class WheeledEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                            **kwargs)
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
+        self.action_scale = action_scale
+        self.ball_radius = 0.30
+
 
         self.reward_type = reward_type
         self.norm_order = norm_order
 
-        self.obs_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
-        self.goal_space = Box(np.array([-2, -2]), np.array([2, 2]), dtype=np.float32)
+        self.car_low, self.car_high = np.array(car_low), np.array(car_high)
+        self.goal_low, self.goal_high = np.array(goal_low), np.array(goal_high)
+        self.obs_space = Box(np.concatenate((self.car_low, [-1, -1, -1, -10, -10, -10, -10])),
+                             np.concatenate((self.car_high, [0.03, 1, 1, 10, 10, 10, 10])),
+                             dtype=np.float32)
+        self.goal_space = Box(np.concatenate((self.goal_low, [0, -1, -1, 0, 0, 0, 0])),
+                              np.concatenate((self.goal_high, [0, 1, 1, 0, 0, 0, 0])),
+                             dtype=np.float32)
 
         self.observation_space = Dict([
             ('observation', self.obs_space),
             ('desired_goal', self.goal_space),
-            ('achieved_goal', self.goal_space),
+            ('achieved_goal', self.obs_space),
             ('state_observation', self.obs_space),
             ('state_desired_goal', self.goal_space),
-            ('state_achieved_goal', self.goal_space),
+            ('state_achieved_goal', self.obs_space),
             ('proprio_observation', self.obs_space),
             ('proprio_desired_goal', self.goal_space),
-            ('proprio_achieved_goal', self.goal_space),
+            ('proprio_achieved_goal', self.obs_space),
         ])
 
         self._state_goal = None
         self.reset()
 
     def step(self, action):
+        action = self.action_scale * action
         self.do_simulation(np.array(action))
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
+        state, goal = ob['state_observation'], self._state_goal
+        pos_diff = np.linalg.norm(state[:3] - goal[:3])
+        angle_state, angle_goal = np.arctan2(state[3], state[4]), np.arctan2(goal[3], goal[4])
+        angle_diff = np.arctan2(np.sin(angle_state-angle_goal), np.cos(angle_state-angle_goal))
+        pos_angle_diff = np.linalg.norm(state[:5] - goal[:5])
+        velocity_diff = np.linalg.norm(state[-4:-1] - goal[-4:-1])
+        angular_velocity_diff = np.linalg.norm(state[-1] - goal[-1])
+        info = {
+            'pos_diff': pos_diff,
+            'angle_diff': angle_diff,
+            'pos_angle_diff': pos_angle_diff,
+            'velocity_diff': velocity_diff,
+            'angular_velocity_diff': angular_velocity_diff,
+        }
         done = False
-        return ob, reward, done, {}
+        return ob, reward, done, info
 
     def _get_obs(self):
         qpos = list(self.sim.data.qpos.flat)
@@ -62,13 +96,13 @@ class WheeledEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return dict(
             observation=flat_obs,
             desired_goal=self._state_goal,
-            achieved_goal=flat_obs[:2],
+            achieved_goal=flat_obs,
             state_observation=flat_obs,
             state_desired_goal=self._state_goal,
-            state_achieved_goal=flat_obs[:2],
+            state_achieved_goal=flat_obs,
             proprio_observation=flat_obs,
             proprio_desired_goal=self._state_goal,
-            proprio_achieved_goal=flat_obs[:2],
+            proprio_achieved_goal=flat_obs,
         )
 
     def get_goal(self):
@@ -87,7 +121,6 @@ class WheeledEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'desired_goal': goals,
             'state_desired_goal': goals,
         }
-
 
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
@@ -111,35 +144,58 @@ class WheeledEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def _reset_car(self):
         qpos = np.zeros(6)
-        qpos[0] = 1.5
-        qpos[1] = 1.5
-        # qpos[0] = np.random.uniform(-1.8, 1.8)
-        # qpos[1] = np.random.uniform(-1.8, 1.8)
-        qpos[3] = np.random.uniform(0, 2*np.pi)
-
         qvel = np.zeros(6)
+        qpos[0:2] = np.random.uniform(self.car_low, self.car_high)
+        # qpos[0], qpos[1] = 2.10, 2.10
+        qpos[3] = np.random.uniform(0, 2*np.pi)
         self.set_state(qpos, qvel)
 
     def set_goal(self, goal):
         self._state_goal = goal['state_desired_goal']
 
-    # def reset(self, reset_args=None, init_state=None, **kwargs):
-    #     # body_pos = self.model.body_pos.copy()
-    #     # print(body_pos)
-    #     # body_pos[-1][:2] = self.goal
-    #     # self.model.body_pos = body_pos
-    #     self.model.forward()
-    #     self.current_com = self.model.data.com_subtree[0]
-    #     self.dcom = np.zeros_like(self.current_com)
-    #     obs = self._get_obs()
-    #     return obs
+    def set_to_goal(self, goal):
+        state_goal = goal['state_desired_goal']
+        qpos, qvel = state_goal[:6], state_goal[-6:]
+        self.set_state(qpos, qvel)
+
+    def get_env_state(self):
+        joint_state = self.sim.get_state()
+        goal = self._state_goal.copy()
+        return joint_state, goal
+
+    def set_env_state(self, state):
+        state, goal = state
+        self.sim.set_state(state)
+        self.sim.forward()
+        self._state_goal = goal
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'pos_diff',
+            'angle_diff',
+            'pos_angle_diff',
+            'velocity_diff',
+            'angular_velocity_diff',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+                ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+                ))
+        return statistics
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.lookat[0] = 0.0
         self.viewer.cam.lookat[1] = 0.0
         self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 6.0
+        self.viewer.cam.distance = 6.5
         self.viewer.cam.elevation = -90
-        # self.viewer.cam.azimuth = 270
-        # self.viewer.cam.trackbodyid = -1
