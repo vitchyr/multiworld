@@ -51,10 +51,10 @@
   <worldbody>
     <light directional="true" cutoff="100" exponent="1" diffuse="1 1 1" specular=".1 .1 .1" pos="0 0 1.3" dir="-0 0 -1.3" />
     <geom name='floor' material="MatPlane" pos='0 0 0' size='40 40 40' type='plane' conaffinity='1' rgba='0.8 0.9 0.8 1' condim='3' />
-        <geom name='left_wall' pos='-2.5 0 0.5' size='0.1 2.6 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
-            <geom name='right_wall' pos='2.5 0 0.5' size='0.1 2.6 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
-                <geom name='front_wall' pos='0 2.5 0.5' size='2.6 0.1 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
-                    <geom name='back_wall' pos='0 -2.5 0.5' size='2.6 0.1 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+        <geom name='left_wall' pos='-2.0 0 0.5' size='0.1 2.1 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+            <geom name='right_wall' pos='2.0 0 0.5' size='0.1 2.1 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+                <geom name='front_wall' pos='0 2.0 0.5' size='2.1 0.1 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+                    <geom name='back_wall' pos='0 -2.0 0.5' size='2.1 0.1 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
 
       <!-- <geom name='uwall_bottom' pos='0 -0.5 0.5' size='1.25 0.25 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
       <geom name='uwall_right' pos='1.0 0.25 0.5' size='0.25 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
