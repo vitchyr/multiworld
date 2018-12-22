@@ -182,3 +182,12 @@ def sawyer_pusher_camera_top_down(camera):
     camera.elevation = cam_pos[4]
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
+
+
+def wheeled_car_camera_v0(camera):
+    camera.trackbodyid = 0
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = 0.0
+    camera.lookat[2] = 0.5
+    camera.distance = 5.5 #6.5
+    camera.elevation = -90
