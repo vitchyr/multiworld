@@ -324,7 +324,7 @@ def register_custom_envs():
         id='WheeledCarEnv-v0',
         entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
         tags={
-            'git-commit-hash': 'c0da6a8',
+            'git-commit-hash': '55ae52a',
             'author': 'Soroush'
         },
         kwargs={
@@ -340,7 +340,32 @@ def register_custom_envs():
         id='Image84WheeledCarEnv-v0',
         entry_point=create_image_84_wheeled_car_env_v0,
         tags={
-            'git-commit-hash': 'c0da6a8',
+            'git-commit-hash': '55ae52a',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='WheeledCarEnv-v1',
+        entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
+        tags={
+            'git-commit-hash': '55ae52a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'reward_type': 'vectorized_dense',
+            'norm_order': 2,
+            'car_low':(-1.35, -1.35),
+            'car_high':(1.35, 1.35),
+            'goal_low':(-1.35, -1.35),
+            'goal_high':(1.35, 1.35),
+        }
+    )
+    register(
+        id='Image84WheeledCarEnv-v1',
+        entry_point=create_image_84_wheeled_car_env_v1,
+        tags={
+            'git-commit-hash': '55ae52a',
             'author': 'Soroush'
         },
     )
@@ -350,6 +375,19 @@ def create_image_84_wheeled_car_env_v0():
     from multiworld.envs.mujoco.cameras import wheeled_car_camera_v0
 
     wrapped_env = gym.make('WheeledCarEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=wheeled_car_camera_v0,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_wheeled_car_env_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import wheeled_car_camera_v0
+
+    wrapped_env = gym.make('WheeledCarEnv-v1')
     return ImageEnv(
         wrapped_env,
         84,
