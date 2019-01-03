@@ -45,6 +45,7 @@
     <texture type="skybox" builtin="gradient" width="100" height="100" rgb1="1 1 1" rgb2="0 0 0" />
     <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01" />
     <texture name="texplane" type="2d" builtin="checker" rgb1="0 0 0" rgb2="0.8 0.8 0.8" width="100" height="100" />
+      <!--<texture name="texplane" type="2d" builtin="flat" rgb1="1.0 1.0 1.0" rgb2="1.0 1.0 1.0" width="100" height="100" />-->
     <material name='MatPlane' texture="texplane" shininess="1" texrepeat="60 60" specular="1"  reflectance="0.5" />
     <material name='geom' texture="texgeom" texuniform="true" />
   </asset>
@@ -62,26 +63,44 @@
       -->
 
     <body name='car' pos='0 0 -0.4'>
-        <!-- <geom name='body' type='box' pos ='0 0 .6' rgba="1 0 0 1" size='0.15 0.1 0.046' /> -->
+      <!-- <site name="indicator_front" pos="0.15 0 0.5" size="0.25" rgba="0 1 0 1.0"/>
+      <site name="indicator_back" pos="-0.15 0 0.5" size="0.25" rgba="0 0 1 1.0"/> -->
+
+
       <geom name='body_front' type='box' pos ='0.075 0 .6' rgba="0 1 0 1" size='0.075 0.1 0.046' />
       <geom name='body_back' type='box' pos ='-0.075 0 .6' rgba="0 0 1 1" size='0.075 0.1 0.046' />
+        <!--
+        <geom name='body_front' type='box' pos ='0.15 0 .6' rgba="0 1 0 1" size='0.15 0.2 0.046' />
+      <geom name='body_back' type='box' pos ='-0.15 0 .6' rgba="0 0 1 1" size='0.15 0.2 0.046' />
+      -->
       <joint name="xmove" type="slide" limited="false" pos="0 0 0" axis="1 0 0" margin="0.01" armature="0" damping="0" />
       <joint name="ymove" type="slide" limited="false" pos="0 0 0" axis="0 1 0" margin="0.01" armature="0" damping="0" />
       <joint name="zmove" type="slide" limited="true" range="-1 0.03" pos="0 0 0" axis="0 0 1" margin="0.01" armature="0" damping="0" />
       <!-- <joint name="ymove" type="slide" limited="false" pos="0 0 0" axis="0 1 0" margin="0.01" armature="0" damping="0" /> -->
       <joint name="zrotate" type="hinge" limited="false" pos="0 0 0" axis="0 0 1" margin="0.01" armature="0" damping="0" />
 
+
+
       <body name='wheelbody1' pos='0 -0.2 0'>
         <geom name='wheel1' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.046' />
-        <!-- <geom name='wheelnub1' type='cylinder'  pos ='0 0 0.6' size='0.01 0.07' />       -->
         <joint name="rotate_wheels1" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
       </body>
 
       <body name='wheelbody2' pos='0 0.2 0'>
         <geom name='wheel2' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.046' />
-        <!-- <geom name='wheelnub2' type='cylinder'  pos ='0 0 0.6' size='0.01 0.07' />  -->
         <joint name="rotate_wheels2" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
       </body>
+      <!--
+              <body name='wheelbody1' pos='0 -0.4 0'>
+        <geom name='wheel1' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.092' />
+        <joint name="rotate_wheels1" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
+      </body>
+
+      <body name='wheelbody2' pos='0 0.4 0'>
+        <geom name='wheel2' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.092' />
+        <joint name="rotate_wheels2" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
+      </body>
+          -->
     </body>
 
 
