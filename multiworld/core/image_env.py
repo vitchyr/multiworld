@@ -180,6 +180,27 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         )
         return self.transform_image(image_obs)
 
+    def state_to_image(self, state):
+        return self.states_to_images(state[None])[0]
+
+    def states_to_images(self, states):
+        states = self._wrapped_env.valid_states(states)
+        pre_state = self.wrapped_env.get_env_state()
+
+        batch_size = states.shape[0]
+        imgs = np.zeros((batch_size, self.image_length))
+        for i in range(batch_size):
+            self.wrapped_env.set_to_goal({"state_desired_goal": states[i]})
+            imgs[i, :] = self._get_flat_img()
+            # if batch_size > 1:
+            #     img = imgs[i, :]
+            #     img = img.reshape(3, 84, 84).transpose((1, 2, 0))
+            #     img = img[::, :, ::-1]
+            #     cv2.imshow('img', img)
+            #     cv2.waitKey(1)
+        self.wrapped_env.set_env_state(pre_state)
+        return imgs
+
     def transform_image(self, img):
         if img is None:
             return None
