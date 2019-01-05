@@ -53,6 +53,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             randomize_position_on_reset=True,
             sample_realistic_goals=False,
             images_are_rgb=False,  # else black and white
+            show_goal=True,
             **kwargs
     ):
         if walls is None:
@@ -80,6 +81,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         if self.fixed_goal is not None:
             self.fixed_goal = np.array(self.fixed_goal)
         self.images_are_rgb = images_are_rgb
+        self.show_goal = show_goal
 
         self.max_target_distance = self.boundary_dist - self.target_radius
 
