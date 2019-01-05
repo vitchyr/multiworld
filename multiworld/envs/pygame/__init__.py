@@ -46,7 +46,7 @@ def register_custom_envs():
         id='Point2DWallEnv-easy-u-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
         kwargs={
@@ -65,7 +65,7 @@ def register_custom_envs():
         id='Point2DWallEnvBox-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
         kwargs={
@@ -87,7 +87,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvEasyU-v0',
         entry_point=create_image_84_point2d_wall_easy_u_v0,
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -96,7 +96,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvEasyU-v1',
         entry_point=create_image_84_point2d_wall_easy_u_v1,
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -105,7 +105,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnv-v0',
         entry_point=create_image_84_point2d_wall_v0,
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -114,7 +114,7 @@ def register_custom_envs():
         id='Point2DWallEnvFlappyBird-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
         kwargs={
@@ -133,7 +133,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvFlappyBird-v0',
         entry_point=create_image_84_point2d_wall_flappy_bird_v0,
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -142,7 +142,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvFlappyBird-v1',
         entry_point=create_image_84_point2d_wall_flappy_bird_v1,
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
     )
@@ -151,7 +151,7 @@ def register_custom_envs():
         id='Image84Point2DWallEnvFlappyBird-v2',
         entry_point=create_image_84_point2d_wall_flappy_bird_v2,
         tags={
-            'git-commit-hash': '989135e', #'9cab5da',
+            'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
     )

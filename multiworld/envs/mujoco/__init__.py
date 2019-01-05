@@ -386,7 +386,7 @@ def register_custom_envs():
         id='WheeledCarEnv-v0',
         entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
         tags={
-            'git-commit-hash': 'c90a6be',
+            'git-commit-hash': 'f773062',
             'author': 'Soroush'
         },
         kwargs={
@@ -402,7 +402,7 @@ def register_custom_envs():
         id='Image84WheeledCarEnv-v0',
         entry_point=create_image_84_wheeled_car_env_v0,
         tags={
-            'git-commit-hash': 'c90a6be',
+            'git-commit-hash': 'f773062',
             'author': 'Soroush'
         },
     )
@@ -411,7 +411,7 @@ def register_custom_envs():
         id='WheeledCarEnv-v1',
         entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
         tags={
-            'git-commit-hash': 'c90a6be',
+            'git-commit-hash': 'f773062',
             'author': 'Soroush'
         },
         kwargs={
@@ -427,7 +427,7 @@ def register_custom_envs():
         id='Image84WheeledCarEnv-v1',
         entry_point=create_image_84_wheeled_car_env_v1,
         tags={
-            'git-commit-hash': 'c90a6be',
+            'git-commit-hash': 'f773062',
             'author': 'Soroush'
         },
     )
