@@ -15,16 +15,23 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             puck_low=(-.4, .2),
             puck_high=(.4, 1),
 
-            reward_type='state_distance',
-            norm_order=1,
-            indicator_threshold=0.06,
-
             hand_low=(-0.28, 0.3, 0.05),
             hand_high=(0.28, 0.9, 0.3),
 
-            fix_reset=True,
+            fixed_hand_z_position=None,
+
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.02, -0.15, 0.6),
+            goal_low=None,
+            goal_high=None,
+
+            fix_reset=False,
+            reset_low=None,
+            reset_high=None,
+
+            reward_type='state_distance',
+            norm_order=1,
+            indicator_threshold=0.06,
 
             hide_goal_markers=False,
             init_puck_z=0.02,
@@ -41,6 +48,13 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         self.quick_init(locals())
         self.model_name=get_asset_full_path(xml_path)
         MultitaskEnv.__init__(self)
+
+        if fixed_hand_z_position is not None:
+            hand_low = np.array(hand_low)
+            hand_high = np.array(hand_high)
+            hand_low[2] = fixed_hand_z_position
+            hand_high[2] = fixed_hand_z_position
+
         SawyerXYZEnv.__init__(
             self,
             hand_low=hand_low,
@@ -54,13 +68,43 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             puck_high = self.hand_high[:2]
         puck_low = np.array(puck_low)
         puck_high = np.array(puck_high)
-
-        self.puck_low = puck_low
-        self.puck_high = puck_high
-
-        self.reward_type = reward_type
-        self.norm_order = norm_order
-        self.indicator_threshold = indicator_threshold
+        self.obs_space = Box(
+            np.hstack((hand_low, puck_low)),
+            np.hstack((hand_high, puck_high)),
+            dtype=np.float32
+        )
+        self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
+        self.puck_space = Box(puck_low, puck_high, dtype=np.float32)
+        if goal_low is None:
+            goal_low = self.obs_space.low.copy()
+        if goal_high is None:
+            goal_high = self.obs_space.high.copy()
+        if reset_low is None:
+            reset_low = self.obs_space.low.copy()
+        if reset_high is None:
+            reset_high = self.obs_space.high.copy()
+        goal_low = np.array(goal_low)
+        goal_high = np.array(goal_high)
+        reset_low = np.array(reset_low)
+        reset_high = np.array(reset_high)
+        if fixed_hand_z_position is not None:
+            goal_low[2] = fixed_hand_z_position
+            goal_high[2] = fixed_hand_z_position
+            reset_low[2] = fixed_hand_z_position
+            reset_high[2] = fixed_hand_z_position
+        self.goal_space = Box(goal_low, goal_high, dtype=np.float32)
+        self.reset_space = Box(reset_low, reset_high, dtype=np.float32)
+        self.observation_space = Dict([
+            ('observation', self.obs_space),
+            ('desired_goal', self.goal_space),
+            ('achieved_goal', self.obs_space),
+            ('state_observation', self.obs_space),
+            ('state_desired_goal', self.goal_space),
+            ('state_achieved_goal', self.obs_space),
+            ('proprio_observation', self.obs_space),
+            ('proprio_desired_goal', self.goal_space),
+            ('proprio_achieved_goal', self.obs_space),
+        ])
 
         self.fix_reset = fix_reset
         self.fix_goal = fix_goal
@@ -69,34 +113,33 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.hide_goal_markers = hide_goal_markers
 
-        self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]), dtype=np.float32)
-        self.hand_and_puck_space = Box(
-            np.hstack((hand_low, puck_low)),
-            np.hstack((hand_high, puck_high)),
-            dtype=np.float32
-        )
-        self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
-        self.observation_space = Dict([
-            ('observation', self.hand_and_puck_space),
-            ('desired_goal', self.hand_and_puck_space),
-            ('achieved_goal', self.hand_and_puck_space),
-            ('state_observation', self.hand_and_puck_space),
-            ('state_desired_goal', self.hand_and_puck_space),
-            ('state_achieved_goal', self.hand_and_puck_space),
-            ('proprio_observation', self.hand_space),
-            ('proprio_desired_goal', self.hand_space),
-            ('proprio_achieved_goal', self.hand_space),
-        ])
+        self.reward_type = reward_type
+        self.norm_order = norm_order
+        self.indicator_threshold = indicator_threshold
+
+        if not fixed_hand_z_position:
+            self.action_space = Box(np.array([-1, -1, -1]), np.array([1, 1, 1]), dtype=np.float32)
+        else:
+            self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self.init_puck_z = init_puck_z
         self.init_hand_xyz = np.array(init_hand_xyz)
+        if fixed_hand_z_position is not None:
+            self.init_hand_xyz[2] = fixed_hand_z_position
         self._set_puck_xy(self.sample_puck_xy())
         self.reset_free = reset_free
         self.reset_counter = 0
-        self.puck_space = Box(self.puck_low, self.puck_high, dtype=np.float32)
         self.clamp_puck_on_step=clamp_puck_on_step
         self.puck_radius=puck_radius
         self.ee_radius = ee_radius
         self.reset()
+
+        # print("mocap_space:", self.mocap_low, self.mocap_high)
+        # print("hand_space:", self.hand_space.low, self.hand_space.high)
+        # print("init_hand_xyz:", self.init_hand_xyz)
+        # print("puck_space:", self.puck_space.low, self.puck_space.high)
+        # print("obs_space:", self.obs_space.low, self.obs_space.high)
+        # print("reset_space:", self.reset_space.low, self.reset_space.high)
+        # print("goal_space:", self.goal_space.low, self.goal_space.high)
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
@@ -201,7 +244,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         if self.fix_reset:
             return np.array([0, 0.6])
         else:
-            return np.random.uniform(self.puck_low, self.puck_high)
+            return np.random.uniform(self.reset_space.low[-2:], self.reset_space.high[-2:])
 
     def _set_goal_marker(self, goal):
         """
@@ -261,7 +304,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         if self.fix_reset:
             new_mocap_pos = self.init_hand_xyz.copy()
         else:
-            new_mocap_pos = np.random.uniform(self.hand_space.low, self.hand_space.high)
+            new_mocap_pos = np.random.uniform(self.reset_space.low[:3], self.reset_space.high[:3])
         for _ in range(10):
             self.data.set_mocap_pos('mocap', new_mocap_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
@@ -323,9 +366,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             )
         else:
             goals = np.random.uniform(
-                self.hand_and_puck_space.low,
-                self.hand_and_puck_space.high,
-                size=(batch_size, self.hand_and_puck_space.low.size),
+                self.goal_space.low,
+                self.goal_space.high,
+                size=(batch_size, self.goal_space.low.size),
             )
         return {
             'desired_goal': goals,
@@ -428,38 +471,37 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
 class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
     def __init__(self, *args, hand_z_position=0.05, **kwargs):
         self.quick_init(locals())
-        SawyerPushAndReachXYZEnv.__init__(self, *args, **kwargs)
+        SawyerPushAndReachXYZEnv.__init__(self, *args, **kwargs, fixed_hand_z_position=hand_z_position)
         self.hand_z_position = hand_z_position
-        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
-        self.fixed_goal[2] = hand_z_position
-
-        hand_and_puck_low = self.hand_and_puck_space.low.copy()
-        hand_and_puck_low[2] = hand_z_position
-        hand_and_puck_high = self.hand_and_puck_space.high.copy()
-        hand_and_puck_high[2] = hand_z_position
-        self.hand_and_puck_space = Box(hand_and_puck_low, hand_and_puck_high, dtype=np.float32)
-
-        self.hand_low = self.hand_space.low.copy()
-        self.hand_low[2] = hand_z_position
-        self.hand_high = self.hand_space.high.copy()
-        self.hand_high[2] = hand_z_position
-        self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
-
-        self.mocap_low[2] = hand_z_position
-        self.mocap_high[2] = hand_z_position
-
-        self.observation_space = Dict([
-            ('observation', self.hand_and_puck_space),
-            ('desired_goal', self.hand_and_puck_space),
-            ('achieved_goal', self.hand_and_puck_space),
-            ('state_observation', self.hand_and_puck_space),
-            ('state_desired_goal', self.hand_and_puck_space),
-            ('state_achieved_goal', self.hand_and_puck_space),
-            ('proprio_observation', self.hand_space),
-            ('proprio_desired_goal', self.hand_space),
-            ('proprio_achieved_goal', self.hand_space),
-        ])
-        self.reset()
+        # self.fixed_goal[2] = hand_z_position
+        #
+        # hand_and_puck_low = self.hand_and_puck_space.low.copy()
+        # hand_and_puck_low[2] = hand_z_position
+        # hand_and_puck_high = self.hand_and_puck_space.high.copy()
+        # hand_and_puck_high[2] = hand_z_position
+        # self.hand_and_puck_space = Box(hand_and_puck_low, hand_and_puck_high, dtype=np.float32)
+        #
+        # self.hand_low = self.hand_space.low.copy()
+        # self.hand_low[2] = hand_z_position
+        # self.hand_high = self.hand_space.high.copy()
+        # self.hand_high[2] = hand_z_position
+        # self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
+        #
+        # self.mocap_low[2] = hand_z_position
+        # self.mocap_high[2] = hand_z_position
+        #
+        # self.observation_space = Dict([
+        #     ('observation', self.hand_and_puck_space),
+        #     ('desired_goal', self.hand_and_puck_space),
+        #     ('achieved_goal', self.hand_and_puck_space),
+        #     ('state_observation', self.hand_and_puck_space),
+        #     ('state_desired_goal', self.hand_and_puck_space),
+        #     ('state_achieved_goal', self.hand_and_puck_space),
+        #     ('proprio_observation', self.hand_space),
+        #     ('proprio_desired_goal', self.hand_space),
+        #     ('proprio_achieved_goal', self.hand_space),
+        # ])
+        # self.reset()
 
     def step(self, action):
         delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
