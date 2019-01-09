@@ -101,9 +101,9 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
             ('state_observation', self.obs_space),
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.obs_space),
-            ('proprio_observation', self.obs_space),
-            ('proprio_desired_goal', self.goal_space),
-            ('proprio_achieved_goal', self.obs_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', Box(goal_low[:3], goal_high[:3], dtype=np.float32)),
+            ('proprio_achieved_goal', self.hand_space),
         ])
 
         self.fix_reset = fix_reset
