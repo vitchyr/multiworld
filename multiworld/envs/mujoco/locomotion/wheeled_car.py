@@ -136,11 +136,11 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
         return self._cur_obs
 
-    def merge_frames(self, dict1, dict2):
-        dict = {}
-        for key in dict1.keys():
-            dict[key] = np.concatenate((dict1[key], dict2[key]))
-        return dict
+    def merge_frames(self, frame1, frame2):
+        frame = {}
+        for key in frame1.keys():
+            frame[key] = np.concatenate((frame1[key], frame2[key]))
+        return frame
 
     def get_goal(self):
         if self.two_frames:
