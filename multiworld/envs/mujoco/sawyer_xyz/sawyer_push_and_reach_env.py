@@ -445,6 +445,9 @@ class SawyerPushAndReachXYEnv(SawyerPushAndReachXYZEnv):
         self.hand_high[2] = hand_z_position
         self.hand_space = Box(self.hand_low, self.hand_high, dtype=np.float32)
 
+        self.mocap_low[2] = hand_z_position
+        self.mocap_high[2] = hand_z_position
+
         self.observation_space = Dict([
             ('observation', self.hand_and_puck_space),
             ('desired_goal', self.hand_and_puck_space),
