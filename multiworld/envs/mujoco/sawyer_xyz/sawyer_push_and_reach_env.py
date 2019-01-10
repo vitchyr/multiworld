@@ -206,6 +206,7 @@ class SawyerPushAndReachXYZEnv(MultitaskEnv, SawyerXYZEnv):
         touch_distance_l1 = np.linalg.norm(touch_diff, ord=1)
         touch_distance_l2 = np.linalg.norm(touch_diff, ord=2)
 
+
         # state distance
         state_diff = np.hstack((self.get_endeff_pos(), self.get_puck_pos()[:2])) - self._state_goal
         state_distance = np.linalg.norm(state_diff, ord=self.norm_order)
