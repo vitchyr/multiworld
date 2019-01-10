@@ -57,7 +57,7 @@ import pygame
 env = SawyerDoorEnv(
     action_mode='position',
     config_name='austri_config',
-    reset_free=True,
+    reset_free=False,
 )
 NDIM = env.action_space.low.size
 lock_action = False
@@ -91,6 +91,7 @@ while True:
             else:
                 action = np.zeros(3)
     env.step(action[:3])
+    print(env._get_endeffector_pose())
     # print(env.get_puck_pos())
     # goal = env.sample_valid_goal()
     # env.set_to_goal(goal)
