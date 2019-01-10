@@ -36,6 +36,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             fixed_hand_goal=(-0.05, 0.6),
             mocap_low=(-0.1, 0.5, 0.0),
             mocap_high=(0.1, 0.7, 0.5),
+
+            reward_type='state_distance',
+            indicator_threshold=0.06,
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -89,6 +92,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         #     np.array([-0.2, 0.5, -0.2, 0.5, -0.2, 0.5]),
         #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
         # )
+
+        self.reward_type = reward_type
+        self.norm_order = 2
+        self.indicator_threshold = indicator_threshold
 
         self.reset()
         self.reset_mocap_welds()
@@ -147,11 +154,17 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.get_puck_goal_pos() - self.get_puck_pos())
         touch_distance = np.linalg.norm(
             self.get_endeff_pos() - self.get_puck_pos())
+
+        state_diff = np.hstack((self.get_endeff_pos(), self.get_puck_pos())) - \
+                     np.hstack((self.get_hand_goal_pos(), self.get_puck_goal_pos()))
+        state_distance = np.linalg.norm(state_diff)
+
         info = dict(
             hand_distance=hand_distance,
             puck_distance=puck_distance,
             touch_distance=touch_distance,
-            success=float(hand_distance + puck_distance < 0.06),
+            state_distance=state_distance,
+            success=float(hand_distance + puck_distance < self.indicator_threshold),
         )
         return obs, reward, done, info
 
@@ -298,13 +311,40 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         return self._get_obs()
 
     def compute_rewards(self, action, obs, info=None):
-        r = -np.linalg.norm(
-            obs['state_achieved_goal'] - obs['state_desired_goal'], axis=1)
-        return r
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        hand_pos = achieved_goals[:, :2]
+        puck_pos = achieved_goals[:, -2:]
+        hand_goals = desired_goals[:, :2]
+        puck_goals = desired_goals[:, -2:]
+        hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
+        puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
+        touch_distances = np.linalg.norm(hand_pos - puck_pos, ord=self.norm_order, axis=1)
 
-    def compute_reward(self, action, obs, info=None):
-        r = -np.linalg.norm(
-            obs['state_achieved_goal'] - obs['state_desired_goal'])
+        if self.reward_type == 'hand_distance':
+            r = -hand_distances
+        elif self.reward_type == 'hand_success':
+            r = -(hand_distances > self.indicator_threshold).astype(float)
+        elif self.reward_type == 'puck_distance':
+            r = -puck_distances
+        elif self.reward_type == 'puck_success':
+            r = -(puck_distances > self.indicator_threshold).astype(float)
+        elif self.reward_type == 'hand_and_puck_distance':
+            r = -(puck_distances + hand_distances)
+        elif self.reward_type == 'state_distance':
+            r = -np.linalg.norm(
+                achieved_goals - desired_goals,
+                ord=self.norm_order,
+                axis=1
+            )
+        elif self.reward_type == 'vectorized_state_distance':
+            r = -np.abs(achieved_goals - desired_goals)
+        elif self.reward_type == 'touch_distance':
+            r = -touch_distances
+        elif self.reward_type == 'touch_success':
+            r = -(touch_distances > self.indicator_threshold).astype(float)
+        else:
+            raise NotImplementedError("Invalid/no reward type.")
         return r
 
     # REPLACING REWARD FN
@@ -331,9 +371,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     #     else:
     #         raise NotImplementedError("Invalid/no reward type.")
     #     return r
-
-    def compute_her_reward_np(self, ob, action, next_ob, goal, env_info=None):
-        return self.compute_reward(ob, action, next_ob, goal, env_info=env_info)
 
     # @property
     # def init_angles(self):
@@ -369,6 +406,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             'hand_distance',
             'puck_distance',
             'touch_distance',
+            'state_distance',
             'success',
         ]:
             stat_name = stat_name
