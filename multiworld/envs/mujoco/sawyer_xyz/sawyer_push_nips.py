@@ -17,88 +17,100 @@ from multiworld.core.multitask_env import MultitaskEnv
 
 
 class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
-    INIT_HAND_POS = np.array([0, 0.4, 0.02])
-
     def __init__(
             self,
-            reward_info=None,
             frame_skip=50,
-            pos_action_scale=2. / 100,
-            randomize_goals=True,
-            hide_goal=False,
-            init_block_low=(-0.05, 0.55),
-            init_block_high=(0.05, 0.65),
-            puck_goal_low=(-0.05, 0.55),
-            puck_goal_high=(0.05, 0.65),
-            hand_goal_low=(-0.05, 0.55),
-            hand_goal_high=(0.05, 0.65),
-            fixed_puck_goal=(0.05, 0.6),
-            fixed_hand_goal=(-0.05, 0.6),
-            mocap_low=(-0.1, 0.5, 0.0),
-            mocap_high=(0.1, 0.7, 0.5),
+            action_scale=2./100,
+
+            hand_low=(-0.2, 0.5),
+            hand_high=(0.2, 0.7),
+
+            puck_low=(-0.2, 0.5),
+            puck_high=(0.2, 0.7),
+
+            fix_goal=False,
+            fixed_goal=(0.0, 0.55, 0.0, 0.65),
+            goal_low=None,
+            goal_high=None,
+
+            fix_reset=False,
+            fixed_hand_xyz=(0, 0.5, 0.06),
+            reset_low=None,
+            reset_high=None,
+
+            hand_z_position=0.06,
+            puck_z_position=0.02,
+            puck_radius=.04,
+            ee_radius=.015,
 
             reward_type='state_distance',
+            norm_order=2,
             indicator_threshold=0.06,
+
+            **kwargs
     ):
         self.quick_init(locals())
-        self.reward_info = reward_info
-        self.randomize_goals = randomize_goals
-        self._pos_action_scale = pos_action_scale
-        self.hide_goal = hide_goal
-
-        self.init_block_low = np.array(init_block_low)
-        self.init_block_high = np.array(init_block_high)
-        self.puck_goal_low = np.array(puck_goal_low)
-        self.puck_goal_high = np.array(puck_goal_high)
-        self.hand_goal_low = np.array(hand_goal_low)
-        self.hand_goal_high = np.array(hand_goal_high)
-        self.fixed_puck_goal = np.array(fixed_puck_goal)
-        self.fixed_hand_goal = np.array(fixed_hand_goal)
-        self.mocap_low = np.array(mocap_low)
-        self.mocap_high = np.array(mocap_high)
-
-        self._goal_xyxy = self.sample_goal_xyxy()
-        # MultitaskEnv.__init__(self, distance_metric_order=2)
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
 
-        self.action_space = Box(
-            np.array([-1, -1]),
-            np.array([1, 1]),
+        hand_low = np.array(hand_low)
+        hand_high = np.array(hand_high)
+        mocap_low = hand_low
+        mocap_high = hand_high
+        self.mocap_low = np.hstack((mocap_low, np.array([0.0])))
+        self.mocap_high = np.hstack((mocap_high, np.array([0.5])))
+        puck_low = np.array(puck_low)
+        puck_high = np.array(puck_high)
+        self.obs_space = Box(
+            np.hstack((hand_low, puck_low)),
+            np.hstack((hand_high, puck_high)),
+            dtype=np.float32
         )
-        self.obs_box = Box(
-            np.array([-0.2, 0.5, -0.2, 0.5]),
-            np.array([0.2, 0.7, 0.2, 0.7]),
-        )
-        goal_low = np.concatenate((self.hand_goal_low, self.puck_goal_low))
-        goal_high = np.concatenate((self.hand_goal_high, self.puck_goal_high))
-        self.goal_box = Box(
-            goal_low,
-            goal_high,
-        )
+        self.hand_space = Box(hand_low, hand_high, dtype=np.float32)
+        self.puck_space = Box(puck_low, puck_high, dtype=np.float32)
+        if goal_low is None:
+            goal_low = self.obs_space.low.copy()
+        if goal_high is None:
+            goal_high = self.obs_space.high.copy()
+        if reset_low is None:
+            reset_low = self.obs_space.low.copy()
+        if reset_high is None:
+            reset_high = self.obs_space.high.copy()
+        goal_low = np.array(goal_low)
+        goal_high = np.array(goal_high)
+        reset_low = np.array(reset_low)
+        reset_high = np.array(reset_high)
+        self.goal_space = Box(goal_low, goal_high, dtype=np.float32)
+        self.reset_space = Box(reset_low, reset_high, dtype=np.float32)
         self.observation_space = Dict([
-            ('observation', self.obs_box),
-            ('state_observation', self.obs_box),
-            ('desired_goal', self.goal_box),
-            ('state_desired_goal', self.goal_box),
-            ('achieved_goal', self.goal_box),
-            ('state_achieved_goal', self.goal_box),
+            ('observation', self.obs_space),
+            ('desired_goal', self.goal_space),
+            ('achieved_goal', self.obs_space),
+            ('state_observation', self.obs_space),
+            ('state_desired_goal', self.goal_space),
+            ('state_achieved_goal', self.obs_space),
+            ('proprio_observation', self.hand_space),
+            ('proprio_desired_goal', Box(goal_low[:2], goal_high[:2], dtype=np.float32)),
+            ('proprio_achieved_goal', self.hand_space),
         ])
-        # hack for state-based experiments for other envs
-        # self.observation_space = Box(
-        #     np.array([-0.2, 0.5, -0.2, 0.5, -0.2, 0.5]),
-        #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
-        # )
-        # self.goal_space = Box(
-        #     np.array([-0.2, 0.5, -0.2, 0.5, -0.2, 0.5]),
-        #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
-        # )
+
+        self.fix_reset = fix_reset
+        self.fix_goal = fix_goal
+        self.fixed_goal = np.array(fixed_goal)
+        self._state_goal = None
 
         self.reward_type = reward_type
-        self.norm_order = 2
+        self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
 
+        self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
+        self._action_scale = action_scale
+        self.hand_z_position = hand_z_position
+        self.puck_z_position = puck_z_position
+        self.fixed_hand_xyz = np.array(fixed_hand_xyz)
+        self.reset_counter = 0
+        self.puck_radius=puck_radius
+        self.ee_radius = ee_radius
         self.reset()
-        self.reset_mocap_welds()
 
     @property
     def model_name(self):
@@ -132,41 +144,21 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.azimuth = cam_pos[5]
         self.viewer.cam.trackbodyid = -1
 
-    def step(self, a):
-        a = np.clip(a, -1, 1)
-        mocap_delta_z = 0.06 - self.data.mocap_pos[0, 2]
+    def step(self, action):
+        action = np.clip(action, -1, 1)
+        mocap_delta_z = self.hand_z_position - self.data.mocap_pos[0, 2]
         new_mocap_action = np.hstack((
-            a,
+            action,
             np.array([mocap_delta_z])
         ))
-        self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
+        self.mocap_set_action(new_mocap_action[:3] * self._action_scale)
         u = np.zeros(7)
         self.do_simulation(u, self.frame_skip)
-        obs = self._get_obs()
-        # reward = self.compute_reward(obs, u, obs, self._goal_xyxy)
-        reward = self.compute_reward(a, obs)
+        ob = self._get_obs()
+        reward = self.compute_reward(action, ob)
+        info = self._get_info()
         done = False
-
-        hand_distance = np.linalg.norm(
-            self.get_hand_goal_pos() - self.get_endeff_pos()
-        )
-        puck_distance = np.linalg.norm(
-            self.get_puck_goal_pos() - self.get_puck_pos())
-        touch_distance = np.linalg.norm(
-            self.get_endeff_pos() - self.get_puck_pos())
-
-        state_diff = np.hstack((self.get_endeff_pos(), self.get_puck_pos())) - \
-                     np.hstack((self.get_hand_goal_pos(), self.get_puck_goal_pos()))
-        state_distance = np.linalg.norm(state_diff)
-
-        info = dict(
-            hand_distance=hand_distance,
-            puck_distance=puck_distance,
-            touch_distance=touch_distance,
-            state_distance=state_distance,
-            success=float(hand_distance + puck_distance < self.indicator_threshold),
-        )
-        return obs, reward, done, info
+        return ob, reward, done, info
 
     def mocap_set_action(self, action):
         pos_delta = action[None]
@@ -176,52 +168,135 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.mocap_low,
             self.mocap_high
         )
-        # new_mocap_pos[0, 0] = np.clip(
-        #     new_mocap_pos[0, 0],
-        #     -0.1,
-        #     0.1,
-        # )
-        # new_mocap_pos[0, 1] = np.clip(
-        #     new_mocap_pos[0, 1],
-        #     -0.1 + 0.6,
-        #     0.1 + 0.6,
-        #     )
-        # new_mocap_pos[0, 2] = np.clip(
-        #     new_mocap_pos[0, 2],
-        #     0,
-        #     0.5,
-        # )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+
+    def _get_info(self):
+        hand_goal = self._state_goal[:2]
+        puck_goal = self._state_goal[-2:]
+        hand_pos = self.get_endeff_pos()[:2]
+        puck_pos = self.get_puck_pos()[:2]
+
+        # hand distance
+        hand_diff = hand_goal - hand_pos
+        hand_distance = np.linalg.norm(hand_diff, ord=self.norm_order)
+        hand_distance_l2 = np.linalg.norm(hand_diff, 2)
+
+        # puck distance
+        puck_diff = puck_goal - puck_pos
+        puck_distance = np.linalg.norm(puck_diff, ord=self.norm_order)
+        puck_distance_l2 = np.linalg.norm(puck_diff, 2)
+
+        # touch distance
+        touch_diff = self.get_endeff_pos() - self.get_puck_pos()
+        touch_distance = np.linalg.norm(touch_diff, ord=self.norm_order)
+        touch_distance_l2 = np.linalg.norm(touch_diff, ord=2)
+
+
+        # state distance
+        state_diff = np.hstack((hand_pos, puck_pos)) - self._state_goal
+        state_distance = np.linalg.norm(state_diff, ord=self.norm_order)
+        state_distance_l2 = np.linalg.norm(state_diff, ord=2)
+
+        return dict(
+            hand_distance=hand_distance, hand_distance_l2=hand_distance_l2,
+            puck_distance=puck_distance, puck_distance_l2=puck_distance_l2,
+            touch_distance=touch_distance, touch_distance_l2=touch_distance_l2,
+            state_distance=state_distance, state_distance_l2=state_distance_l2,
+            hand_success=float(hand_distance < self.indicator_threshold),
+            puck_success=float(puck_distance < self.indicator_threshold),
+            hand_and_puck_success=float(
+                hand_distance+puck_distance < self.indicator_threshold
+            ),
+            touch_success=float(touch_distance < self.indicator_threshold),
+            state_success=float(state_distance < self.indicator_threshold),
+        )
 
     def _get_obs(self):
         e = self.get_endeff_pos()[:2]
         b = self.get_puck_pos()[:2]
-        x = np.concatenate((e, b))
-        g = self._goal_xyxy
+        flat_obs = np.concatenate((e, b))
 
-        new_obs = dict(
-            observation=x,
-            state_observation=x,
-            desired_goal=g,
-            state_desired_goal=g,
-            achieved_goal=x,
-            state_achieved_goal=x,
+        return dict(
+            observation=flat_obs,
+            desired_goal=self._state_goal,
+            achieved_goal=flat_obs,
+            state_observation=flat_obs,
+            state_desired_goal=self._state_goal,
+            state_achieved_goal=flat_obs,
+            proprio_observation=flat_obs[:2],
+            proprio_desired_goal=self._state_goal[:2],
+            proprio_achieved_goal=flat_obs[:2],
         )
 
-        return new_obs
+    def compute_rewards(self, actions, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        hand_pos = achieved_goals[:, :2]
+        puck_pos = achieved_goals[:, -2:]
+        hand_goals = desired_goals[:, :2]
+        puck_goals = desired_goals[:, -2:]
+
+        hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
+        puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
+        touch_distances = np.linalg.norm(hand_pos - puck_pos, ord=self.norm_order, axis=1)
+
+        if self.reward_type == 'hand_distance':
+            r = -hand_distances
+        elif self.reward_type == 'hand_success':
+            r = -(hand_distances > self.indicator_threshold).astype(float)
+        elif self.reward_type == 'puck_distance':
+            r = -puck_distances
+        elif self.reward_type == 'puck_success':
+            r = -(puck_distances > self.indicator_threshold).astype(float)
+        elif self.reward_type == 'state_distance':
+            r = -np.linalg.norm(
+                achieved_goals - desired_goals,
+                ord=self.norm_order,
+                axis=1
+            )
+        elif self.reward_type == 'vectorized_state_distance':
+            r = -np.abs(achieved_goals - desired_goals)
+        elif self.reward_type == 'touch_distance':
+            r = -touch_distances
+        elif self.reward_type == 'touch_success':
+            r = -(touch_distances > self.indicator_threshold).astype(float)
+        else:
+            raise NotImplementedError("Invalid/no reward type.")
+        return r
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'hand_distance', 'hand_distance_l2',
+            'puck_distance', 'puck_distance_l2',
+            'state_distance', 'state_distance_l2',
+            'touch_distance', 'touch_distance_l2',
+            'hand_success',
+            'puck_success',
+            'hand_and_puck_success',
+            'state_success',
+            'touch_success',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+            ))
+        return statistics
 
     def get_puck_pos(self):
         return self.data.body_xpos[self.puck_id].copy()
 
     def get_endeff_pos(self):
         return self.data.body_xpos[self.endeff_id].copy()
-
-    def get_hand_goal_pos(self):
-        return self.data.body_xpos[self.hand_goal_id].copy()
-
-    def get_puck_goal_pos(self):
-        return self.data.body_xpos[self.puck_goal_id].copy()
 
     @property
     def endeff_id(self):
@@ -231,49 +306,137 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def puck_id(self):
         return self.model.body_names.index('puck')
 
-    @property
-    def puck_goal_id(self):
-        return self.model.body_names.index('puck-goal')
+    def reset(self):
+        ob = self.reset_model()
+        if self.viewer is not None:
+            self.viewer_setup()
+        return ob
 
-    @property
-    def hand_goal_id(self):
-        return self.model.body_names.index('hand-goal')
+    def reset_model(self):
+        self._reset_hand()
+        self._reset_puck()
 
-    def sample_goal_xyxy(self):
-        if self.randomize_goals:
-            hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
-            puck = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+        goal = self.sample_valid_goal()
+        self.set_goal(goal)
+        self.reset_counter += 1
+        self.reset_mocap_welds()
+        return self._get_obs()
+
+    def _reset_hand(self):
+        velocities = self.data.qvel.copy()
+        angles = np.array(self.init_angles)
+        self.set_state(angles.flatten(), velocities.flatten())
+
+        if self.fix_reset:
+            new_mocap_pos = self.fixed_hand_xyz.copy()
         else:
-            hand = self.fixed_hand_goal.copy()
-            puck = self.fixed_puck_goal.copy()
-        return np.hstack((hand, puck))
+            new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
+            new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', new_mocap_pos)
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation(None, self.frame_skip)
+
+    def _reset_puck(self):
+        self._set_puck_xy(self.sample_puck_xy())
+
+        while not (self.puck_space.contains(self.get_puck_pos()[:2])) \
+                or (self.end_effector_puck_collision(self.get_endeff_pos()[:2], self.get_puck_pos()[:2])):
+            self._set_puck_xy(self.sample_puck_xy())
 
     def sample_puck_xy(self):
-        raise NotImplementedError("Shouldn't you use "
-                                  "SawyerPushAndReachXYEasyEnv? Ask Vitchyr")
-        pos = np.random.uniform(self.init_block_low, self.init_block_high)
-        while np.linalg.norm(self.get_endeff_pos()[:2] - pos) < 0.035:
-            pos = np.random.uniform(self.init_block_low, self.init_block_high)
-        return pos
+        if self.fix_reset:
+            return np.array([0, 0.6])
+        else:
+            return np.random.uniform(self.reset_space.low[-2:], self.reset_space.high[-2:])
 
-    def set_puck_xy(self, pos):
+    def end_effector_puck_collision(self, ee, puck):
+        dist = np.linalg.norm(ee - puck)
+        return dist <= (self.puck_radius + self.ee_radius)
+
+    def get_goal(self):
+        return {
+            'desired_goal': self._state_goal,
+            'state_desired_goal': self._state_goal,
+        }
+
+    def set_goal(self, goal):
+        self._state_goal = goal['state_desired_goal']
+        hand_goal = self._state_goal[:2]
+        puck_goal = self._state_goal[-2:]
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[7:10] = np.hstack((pos.copy(), np.array([0.02])))
+        qpos[14:17] = np.hstack((hand_goal.copy(), np.array([self.hand_z_position]))) #0.02
+        qvel[14:17] = [0, 0, 0]
+        qpos[21:24] = np.hstack((puck_goal.copy(), np.array([self.puck_z_position]))) #0.02
+        qvel[21:24] = [0, 0, 0]
+        self.set_state(qpos, qvel)
+
+    def sample_valid_goal(self):
+        goal = self.sample_goal()
+        hand_goal_xy = goal['state_desired_goal'][:2]
+        puck_goal_xy = goal['state_desired_goal'][-2:]
+        dist = np.linalg.norm(hand_goal_xy - puck_goal_xy)
+        while (dist <= self.puck_radius + self.ee_radius):
+            goal = self.sample_goal()
+            hand_goal_xy = goal['state_desired_goal'][:2]
+            puck_goal_xy = goal['state_desired_goal'][-2:]
+            dist = np.linalg.norm(hand_goal_xy - puck_goal_xy)
+        return goal
+
+    def sample_goals(self, batch_size):
+        if self.fix_goal:
+            goals = np.repeat(
+                self.fixed_goal.copy()[None],
+                batch_size,
+                0
+            )
+        else:
+            goals = np.random.uniform(
+                self.goal_space.low,
+                self.goal_space.high,
+                size=(batch_size, self.goal_space.low.size),
+            )
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': goals,
+        }
+
+    def set_to_goal(self, goal):
+        state_goal = goal['state_desired_goal']
+        self._set_hand_xy(state_goal[:2])
+        self._set_puck_xy(state_goal[-2:])
+
+    def _set_hand_xy(self, xy):
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', np.array([xy[0], xy[1], self.hand_z_position])) #0.02
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            u = np.zeros(7)
+            self.do_simulation(u, self.frame_skip)
+
+    def _set_puck_xy(self, pos):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[7:10] = np.hstack((pos.copy(), np.array([self.puck_z_position]))) #0.02
         qvel[7:10] = [0, 0, 0]
         self.set_state(qpos, qvel)
 
-    def set_goal_xyxy(self, xyxy):
-        self._goal_xyxy = xyxy
-        hand_goal = xyxy[:2]
-        puck_goal = xyxy[-2:]
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[14:17] = np.hstack((hand_goal.copy(), np.array([0.02])))
-        qvel[14:17] = [0, 0, 0]
-        qpos[21:24] = np.hstack((puck_goal.copy(), np.array([0.02])))
-        qvel[21:24] = [0, 0, 0]
-        self.set_state(qpos, qvel)
+    def get_env_state(self):
+        joint_state = self.sim.get_state()
+        mocap_state = self.data.mocap_pos, self.data.mocap_quat
+        base_state = joint_state, mocap_state
+        base_state = copy.deepcopy(base_state)
+        goal = self._state_goal.copy()
+        return base_state, goal
+
+    def set_env_state(self, state):
+        base_state, goal = state
+        joint_state, mocap_state = base_state
+        self.sim.set_state(joint_state)
+        mocap_pos, mocap_quat = mocap_state
+        self.data.set_mocap_pos('mocap', mocap_pos)
+        self.data.set_mocap_quat('mocap', mocap_quat)
+        self.set_goal({'state_desired_goal': goal})
 
     def reset_mocap_welds(self):
         """Resets the mocap welds that we use for actuation."""
@@ -296,94 +459,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             np.array([self.data.body_xquat[self.endeff_id]]),
         )
 
-    def reset(self):
-        velocities = self.data.qvel.copy()
-        angles = np.array(self.init_angles)
-        self.set_state(angles.flatten(), velocities.flatten())
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        # set_state resets the goal xy, so we need to explicit set it again
-        self._goal_xyxy = self.sample_goal_for_rollout()
-        self.set_goal_xyxy(self._goal_xyxy)
-        self.set_puck_xy(self.sample_puck_xy())
-        self.reset_mocap_welds()
-        return self._get_obs()
-
-    def compute_rewards(self, action, obs, info=None):
-        achieved_goals = obs['state_achieved_goal']
-        desired_goals = obs['state_desired_goal']
-        hand_pos = achieved_goals[:, :2]
-        puck_pos = achieved_goals[:, -2:]
-        hand_goals = desired_goals[:, :2]
-        puck_goals = desired_goals[:, -2:]
-        hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
-        puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
-        touch_distances = np.linalg.norm(hand_pos - puck_pos, ord=self.norm_order, axis=1)
-
-        if self.reward_type == 'hand_distance':
-            r = -hand_distances
-        elif self.reward_type == 'hand_success':
-            r = -(hand_distances > self.indicator_threshold).astype(float)
-        elif self.reward_type == 'puck_distance':
-            r = -puck_distances
-        elif self.reward_type == 'puck_success':
-            r = -(puck_distances > self.indicator_threshold).astype(float)
-        elif self.reward_type == 'hand_and_puck_distance':
-            r = -(puck_distances + hand_distances)
-        elif self.reward_type == 'state_distance':
-            r = -np.linalg.norm(
-                achieved_goals - desired_goals,
-                ord=self.norm_order,
-                axis=1
-            )
-        elif self.reward_type == 'vectorized_state_distance':
-            r = -np.abs(achieved_goals - desired_goals)
-        elif self.reward_type == 'touch_distance':
-            r = -touch_distances
-        elif self.reward_type == 'touch_success':
-            r = -(touch_distances > self.indicator_threshold).astype(float)
-        else:
-            raise NotImplementedError("Invalid/no reward type.")
-        return r
-
-    # REPLACING REWARD FN
-    # def compute_reward(self, ob, action, next_ob, goal, env_info=None):
-    #     hand_xy = next_ob[:2]
-    #     puck_xy = next_ob[-2:]
-    #     hand_goal_xy = goal[:2]
-    #     puck_goal_xy = goal[-2:]
-    #     hand_dist = np.linalg.norm(hand_xy - hand_goal_xy)
-    #     puck_dist = np.linalg.norm(puck_xy - puck_goal_xy)
-    #     if not self.reward_info or self.reward_info["type"] == "euclidean":
-    #         r = - hand_dist - puck_dist
-    #     elif self.reward_info["type"] == "state_distance":
-    #         r = -np.linalg.norm(next_ob - goal)
-    #     elif self.reward_info["type"] == "hand_only":
-    #         r = - hand_dist
-    #     elif self.reward_info["type"] == "puck_only":
-    #         r = - puck_dist
-    #     elif self.reward_info["type"] == "sparse":
-    #         t = self.reward_info["threshold"]
-    #         r = float(
-    #             hand_dist + puck_dist < t
-    #         ) - 1
-    #     else:
-    #         raise NotImplementedError("Invalid/no reward type.")
-    #     return r
-
-    # @property
-    # def init_angles(self):
-    #     return [
-    #         1.06139477e+00, -6.93988797e-01, 3.76729934e-01, 1.78410587e+00,
-    #         - 5.36763074e-01, 5.88122189e-01, 3.51531533e+00,
-    #         0.05, 0.55, 0.02,
-    #         1, 0, 0, 0,
-    #         0, 0.6, 0.02,
-    #         1, 0, 1, 0,
-    #         0, 0.6, 0.02,
-    #         1, 0, 1, 0,
-    #     ]
     @property
     def init_angles(self):
         return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
@@ -396,107 +471,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 0, 0.6, 0.02,
                 1, 0, 1, 0,
                 ]
-
-    def log_diagnostics(self, paths, logger=None, prefix=""):
-        if logger is None:
-            return
-
-        statistics = OrderedDict()
-        for stat_name in [
-            'hand_distance',
-            'puck_distance',
-            'touch_distance',
-            'state_distance',
-            'success',
-        ]:
-            stat_name = stat_name
-            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-            statistics.update(create_stats_ordered_dict(
-                '%s %s' % (prefix, stat_name),
-                stat,
-                always_show_all_stats=True,
-            ))
-            statistics.update(create_stats_ordered_dict(
-                'Final %s %s' % (prefix, stat_name),
-                [s[-1] for s in stat],
-                always_show_all_stats=True,
-            ))
-
-        for key, value in statistics.items():
-            logger.record_tabular(key, value)
-
-    """
-    Multitask functions
-    """
-
-    @property
-    def goal_dim(self) -> int:
-        return 4
-
-    def sample_goals(self, batch_size):
-        # goals = np.zeros((batch_size, self.goal_box.low.size))
-        # for b in range(batch_size):
-        #     goals[b, :] = self.sample_goal_xyxy()
-        goals = np.random.uniform(
-            self.goal_box.low,
-            self.goal_box.high,
-            size=(batch_size, self.goal_box.low.size),
-        )
-        return {
-            'desired_goal': goals,
-            'state_desired_goal': goals,
-        }
-
-    def sample_goal_for_rollout(self):
-        g = self.sample_goal_xyxy()
-        return g
-
-    # OLD SET GOAL
-    # def set_goal(self, goal):
-    #     MultitaskEnv.set_goal(self, goal)
-    #     self.set_goal_xyxy(goal)
-    #     # hack for VAE
-    #     self.set_to_goal(goal)
-
-    def get_goal(self):
-        return {
-            'desired_goal': self._goal_xyxy,
-            'state_desired_goal': self._goal_xyxy,
-        }
-
-    def set_goal(self, goal):
-        state_goal = goal['state_desired_goal']
-        self.set_goal_xyxy(_state_goal)
-        self._set_goal_marker(_state_goal)
-
-    def set_to_goal(self, goal):
-        state_goal = goal['state_desired_goal']
-        self.set_hand_xy(state_goal[:2])
-        self.set_puck_xy(state_goal[-2:])
-
-    def convert_obs_to_goals(self, obs):
-        return obs
-
-    def set_hand_xy(self, xy):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([xy[0], xy[1], 0.02]))
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            u = np.zeros(7)
-            self.do_simulation(u, self.frame_skip)
-
-    def get_env_state(self):
-        joint_state = self.sim.get_state()
-        mocap_state = self.data.mocap_pos, self.data.mocap_quat
-        state = joint_state, mocap_state
-        return copy.deepcopy(state)
-
-    def set_env_state(self, state):
-        joint_state, mocap_state = state
-        self.sim.set_state(joint_state)
-        mocap_pos, mocap_quat = mocap_state
-        self.data.set_mocap_pos('mocap', mocap_pos)
-        self.data.set_mocap_quat('mocap', mocap_quat)
-        self.sim.forward()
 
 
 class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
