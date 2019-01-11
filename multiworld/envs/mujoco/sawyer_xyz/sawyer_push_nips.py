@@ -29,12 +29,12 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             puck_high=(0.2, 0.7),
 
             fix_goal=False,
-            fixed_goal=(0.0, 0.55, 0.0, 0.65),
+            fixed_goal=(-0.05, 0.6, 0.05, 0.6),
             goal_low=None,
             goal_high=None,
 
             fix_reset=False,
-            fixed_hand_xyz=(0, 0.5, 0.06),
+            fixed_reset=(0, 0.55, 0.0, 0.65),
             reset_low=None,
             reset_high=None,
 
@@ -94,6 +94,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         ])
 
         self.fix_reset = fix_reset
+        self.fixed_reset = np.array(fixed_reset)
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
@@ -106,7 +107,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._action_scale = action_scale
         self.hand_z_position = hand_z_position
         self.puck_z_position = puck_z_position
-        self.fixed_hand_xyz = np.array(fixed_hand_xyz)
         self.reset_counter = 0
         self.puck_radius=puck_radius
         self.ee_radius = ee_radius
@@ -328,10 +328,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.set_state(angles.flatten(), velocities.flatten())
 
         if self.fix_reset:
-            new_mocap_pos = self.fixed_hand_xyz.copy()
+            new_mocap_pos_xy = self.fixed_reset[:2].copy()
         else:
             new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
-            new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
+        new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
         for _ in range(10):
             self.data.set_mocap_pos('mocap', new_mocap_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
@@ -346,7 +346,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def sample_puck_xy(self):
         if self.fix_reset:
-            return np.array([0, 0.6])
+            return self.fixed_reset[-2:].copy()
         else:
             return np.random.uniform(self.reset_space.low[-2:], self.reset_space.high[-2:])
 
@@ -370,6 +370,25 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         qvel[14:17] = [0, 0, 0]
         qpos[21:24] = np.hstack((puck_goal.copy(), np.array([self.puck_z_position]))) #0.02
         qvel[21:24] = [0, 0, 0]
+        self.set_state(qpos, qvel)
+
+    def set_to_goal(self, goal):
+        state_goal = goal['state_desired_goal']
+        self._set_hand_xy(state_goal[:2])
+        self._set_puck_xy(state_goal[-2:])
+
+    def _set_hand_xy(self, xy):
+        for _ in range(10):
+            self.data.set_mocap_pos('mocap', np.array([xy[0], xy[1], self.hand_z_position])) #0.02
+            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            u = np.zeros(7)
+            self.do_simulation(u, self.frame_skip)
+
+    def _set_puck_xy(self, pos):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[7:10] = np.hstack((pos.copy(), np.array([self.puck_z_position]))) #0.02
+        qvel[7:10] = [0, 0, 0]
         self.set_state(qpos, qvel)
 
     def sample_valid_goal(self):
@@ -401,25 +420,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             'desired_goal': goals,
             'state_desired_goal': goals,
         }
-
-    def set_to_goal(self, goal):
-        state_goal = goal['state_desired_goal']
-        self._set_hand_xy(state_goal[:2])
-        self._set_puck_xy(state_goal[-2:])
-
-    def _set_hand_xy(self, xy):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([xy[0], xy[1], self.hand_z_position])) #0.02
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            u = np.zeros(7)
-            self.do_simulation(u, self.frame_skip)
-
-    def _set_puck_xy(self, pos):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[7:10] = np.hstack((pos.copy(), np.array([self.puck_z_position]))) #0.02
-        qvel[7:10] = [0, 0, 0]
-        self.set_state(qpos, qvel)
 
     def get_env_state(self):
         joint_state = self.sim.get_state()

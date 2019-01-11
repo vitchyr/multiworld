@@ -26,8 +26,14 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             pos_action_scale=2. / 100,
             randomize_goals=True,
             hide_goal=False,
-            init_block_low=(-0.05, 0.55),
-            init_block_high=(0.05, 0.65),
+            # init_block_low=(-0.05, 0.55),
+            # init_block_high=(0.05, 0.65),
+
+            fix_reset=False,
+            fixed_reset=(0, 0.55, 0.0, 0.65),
+            reset_low=(-0.2, 0.5, -0.2, 0.5),
+            reset_high=(0.2, 0.7, 0.2, 0.7),
+
             puck_goal_low=(-0.05, 0.55),
             puck_goal_high=(0.05, 0.65),
             hand_goal_low=(-0.05, 0.55),
@@ -36,6 +42,12 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             fixed_hand_goal=(-0.05, 0.6),
             mocap_low=(-0.1, 0.5, 0.0),
             mocap_high=(0.1, 0.7, 0.5),
+
+            reward_type='state_distance',
+            indicator_threshold=0.06,
+
+            puck_radius=.04,
+            ee_radius=.015,
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -43,8 +55,14 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._pos_action_scale = pos_action_scale
         self.hide_goal = hide_goal
 
-        self.init_block_low = np.array(init_block_low)
-        self.init_block_high = np.array(init_block_high)
+        # self.init_block_low = np.array(init_block_low)
+        # self.init_block_high = np.array(init_block_high)
+        reset_low = np.array(reset_low)
+        reset_high = np.array(reset_high)
+        self.reset_space = Box(reset_low, reset_high, dtype=np.float32)
+        self.fix_reset = fix_reset
+        self.fixed_reset = np.array(fixed_reset)
+
         self.puck_goal_low = np.array(puck_goal_low)
         self.puck_goal_high = np.array(puck_goal_high)
         self.hand_goal_low = np.array(hand_goal_low)
@@ -89,6 +107,13 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         #     np.array([-0.2, 0.5, -0.2, 0.5, -0.2, 0.5]),
         #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
         # )
+
+        self.reward_type = reward_type
+        self.norm_order = 2
+        self.indicator_threshold = indicator_threshold
+
+        self.puck_radius=puck_radius
+        self.ee_radius = ee_radius
 
         self.reset()
         self.reset_mocap_welds()
@@ -147,11 +172,17 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.get_puck_goal_pos() - self.get_puck_pos())
         touch_distance = np.linalg.norm(
             self.get_endeff_pos() - self.get_puck_pos())
+
+        state_diff = np.hstack((self.get_endeff_pos(), self.get_puck_pos())) - \
+                     np.hstack((self.get_hand_goal_pos(), self.get_puck_goal_pos()))
+        state_distance = np.linalg.norm(state_diff)
+
         info = dict(
             hand_distance=hand_distance,
             puck_distance=puck_distance,
             touch_distance=touch_distance,
-            success=float(hand_distance + puck_distance < 0.06),
+            state_distance=state_distance,
+            success=float(hand_distance + puck_distance < self.indicator_threshold),
         )
         return obs, reward, done, info
 
@@ -236,12 +267,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         return np.hstack((hand, puck))
 
     def sample_puck_xy(self):
-        raise NotImplementedError("Shouldn't you use "
-                                  "SawyerPushAndReachXYEasyEnv? Ask Vitchyr")
-        pos = np.random.uniform(self.init_block_low, self.init_block_high)
-        while np.linalg.norm(self.get_endeff_pos()[:2] - pos) < 0.035:
-            pos = np.random.uniform(self.init_block_low, self.init_block_high)
-        return pos
+        # raise NotImplementedError("Shouldn't you use "
+        #                           "SawyerPushAndReachXYEasyEnv? Ask Vitchyr")
+        # pos = np.random.uniform(self.init_block_low, self.init_block_high)
+        # while np.linalg.norm(self.get_endeff_pos()[:2] - pos) < 0.035:
+        #     pos = np.random.uniform(self.init_block_low, self.init_block_high)
+        # return pos
+        if self.fix_reset:
+            return self.fixed_reset[-2:].copy()
+        else:
+            return np.random.uniform(self.reset_space.low[-2:], self.reset_space.high[-2:])
 
     def set_puck_xy(self, pos):
         qpos = self.data.qpos.flat.copy()
@@ -287,24 +322,66 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         velocities = self.data.qvel.copy()
         angles = np.array(self.init_angles)
         self.set_state(angles.flatten(), velocities.flatten())
+
+        if self.fix_reset:
+            new_mocap_pos_xy = self.fixed_reset[:2].copy()
+        else:
+            new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
+        new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([0.02]))) #0.02
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
+            self.data.set_mocap_pos('mocap', new_mocap_pos) #self.INIT_HAND_POS
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation(None, self.frame_skip) #ADDED THIS LINE
         # set_state resets the goal xy, so we need to explicit set it again
         self._goal_xyxy = self.sample_goal_for_rollout()
         self.set_goal_xyxy(self._goal_xyxy)
+        # self.set_puck_xy(self.sample_puck_xy())
         self.set_puck_xy(self.sample_puck_xy())
+        while self.end_effector_puck_collision(self.get_endeff_pos()[:2], self.get_puck_pos()[:2]):
+            self.set_puck_xy(self.sample_puck_xy())
+
         self.reset_mocap_welds()
         return self._get_obs()
 
-    def compute_rewards(self, action, obs, info=None):
-        r = -np.linalg.norm(
-            obs['state_achieved_goal'] - obs['state_desired_goal'], axis=1)
-        return r
+    def end_effector_puck_collision(self, ee, puck):
+        dist = np.linalg.norm(ee - puck)
+        return dist <= (self.puck_radius + self.ee_radius)
 
-    def compute_reward(self, action, obs, info=None):
-        r = -np.linalg.norm(
-            obs['state_achieved_goal'] - obs['state_desired_goal'])
+    def compute_rewards(self, action, obs, info=None):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        hand_pos = achieved_goals[:, :2]
+        puck_pos = achieved_goals[:, -2:]
+        hand_goals = desired_goals[:, :2]
+        puck_goals = desired_goals[:, -2:]
+        hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
+        puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
+        touch_distances = np.linalg.norm(hand_pos - puck_pos, ord=self.norm_order, axis=1)
+
+        if self.reward_type == 'hand_distance':
+            r = -hand_distances
+        elif self.reward_type == 'hand_success':
+            r = -(hand_distances > self.indicator_threshold).astype(float)
+        elif self.reward_type == 'puck_distance':
+            r = -puck_distances
+        elif self.reward_type == 'puck_success':
+            r = -(puck_distances > self.indicator_threshold).astype(float)
+        elif self.reward_type == 'hand_and_puck_distance':
+            r = -(puck_distances + hand_distances)
+        elif self.reward_type == 'state_distance':
+            r = -np.linalg.norm(
+                achieved_goals - desired_goals,
+                ord=self.norm_order,
+                axis=1
+            )
+        elif self.reward_type == 'vectorized_state_distance':
+            r = -np.abs(achieved_goals - desired_goals)
+        elif self.reward_type == 'touch_distance':
+            r = -touch_distances
+        elif self.reward_type == 'touch_success':
+            r = -(touch_distances > self.indicator_threshold).astype(float)
+        else:
+            raise NotImplementedError("Invalid/no reward type.")
         return r
 
     # REPLACING REWARD FN
@@ -331,9 +408,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     #     else:
     #         raise NotImplementedError("Invalid/no reward type.")
     #     return r
-
-    def compute_her_reward_np(self, ob, action, next_ob, goal, env_info=None):
-        return self.compute_reward(ob, action, next_ob, goal, env_info=env_info)
 
     # @property
     # def init_angles(self):
@@ -369,6 +443,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             'hand_distance',
             'puck_distance',
             'touch_distance',
+            'state_distance',
             'success',
         ]:
             stat_name = stat_name
@@ -379,7 +454,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 always_show_all_stats=True,
             ))
             statistics.update(create_stats_ordered_dict(
-                'Final %s %s' % (prefix, stat_name),
+                'Final %s%s' % (prefix, stat_name),
                 [s[-1] for s in stat],
                 always_show_all_stats=True,
             ))
@@ -410,8 +485,18 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         }
 
     def sample_goal_for_rollout(self):
-        g = self.sample_goal_xyxy()
-        return g
+        # g = self.sample_goal_xyxy()
+        # return g
+        goal = self.sample_goal_xyxy()
+        hand_goal_xy = goal[:2]
+        puck_goal_xy = goal[-2:]
+        dist = np.linalg.norm(hand_goal_xy - puck_goal_xy)
+        while (dist <= self.puck_radius + self.ee_radius):
+            goal = self.sample_goal_xyxy()
+            hand_goal_xy = goal[:2]
+            puck_goal_xy = goal[-2:]
+            dist = np.linalg.norm(hand_goal_xy - puck_goal_xy)
+        return goal
 
     # OLD SET GOAL
     # def set_goal(self, goal):
@@ -478,8 +563,8 @@ class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
             **kwargs
         )
 
-    def sample_puck_xy(self):
-        return np.array([0, 0.6])
+    # def sample_puck_xy(self):
+    #     return np.array([0, 0.6])
 
 
 class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
@@ -503,5 +588,5 @@ class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
             **kwargs
         )
 
-    def sample_puck_xy(self):
-        return np.array([0, 0.6])
+    # def sample_puck_xy(self):
+    #     return np.array([0, 0.6])
