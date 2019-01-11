@@ -340,8 +340,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def _reset_puck(self):
         self._set_puck_xy(self.sample_puck_xy())
 
-        while not (self.puck_space.contains(self.get_puck_pos()[:2])) \
-                or (self.end_effector_puck_collision(self.get_endeff_pos()[:2], self.get_puck_pos()[:2])):
+        while self.end_effector_puck_collision(self.get_endeff_pos()[:2], self.get_puck_pos()[:2]):
             self._set_puck_xy(self.sample_puck_xy())
 
     def sample_puck_xy(self):
@@ -471,49 +470,3 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 0, 0.6, 0.02,
                 1, 0, 1, 0,
                 ]
-
-
-class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
-    """
-    Always start the block in the same position, and use a 40x20 puck space
-    """
-
-    def __init__(
-            self,
-            **kwargs
-    ):
-        self.quick_init(locals())
-        SawyerPushAndReachXYEnv.__init__(
-            self,
-            puck_goal_low=(-0.2, 0.5),
-            puck_goal_high=(0.2, 0.7),
-            **kwargs
-        )
-
-    def sample_puck_xy(self):
-        return np.array([0, 0.6])
-
-
-class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
-    """
-    Fixed initial position, all spaces are 40cm x 20cm
-    """
-
-    def __init__(
-            self,
-            **kwargs
-    ):
-        self.quick_init(locals())
-        SawyerPushAndReachXYEnv.__init__(
-            self,
-            hand_goal_low=(-0.2, 0.5),
-            hand_goal_high=(0.2, 0.7),
-            puck_goal_low=(-0.2, 0.5),
-            puck_goal_high=(0.2, 0.7),
-            mocap_low=(-0.2, 0.5, 0.0),
-            mocap_high=(0.2, 0.7, 0.5),
-            **kwargs
-        )
-
-    def sample_puck_xy(self):
-        return np.array([0, 0.6])
