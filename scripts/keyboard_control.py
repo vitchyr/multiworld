@@ -12,14 +12,13 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
-    SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
     SawyerPushAndReachXYDoublePuckEnv,
     SawyerPushAndReachXYZDoublePuckEnv,
 )
 
 import pygame
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv, SawyerPushAndReachXYEasyEnv
 from pygame.locals import QUIT, KEYDOWN
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
@@ -64,7 +63,7 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerDoorHookEnv()
+env = SawyerPushAndReachXYEasyEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
