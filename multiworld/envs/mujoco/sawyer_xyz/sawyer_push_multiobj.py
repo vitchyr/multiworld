@@ -61,6 +61,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             object_high=(0.1, 0.7, 0.5),
             action_repeat=1,
             fixed_start=True,
+            goal_moves_one_object=False,
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -81,6 +82,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.object_low = np.array(object_low)
         self.object_high = np.array(object_high)
         self.action_repeat = action_repeat
+        self.goal_moves_one_object = goal_moves_one_object
 
         self.num_objects = num_objects
         self.fixed_start = fixed_start
@@ -234,21 +236,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.mocap_low,
             self.mocap_high
         )
-        # new_mocap_pos[0, 0] = np.clip(
-        #     new_mocap_pos[0, 0],
-        #     -0.1,
-        #     0.1,
-        # )
-        # new_mocap_pos[0, 1] = np.clip(
-        #     new_mocap_pos[0, 1],
-        #     -0.1 + 0.6,
-        #     0.1 + 0.6,
-        #     )
-        # new_mocap_pos[0, 2] = np.clip(
-        #     new_mocap_pos[0, 2],
-        #     0,
-        #     0.5,
-        # )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
@@ -291,16 +278,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
     @property
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
-
-    def sample_puck_xy(self):
-        return np.array([0, 0.6])
-    # def sample_puck_xy(self):
-    #     raise NotImplementedError("Shouldn't you use "
-    #                               "SawyerPushAndReachXYEasyEnv? Ask Vitchyr")
-    #     pos = np.random.uniform(self.init_block_low, self.init_block_high)
-    #     while np.linalg.norm(self.get_endeff_pos()[:2] - pos) < 0.035:
-    #         pos = np.random.uniform(self.init_block_low, self.init_block_high)
-    #     return pos
 
     def set_object_xy(self, i, pos):
         qpos = self.data.qpos.flat.copy()
@@ -380,46 +357,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'])
         return r
 
-    # REPLACING REWARD FN
-    # def compute_reward(self, ob, action, next_ob, goal, env_info=None):
-    #     hand_xy = next_ob[:2]
-    #     puck_xy = next_ob[-2:]
-    #     hand_goal_xy = goal[:2]
-    #     puck_goal_xy = goal[-2:]
-    #     hand_dist = np.linalg.norm(hand_xy - hand_goal_xy)
-    #     puck_dist = np.linalg.norm(puck_xy - puck_goal_xy)
-    #     if not self.reward_info or self.reward_info["type"] == "euclidean":
-    #         r = - hand_dist - puck_dist
-    #     elif self.reward_info["type"] == "state_distance":
-    #         r = -np.linalg.norm(next_ob - goal)
-    #     elif self.reward_info["type"] == "hand_only":
-    #         r = - hand_dist
-    #     elif self.reward_info["type"] == "puck_only":
-    #         r = - puck_dist
-    #     elif self.reward_info["type"] == "sparse":
-    #         t = self.reward_info["threshold"]
-    #         r = float(
-    #             hand_dist + puck_dist < t
-    #         ) - 1
-    #     else:
-    #         raise NotImplementedError("Invalid/no reward type.")
-    #     return r
-
     def compute_her_reward_np(self, ob, action, next_ob, goal, env_info=None):
         return self.compute_reward(ob, action, next_ob, goal, env_info=env_info)
 
-    # @property
-    # def init_angles(self):
-    #     return [
-    #         1.06139477e+00, -6.93988797e-01, 3.76729934e-01, 1.78410587e+00,
-    #         - 5.36763074e-01, 5.88122189e-01, 3.51531533e+00,
-    #         0.05, 0.55, 0.02,
-    #         1, 0, 0, 0,
-    #         0, 0.6, 0.02,
-    #         1, 0, 1, 0,
-    #         0, 0.6, 0.02,
-    #         1, 0, 1, 0,
-    #     ]
     @property
     def init_angles(self):
         return [1.78026069e+00, - 6.84415781e-01, - 1.54549231e-01,
@@ -483,8 +423,31 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def sample_goal_for_rollout(self):
         if self.randomize_goals:
-            hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
-            puck = np.concatenate([np.random.uniform(self.puck_goal_low, self.puck_goal_high) for i in range(self.num_objects)])
+            if self.goal_moves_one_object:
+                hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
+                bs = []
+                for i in range(self.num_objects):
+                    b = self.get_object_pos(i)[:2]
+                    bs.append(b)
+
+                r = np.random.randint(self.num_objects) # object to move
+                pos = bs + [self.INIT_HAND_POS[:2], ]
+                while True:
+                    bs[r] = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+                    touching = []
+                    for i in range(self.num_objects + 1):
+                        if i != r:
+                            t = np.linalg.norm(pos[i] - bs[r]) <= self.maxlen
+                            touching.append(t)
+                    if not any(touching):
+                        break
+
+                puck = np.concatenate(bs)
+
+
+            else:
+                hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
+                puck = np.concatenate([np.random.uniform(self.puck_goal_low, self.puck_goal_high) for i in range(self.num_objects)])
         else:
             hand = self.fixed_hand_goal.copy()
             puck = self.fixed_puck_goal.copy()
