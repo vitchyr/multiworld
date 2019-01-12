@@ -66,22 +66,22 @@
             <inertial pos="0 0 0" mass="0" diaginertia="0 0 0" />
             <body name="controller_box" pos="0 0 0">
                 <inertial pos="-0.325 0 -0.38" mass="46.64" diaginertia="1.71363 1.27988 0.809981" />
-                <geom size="0.11 0.2 0.265" pos="-0.325 0 -0.38" type="box" rgba="0.2 0.2 0.2 1"/>
+                <geom size="0.11 0.2 0.265" pos="-0.325 0 -0.38" type="box" rgba="0.37 0.37 0.37 1"/>
             </body>
             <body name="pedestal_feet" pos="0 0 0">
                 <inertial pos="-0.1225 0 -0.758" mass="167.09" diaginertia="8.16095 9.59375 15.0785" />
-                <geom size="0.385 0.35 0.155" pos="-0.1225 0 -0.758" type="box" rgba="0.2 0.2 0.2 1"
+                <geom size="0.385 0.35 0.155" pos="-0.1225 0 -0.758" type="box" rgba="0.37 0.37 0.37 1"
                       contype="0"
                       conaffinity="0"
                 />
             </body>
             <body name="torso" pos="0 0 0">
                 <inertial pos="0 0 0" mass="0.0001" diaginertia="1e-08 1e-08 1e-08" />
-                <geom size="0.05 0.05 0.05" type="box" contype="0" conaffinity="0" group="1" rgba="0.2 0.2 0.2 1" />
+                <geom size="0.05 0.05 0.05" type="box" contype="0" conaffinity="0" group="1" rgba="0.37 0.37 0.37 1" />
             </body>
             <body name="pedestal" pos="0 0 0">
                 <inertial pos="0 0 0" quat="0.659267 -0.259505 -0.260945 0.655692" mass="60.864" diaginertia="6.0869 5.81635 4.20915" />
-                <geom pos="0.26 0.345 -0.91488" quat="0.5 0.5 -0.5 -0.5" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.2 0.2 0.2 1" mesh="pedestal" />
+                <geom pos="0.26 0.345 -0.91488" quat="0.5 0.5 -0.5 -0.5" type="mesh" contype="0" conaffinity="0" group="1" rgba="0.37 0.37 0.37 1" mesh="pedestal" />
                 <geom size="0.18 0.31" pos="-0.02 0 -0.29" type="cylinder" rgba="0.2 0.2 0.2 0" />
             </body>
             <body name="right_arm_base_link" pos="0 0 0">
