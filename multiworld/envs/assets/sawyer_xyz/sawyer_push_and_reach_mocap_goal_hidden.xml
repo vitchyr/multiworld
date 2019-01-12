@@ -233,7 +233,7 @@
                   type="cylinder"
                   pos="0 0 0"
                   size="0.04 0.015"
-                  rgba="0 .3 .6 1"
+                  rgba="0 .5 1 1"
                   contype="2"
                   conaffinity="4"
             />
