@@ -97,7 +97,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
         clean_xml(gen_xml)
 
-        self.state_goal = self.sample_goal_xyxy()
+        self.state_goal = self.sample_goal_for_rollout()
         # MultitaskEnv.__init__(self, distance_metric_order=2)
         # MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
 
@@ -292,15 +292,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
 
-    def sample_goal_xyxy(self):
-        if self.randomize_goals:
-            hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
-            puck = np.concatenate([np.random.uniform(self.puck_goal_low, self.puck_goal_high) for i in range(self.num_objects)])
-        else:
-            hand = self.fixed_hand_goal.copy()
-            puck = self.fixed_puck_goal.copy()
-        return np.hstack((hand, puck))
-
     def sample_puck_xy(self):
         return np.array([0, 0.6])
     # def sample_puck_xy(self):
@@ -375,9 +366,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
         # set_state resets the goal xy, so we need to explicit set it again
-        self.state_goal = self.sample_goal_for_rollout()
         if self.reset_to_initial_position:
             self.set_initial_object_positions()
+        self.state_goal = self.sample_goal_for_rollout()
         self.reset_mocap_welds()
         return self._get_obs()
 
@@ -480,9 +471,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         return 4
 
     def sample_goals(self, batch_size):
-        # goals = np.zeros((batch_size, self.goal_box.low.size))
-        # for b in range(batch_size):
-        #     goals[b, :] = self.sample_goal_xyxy()
         goals = np.random.uniform(
             self.goal_box.low,
             self.goal_box.high,
@@ -494,7 +482,13 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         }
 
     def sample_goal_for_rollout(self):
-        g = self.sample_goal_xyxy()
+        if self.randomize_goals:
+            hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
+            puck = np.concatenate([np.random.uniform(self.puck_goal_low, self.puck_goal_high) for i in range(self.num_objects)])
+        else:
+            hand = self.fixed_hand_goal.copy()
+            puck = self.fixed_puck_goal.copy()
+        g = np.hstack((hand, puck))
         return g
 
     # OLD SET GOAL
@@ -585,7 +579,7 @@ class SawyerTwoObjectEnv(SawyerMultiobjectEnv):
             **kwargs
         )
 
-    def sample_goal_xyxy(self):
+    def sample_goal_for_rollout(self):
         if self.randomize_goals:
             touching = [True]
             while any(touching):
@@ -600,9 +594,6 @@ class SawyerTwoObjectEnv(SawyerMultiobjectEnv):
         return np.hstack((hand, g1, g2))
 
     def sample_goals(self, batch_size):
-        # goals = np.zeros((batch_size, self.goal_box.low.size))
-        # for b in range(batch_size):
-        #     goals[b, :] = self.sample_goal_xyxy()
         goals = np.random.uniform(
             self.low,
             self.high,
