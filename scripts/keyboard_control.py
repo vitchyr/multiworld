@@ -64,7 +64,7 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachXYEnv()
+env = SawyerDoorHookEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -96,7 +96,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
+    env.step(action[:3])
     if done:
         obs = env.reset()
     env.render()
