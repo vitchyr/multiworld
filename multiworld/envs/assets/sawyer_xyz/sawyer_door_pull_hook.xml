@@ -25,10 +25,10 @@
                       rgba="0.2 0.098 0 1" contype="2" conaffinity="2" />
 
                 <!--front, parallel to door-->
-                <geom type="box" pos="-.05 -0.06 0.05" size="0.1085 0.01 0.01" rgba="0 0 0 1" contype="2" conaffinity="2" />
+                <geom type="box" pos="-.05 -0.06 0.05" size="0.1085 0.01 0.01" rgba="0.2 0.2 0.2 1" contype="2" conaffinity="2" />
                 <!--front-->
-                <geom type="box" pos="0.05 -0.03 0.05" size="0.01 0.03 0.01" rgba="0 0 0 1" contype="2" conaffinity="2"/>
-                <geom type="box" pos="-0.15 -0.03 0.05" size="0.01 0.03 0.01" rgba="0 0 0 1" contype="2" conaffinity="2"/>
+                <geom type="box" pos="0.05 -0.03 0.05" size="0.01 0.03 0.01" rgba="0.2 0.2 0.2 1" contype="2" conaffinity="2"/>
+                <geom type="box" pos="-0.15 -0.03 0.05" size="0.01 0.03 0.01" rgba="0.2 0.2 0.2 1" contype="2" conaffinity="2"/>
         </body>
     </worldbody>
 
