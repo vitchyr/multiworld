@@ -22,7 +22,7 @@ Usage:
           <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
 
     <geom name="tableTop" type="box" pos="0 0.6 -.45" size="0.4 0.25 0.475"
-              rgba=".93 .93 .93 1" contype="15" conaffinity="15" />
+              material="real_door" contype="15" conaffinity="15" />
 
 
     <body name="base" pos="0 0 0">

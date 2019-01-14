@@ -63,6 +63,8 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
+# env = SawyerReachXYEnv(hide_goal_markers=True)
+# env = SawyerPushAndReachXYEasyEnv()
 env = SawyerDoorHookEnv()
 NDIM = env.action_space.low.size
 lock_action = False
