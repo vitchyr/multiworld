@@ -202,3 +202,12 @@ def sawyer_init_camera_zoomed_in(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
+def sawyer_init_camera_zoomed_in_v2(camera):
+    camera.distance = .25
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.4
+    camera.elevation = -45
+    camera.azimuth = 270
+    camera.trackbodyid = -1
+

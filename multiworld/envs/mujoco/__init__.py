@@ -59,6 +59,19 @@ def register_custom_envs():
     )
 
     register(
+        id='SawyerReachXYZEnv-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYZEnv',
+        tags={
+            'git-commit-hash': 'a652b7c',
+            'author': 'murtaza'
+        },
+        kwargs={
+            'hide_goal_markers': True,
+            'norm_order': 2,
+        },
+    )
+
+    register(
         id='Image48SawyerReachXYEnv-v1',
         entry_point=create_image_48_sawyer_reach_xy_env_v1,
         tags={
@@ -259,7 +272,22 @@ def register_custom_envs():
                 type="state_distance",
             ),
         )
+    )
 
+    register(
+        id='SawyerPushNIPS-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        tags={
+            'git-commit-hash': 'a652b7c',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
     )
 
     register(
@@ -309,6 +337,26 @@ def register_custom_envs():
                     '.sawyer_door_hook:SawyerDoorHookEnv',
         tags={
             'git-commit-hash': '15b48d5',
+            'author': 'murtaza',
+        },
+        kwargs=dict(
+            goal_low=(-0.1, 0.45, 0.1, 0),
+            goal_high=(0.05, 0.65, .25, .83),
+            hand_low=(-0.1, 0.45, 0.1),
+            hand_high=(0.05, 0.65, .25),
+            max_angle=.83,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reward_type='angle_diff_and_hand_distance',
+            reset_free=True,
+        )
+    )
+
+    register(
+        id='SawyerDoorHookResetFreeEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        tags={
+            'git-commit-hash': 'a652b7c',
             'author': 'murtaza',
         },
         kwargs=dict(
