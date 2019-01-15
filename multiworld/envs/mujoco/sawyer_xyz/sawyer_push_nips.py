@@ -327,8 +327,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         angles = np.array(self.init_angles)
         self.set_state(angles.flatten(), velocities.flatten())
 
-        if self.fix_reset:
+        if self.fix_reset is True:
             new_mocap_pos_xy = self.fixed_reset[:2].copy()
+        elif self.fix_reset is False:
+            new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
         else:
             new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
         new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
@@ -342,12 +344,22 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         while self.end_effector_puck_collision(self.get_endeff_pos()[:2], self.get_puck_pos()[:2]):
             self._set_puck_xy(self.sample_puck_xy())
+        # print(np.linalg.norm(self.get_endeff_pos()[:2] - self.get_puck_pos()[:2]), self.puck_space.contains(self.get_puck_pos()[:2]))
 
     def sample_puck_xy(self):
-        if self.fix_reset:
+        if self.fix_reset is True:
             return self.fixed_reset[-2:].copy()
-        else:
+        elif self.fix_reset is False:
             return np.random.uniform(self.reset_space.low[-2:], self.reset_space.high[-2:])
+        else:
+            max_radius = self.fix_reset
+            radius = np.random.uniform(self.ee_radius + self.puck_radius, max_radius)
+            angle = np.pi * np.random.uniform(0, 2)
+            x = radius * np.cos(angle)
+            y = radius * np.sin(angle)
+            puck_xy = np.array([x, y]) + self.get_endeff_pos()[:2]
+            puck_xy = np.clip(puck_xy, self.puck_space.low, self.puck_space.high)
+            return puck_xy
 
     def end_effector_puck_collision(self, ee, puck):
         dist = np.linalg.norm(ee - puck)
