@@ -97,3 +97,4 @@ while True:
     # env.render()
     if done:
         obs = env.reset()
+    env.render()
