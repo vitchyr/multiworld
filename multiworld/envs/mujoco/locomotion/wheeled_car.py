@@ -23,10 +23,11 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             frame_skip=3,
             two_frames=False,
             vel_in_state=True,
-            car_low=list([-1.60, -1.60]),
-            car_high=list([1.60, 1.60]),
-            goal_low=list([-1.60, -1.60]),
-            goal_high=list([1.60, 1.60]),
+            car_low=(-1.90, -1.90), #list([-1.60, -1.60]),
+            car_high=(1.90, 1.90), #list([1.60, 1.60]),
+            goal_low=(-1.90, -1.90), #list([-1.60, -1.60]),
+            goal_high=(1.90, 1.90), #list([1.60, 1.60]),
+            car_radius=np.sqrt(2)*0.34,
             *args,
             **kwargs):
         self.quick_init(locals())
@@ -38,13 +39,19 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self.action_scale = action_scale
-        self.car_radius = 0.30
+        self.car_radius = car_radius
 
         self.reward_type = reward_type
         self.norm_order = norm_order
 
         self.car_low, self.car_high = np.array(car_low), np.array(car_high)
         self.goal_low, self.goal_high = np.array(goal_low), np.array(goal_high)
+
+        self.car_low += self.car_radius
+        self.car_high -= self.car_radius
+        self.goal_low += self.car_radius
+        self.goal_high -= self.car_radius
+
         self.two_frames = two_frames
         self.vel_in_state = vel_in_state
         if self.vel_in_state:
