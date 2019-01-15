@@ -40,11 +40,7 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         raise NotImplementedError('Use Image based reward')
 
     def _get_obs(self):
-        if self.use_state_based_door_angle:
-            raise NotImplementedError()
-        else:
-            achieved_goal = self._get_endeffector_pose()
-
+        achieved_goal = np.concatenate((self._get_endeffector_pose(), [self._get_motor_pos()]))
         state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
