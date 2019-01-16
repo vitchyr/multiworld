@@ -218,3 +218,12 @@ def wheeled_car_camera_v0(camera):
     camera.lookat[2] = 0.5
     camera.distance = 5.5 #6.5
     camera.elevation = -90
+
+def sawyer_pusher_camera_tdm(camera):
+    camera.distance = .25
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.85
+    camera.lookat[2] = 0.30
+    camera.elevation = -55
+    camera.azimuth = 270
+    camera.trackbodyid = -1
