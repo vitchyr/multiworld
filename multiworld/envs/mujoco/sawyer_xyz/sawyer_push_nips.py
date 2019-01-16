@@ -29,6 +29,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             puck_high=(0.2, 0.7),
 
             fix_goal=False,
+            sample_realistic_goals=False,
             fixed_goal=(-0.05, 0.6, 0.05, 0.6),
             goal_low=None,
             goal_high=None,
@@ -94,6 +95,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         ])
 
         self.fix_reset = fix_reset
+        self.sample_realistic_goals = sample_realistic_goals
         self.fixed_reset = np.array(fixed_reset)
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
@@ -316,7 +318,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._reset_hand()
         self._reset_puck()
 
-        goal = self.sample_valid_goal()
+        goal = self._sample_realistic_goal()
         self.set_goal(goal)
         self.reset_counter += 1
         self.reset_mocap_welds()
@@ -402,17 +404,21 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         qvel[7:10] = [0, 0, 0]
         self.set_state(qpos, qvel)
 
-    def sample_valid_goal(self):
-        goal = self.sample_goal()
-        hand_goal_xy = goal['state_desired_goal'][:2]
-        puck_goal_xy = goal['state_desired_goal'][-2:]
-        dist = np.linalg.norm(hand_goal_xy - puck_goal_xy)
-        while (dist <= self.puck_radius + self.ee_radius):
-            goal = self.sample_goal()
-            hand_goal_xy = goal['state_desired_goal'][:2]
-            puck_goal_xy = goal['state_desired_goal'][-2:]
-            dist = np.linalg.norm(hand_goal_xy - puck_goal_xy)
-        return goal
+    def _sample_realistic_goal(self):
+        if self.fix_goal:
+            goal = self.fixed_goal.copy()
+        else:
+            dist = -1
+            goal = None
+            while (dist <= self.puck_radius + self.ee_radius):
+                goal = np.random.uniform(self.goal_space.low, self.goal_space.high)
+                hand_pos = goal[:2]
+                puck_pos = goal[-2:]
+                dist = np.linalg.norm(hand_pos - puck_pos)
+        return {
+            'desired_goal': goal,
+            'state_desired_goal': goal,
+        }
 
     def sample_goals(self, batch_size):
         if self.fix_goal:
@@ -421,6 +427,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 batch_size,
                 0
             )
+        elif self.sample_realistic_goals:
+            goals = np.array([
+                self._sample_realistic_goal()['state_desired_goal']
+                for _ in range(batch_size)
+            ])
         else:
             goals = np.random.uniform(
                 self.goal_space.low,
