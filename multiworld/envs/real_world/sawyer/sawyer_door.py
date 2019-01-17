@@ -32,17 +32,17 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
 
     def _get_info(self):
         hand_distance = np.linalg.norm(self._state_goal[:3] - self._get_endeffector_pose())
-        motor_angle_difference = self._state_goal[3] - self._get_motor_pos()
+        relative_motor_angle_difference = self._state_goal[3] - self._get_relative_motor_pos()
         return dict(
             hand_distance=hand_distance,
-            motor_angle_difference=motor_angle_difference,
+            relative_motor_angle_difference=relative_motor_angle_difference,
         )
 
     def compute_rewards(self, actions, obs):
         raise NotImplementedError('Use Image based reward')
 
     def _get_obs(self):
-        achieved_goal = np.concatenate((self._get_endeffector_pose(), [self._get_motor_pos()]))
+        achieved_goal = np.concatenate((self._get_endeffector_pose(), [self._get_relative_motor_pos()]))
         state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
