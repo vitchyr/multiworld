@@ -14,15 +14,15 @@
                 <geom material="wood" type="box" pos="0 0 0" size="0.2 0.01 0.2"
                       contype="2" conaffinity="2" />
 
-                <geom type="box" pos="0 0 .21" size="0.2 0.01 0.01"
-                      material="darkwood" contype="2" conaffinity="2" />
-                <geom type="box" pos="0 0 -.21" size="0.2 0.01 0.01"
-                      material="darkwood" contype="2" conaffinity="2" />
+                <!--<geom type="box" pos="0 0 .21" size="0.2 0.01 0.01"-->
+                      <!--material="darkwood" contype="2" conaffinity="2" />-->
+                <!--<geom type="box" pos="0 0 -.21" size="0.2 0.01 0.01"-->
+                      <!--material="darkwood" contype="2" conaffinity="2" />-->
 
-                <geom type="box" pos="0.21 0 0" size="0.01 0.01 0.22"
-                      material="darkwood" contype="2" conaffinity="2" />
-                <geom type="box" pos="-0.21 0 0" size="0.01 0.01 0.22"
-                      material="darkwood" contype="2" conaffinity="2" />
+                <!--<geom type="box" pos="0.21 0 0" size="0.01 0.01 0.22"-->
+                      <!--material="darkwood" contype="2" conaffinity="2" />-->
+                <!--<geom type="box" pos="-0.21 0 0" size="0.01 0.01 0.22"-->
+                      <!--material="darkwood" contype="2" conaffinity="2" />-->
 
                 <!--front, parallel to door-->
                 <geom type="box" pos="-.05 -0.06 0.05" size="0.1085 0.01 0.01" rgba="0.2 0.2 0.2 1" contype="2" conaffinity="2" />
