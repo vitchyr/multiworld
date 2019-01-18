@@ -44,8 +44,8 @@
   <asset>
     <texture type="skybox" builtin="gradient" width="100" height="100" rgb1="1 1 1" rgb2="0 0 0" />
     <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01" />
-    <texture name="texplane" type="2d" builtin="checker" rgb1="0 0 0" rgb2="0.8 0.8 0.8" width="100" height="100" />
-      <!--<texture name="texplane" type="2d" builtin="flat" rgb1="1.0 1.0 1.0" rgb2="1.0 1.0 1.0" width="100" height="100" />-->
+    <!--<texture name="texplane" type="2d" builtin="checker" rgb1="0 0 0" rgb2="0.8 0.8 0.8" width="100" height="100" />-->
+      <texture name="texplane" type="2d" builtin="flat" rgb1="1.0 1.0 1.0" rgb2="1.0 1.0 1.0" width="100" height="100" />
     <material name='MatPlane' texture="texplane" shininess="1" texrepeat="60 60" specular="1"  reflectance="0.5" />
     <material name='geom' texture="texgeom" texuniform="true" />
   </asset>

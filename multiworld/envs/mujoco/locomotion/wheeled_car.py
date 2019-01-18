@@ -28,12 +28,13 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             goal_low=(-1.90, -1.90), #list([-1.60, -1.60]),
             goal_high=(1.90, 1.90), #list([1.60, 1.60]),
             car_radius=np.sqrt(2)*0.34,
+            model_path='wheeled_car.xml',
             *args,
             **kwargs):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,
-                           model_path=get_asset_full_path('locomotion/wheeled_car.xml'),
+                           model_path=get_asset_full_path('locomotion/' + model_path),
                            frame_skip=frame_skip,
                            **kwargs)
 
