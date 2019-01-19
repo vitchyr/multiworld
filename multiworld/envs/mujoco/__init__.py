@@ -343,6 +343,101 @@ def register_custom_envs():
         )
 
     )
+    register(
+        id='SawyerPickupResetFreeEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            reset_free=True,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+        )
+
+    )
+
+    register(
+        id='SawyerPickupTallEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.3),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+        )
+
+    )
+    register(
+        id='SawyerPickupWideEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.2, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+        )
+
+    )
+    register(
+        id='SawyerPickupWideResetFreeEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.2, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            reset_free=True,
+            num_goals_presampled=1000,
+        )
+
+    )
+
+
+    register(
+        id='SawyerPickupTallWideEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.2, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.3),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+        )
+
+    )
+
+
+
+
+
 
 
 def create_image_48_sawyer_reach_xy_env_v1():
