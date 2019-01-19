@@ -50,8 +50,8 @@
         <camera pos="0 1.2 0.8" euler="-0.8 0 3.1415" name="topview" />
         <!-- <light directional="true" cutoff="40" exponent="10" diffuse=".4 .4 .4" specular=".7 .7 .7" pos="0 0 1.5" dir="0 0 -1"/> -->
 
-        <geom name="tableTop" type="box" pos="0 0.6 -.4" size="0.4 0.25 0.515"
-              rgba=".93 .93 .93 1" contype="15" conaffinity="15" />
+        <geom name="tableTop" type="plane" pos="0 0.7 0" size="0.4 0.5 0.5"
+            rgba="1 1 1 1" contype="15" conaffinity="15" />
 
         <!--<geom name="plane"-->
               <!--type="plane"-->
