@@ -442,7 +442,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
         tags={
-            'git-commit-hash': 'b9413652d02c0aca35f2b548ca01429d05b320ea',
+            'git-commit-hash': '78fa5e397da6c13dc043938945b167b5fc3a097f',
             'author': 'steven',
         },
         kwargs=dict(
@@ -458,7 +458,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_door_hook:SawyerDoorHookEnv',
         tags={
-            'git-commit-hash': 'b9413652d02c0aca35f2b548ca01429d05b320ea',
+            'git-commit-hash': '78fa5e397da6c13dc043938945b167b5fc3a097f',
             'author': 'steven',
         },
         kwargs=dict(
@@ -477,7 +477,7 @@ def register_custom_envs():
         id='SawyerReachXYZEnv-v2',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYZEnv',
         tags={
-            'git-commit-hash': 'b9413652d02c0aca35f2b548ca01429d05b320ea',
+            'git-commit-hash': '78fa5e397da6c13dc043938945b167b5fc3a097f',
             'author': 'steven'
         },
         kwargs={
