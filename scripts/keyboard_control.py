@@ -61,6 +61,7 @@ env = SawyerReachXYZEnv(
     max_speed=0.1,
     use_compliant_position_controller=True
 )
+
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -100,3 +101,4 @@ while True:
     # env.render()
     if done:
         obs = env.reset()
+    env.render()
