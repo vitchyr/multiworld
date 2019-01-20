@@ -15,6 +15,10 @@ import copy
 
 from multiworld.core.multitask_env import MultitaskEnv
 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+
 
 class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def __init__(
@@ -61,6 +65,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.mocap_high = np.hstack((mocap_high, np.array([0.5])))
         puck_low = np.array(puck_low)
         puck_high = np.array(puck_high)
+
+        self.puck_radius=puck_radius
+        self.ee_radius = ee_radius
+        # puck_low += (self.puck_radius + self.ee_radius)
+        # puck_high -= (self.puck_radius + self.ee_radius)
+        # print(hand_low)
+        # print(hand_high)
+        # print(puck_low)
+        # print(puck_high)
+
         self.obs_space = Box(
             np.hstack((hand_low, puck_low)),
             np.hstack((hand_high, puck_high)),
@@ -110,8 +124,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.hand_z_position = hand_z_position
         self.puck_z_position = puck_z_position
         self.reset_counter = 0
-        self.puck_radius=puck_radius
-        self.ee_radius = ee_radius
         self.reset()
 
     @property
@@ -309,6 +321,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         return self.model.body_names.index('puck')
 
     def reset(self):
+        self.subgoals = None
         ob = self.reset_model()
         if self.viewer is not None:
             self.viewer_setup()
@@ -366,6 +379,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def end_effector_puck_collision(self, ee, puck):
         dist = np.linalg.norm(ee - puck)
         return dist <= (self.puck_radius + self.ee_radius)
+
+    def realistic_state_np(self, state):
+        return not self.end_effector_puck_collision(state[:2], state[2:])
 
     def get_goal(self):
         return {
@@ -493,3 +509,130 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 0, 0.6, 0.02,
                 1, 0, 1, 0,
                 ]
+
+    def generate_expert_subgoals(self, num_subgoals):
+        def avg(p1, p2):
+            return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+        ob_and_goal = self._get_obs()
+        ob = ob_and_goal['state_observation']
+        goal = ob_and_goal['state_desired_goal']
+
+        ob_hand = ob[:2]
+        ob_puck = ob[-2:]
+        goal_hand = goal[:2]
+        goal_puck = goal[-2:]
+
+        subgoals = []
+        if num_subgoals == 4:
+            # first subgoal:
+            subgoal_1_hand = ob_puck
+            subgoal_1_hand += ((self.ee_radius + self.puck_radius) * (ob_puck - goal_puck) / np.linalg.norm(ob_puck - goal_puck))
+            subgoal_1_puck = ob_puck
+            subgoals += [np.concatenate((subgoal_1_hand, subgoal_1_puck))]
+
+            subgoal_2_hand = (ob_puck + goal_puck) / 2
+            subgoal_2_hand += ((self.ee_radius + self.puck_radius) * (ob_puck - goal_puck) / np.linalg.norm(ob_puck - goal_puck))
+            subgoal_2_puck = (ob_puck + goal_puck) / 2
+            subgoals += [np.concatenate((subgoal_2_hand, subgoal_2_puck))]
+
+            subgoal_3_hand = goal_puck
+            subgoal_3_hand += ((self.ee_radius + self.puck_radius) * (goal_hand - goal_puck) / np.linalg.norm(goal_hand - goal_puck))
+            subgoal_3_puck = goal_puck
+            subgoals += [np.concatenate((subgoal_3_hand, subgoal_3_puck))]
+
+            subgoal_4_hand = goal_hand
+            subgoal_4_puck = goal_puck
+            subgoals += [np.concatenate((subgoal_4_hand, subgoal_4_puck))]
+
+        if len(subgoals) == 0:
+            subgoals = np.tile(goal, num_subgoals).reshape(-1, 4)
+
+        # print(ob)
+        # print(goal)
+        # print(np.array(subgoals))
+        # print()
+        return np.array(subgoals)
+
+    def update_goals(self, subgoals):
+        self.subgoals = subgoals
+
+    def get_image_rew(self, obs):
+        return self.get_image_plt(draw_state=True, draw_goal=True, draw_subgoals=True)
+
+    def get_image_plt(self,
+                      extent=None,
+                      imsize=84,
+                      draw_state=True, draw_goal=False, draw_subgoals=False):
+        if extent is None:
+            x_bounds = np.array([self.hand_space.low[0] - 0.03, self.hand_space.high[0] + 0.03])
+            y_bounds = np.array([self.hand_space.low[1] - 0.03, self.hand_space.high[1] + 0.03])
+            self.vis_bounds = np.concatenate((x_bounds, y_bounds))
+
+            extent = self.vis_bounds
+
+        fig, ax = plt.subplots()
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.set_xlim(ax.get_xlim()[::-1])
+        DPI = fig.get_dpi()
+        fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
+
+        marker_factor = 0.50
+
+        hand_low, hand_high = self.hand_space.low, self.hand_space.high
+        ax.vlines(x=hand_low[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted', color='green')
+        ax.hlines(y=hand_low[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted', color='green')
+        ax.vlines(x=hand_high[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted', color='green')
+        ax.hlines(y=hand_high[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted', color='green')
+
+        puck_low, puck_high = self.puck_space.low, self.puck_space.high
+        ax.vlines(x=puck_low[0], ymin=puck_low[1], ymax=puck_high[1], linestyles='dotted', color='blue')
+        ax.hlines(y=puck_low[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='blue')
+        ax.vlines(x=puck_high[0], ymin=puck_low[1], ymax=puck_high[1], linestyles='dotted', color='blue')
+        ax.hlines(y=puck_high[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='blue')
+
+        if draw_state:
+            hand = plt.Circle(self.get_endeff_pos()[:2], 0.01 * marker_factor, color='green')
+            ax.add_artist(hand)
+            puck = plt.Circle(self.get_puck_pos()[:2], 0.01 * marker_factor, color='blue')
+            ax.add_artist(puck)
+        if draw_goal:
+            hand = plt.Circle(self._state_goal[:2], 0.02 * marker_factor, color='#00ff99')
+            ax.add_artist(hand)
+            puck = plt.Circle(self._state_goal[-2:], 0.02 * marker_factor, color='cyan')
+            ax.add_artist(puck)
+        if draw_subgoals:
+            if self.subgoals is not None:
+                subgoals = self.subgoals.reshape((-1, 4))
+                for subgoal in subgoals:
+                    hand = plt.Circle(subgoal[:2], 0.005 * marker_factor, color='green')
+                    ax.add_artist(hand)
+                    puck = plt.Circle(subgoal[-2:], 0.005 * marker_factor, color='blue')
+                    ax.add_artist(puck)
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+
+        # ax.imshow(
+        #     vals,
+        #     extent=extent,
+        #     cmap=plt.get_cmap('plasma'),
+        #     interpolation='nearest',
+        #     vmax=vmax,
+        #     vmin=vmin,
+        #     origin='bottom',  # <-- Important! By default top left is (0, 0)
+        # )
+
+        return self.plt_to_numpy(fig)
+
+    def plt_to_numpy(self, fig):
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close()
+        return data
