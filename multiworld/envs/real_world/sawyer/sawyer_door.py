@@ -9,8 +9,10 @@ import numpy as np
 class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
     ''' Must Wrap with Image Env to use!'''
     def __init__(self,
+                 door_open_epsilon=.1,
                  **kwargs
                 ):
+        self.door_open_epsilon=door_open_epsilon
         Serializable.quick_init(self, locals())
         sawyer_door.SawyerDoorEnv.__init__(self, **kwargs)
         self.observation_space = Dict([
@@ -32,10 +34,14 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
 
     def _get_info(self):
         hand_distance = np.linalg.norm(self._state_goal[:3] - self._get_endeffector_pose())
-        relative_motor_angle_difference = self._state_goal[3] - self._get_relative_motor_pos()
+        relative_abs_motor_angle_difference_from_goal = np.abs(self._state_goal[3] - self._get_relative_motor_pos())
+        relative_abs_motor_angle_difference_from_reset =  np.abs(self._get_relative_motor_pos())
+        relative_abs_motor_angle_difference_from_reset_indicator =  (np.abs(self._get_relative_motor_pos()) > self.door_open_epsilon).astype(float)
         return dict(
             hand_distance=hand_distance,
-            relative_motor_angle_difference=relative_motor_angle_difference,
+            relative_abs_motor_angle_difference_from_goal=relative_abs_motor_angle_difference_from_goal,
+            relative_abs_motor_angle_difference_from_reset=relative_abs_motor_angle_difference_from_reset,
+            relative_abs_motor_angle_difference_from_reset_indicator=relative_abs_motor_angle_difference_from_reset_indicator,
         )
 
     def compute_rewards(self, actions, obs):
@@ -91,7 +97,9 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
-            'motor_angle_difference'
+            'relative_abs_motor_angle_difference_from_goal',
+            'relative_abs_motor_angle_difference_from_reset',
+            'relative_abs_motor_angle_difference_from_reset_indicator'
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)

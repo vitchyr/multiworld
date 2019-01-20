@@ -20,7 +20,7 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 )
 
 import pygame
-from multiworld.envs.real_world.sawyer.sawyer_door import SawyerDoorEnv
+# from multiworld.envs.real_world.sawyer.sawyer_door import SawyerDoorEnv
 from multiworld.envs.real_world.sawyer.sawyer_reaching import SawyerReachXYZEnv
 from pygame.locals import QUIT, KEYDOWN
 
@@ -54,10 +54,12 @@ import gym
 import multiworld
 import pygame
 # env = gym.make('SawyerPushAndReachEnvEasy-v0')
-env = SawyerDoorEnv(
+env = SawyerReachXYZEnv(
     action_mode='position',
     config_name='austri_config',
-    reset_free=False,
+    position_action_scale=0.1,
+    max_speed=0.1,
+    use_compliant_position_controller=True
 )
 NDIM = env.action_space.low.size
 lock_action = False
