@@ -33,10 +33,14 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         return observation, reward, done, info
 
     def _get_info(self):
+        if self.eval_mode == 'eval':
+            relative_motor_pos = self._get_relative_motor_pos()
+        else:
+            relative_motor_pos = 0
         hand_distance = np.linalg.norm(self._state_goal[:3] - self._get_endeffector_pose())
-        relative_abs_motor_angle_difference_from_goal = np.abs(self._state_goal[3] - self._get_relative_motor_pos())
-        relative_abs_motor_angle_difference_from_reset =  np.abs(self._get_relative_motor_pos())
-        relative_abs_motor_angle_difference_from_reset_indicator =  (np.abs(self._get_relative_motor_pos()) > self.door_open_epsilon).astype(float)
+        relative_abs_motor_angle_difference_from_goal = np.abs(self._state_goal[3] - relative_motor_pos)
+        relative_abs_motor_angle_difference_from_reset =  np.abs(relative_motor_pos)
+        relative_abs_motor_angle_difference_from_reset_indicator =  (relative_abs_motor_angle_difference_from_reset > self.door_open_epsilon).astype(float)
         return dict(
             hand_distance=hand_distance,
             relative_abs_motor_angle_difference_from_goal=relative_abs_motor_angle_difference_from_goal,
@@ -48,7 +52,11 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         raise NotImplementedError('Use Image based reward')
 
     def _get_obs(self):
-        achieved_goal = np.concatenate((self._get_endeffector_pose(), [self._get_relative_motor_pos()]))
+        if self.eval_mode == 'eval':
+            relative_motor_pos = self._get_relative_motor_pos()
+        else:
+            relative_motor_pos = 0
+        achieved_goal = np.concatenate((self._get_endeffector_pose(), [relative_motor_pos]))
         state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
