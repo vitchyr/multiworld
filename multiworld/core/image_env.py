@@ -219,8 +219,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 img = img.transpose()
         return img.flatten()
 
-    def get_image_plt(self, *args, **kwargs):
-        return self.transform_image(self.wrapped_env.get_image_plt(*args, **kwargs))
+    # def get_image_plt(self, *args, **kwargs):
+    #     return self.transform_image(self.wrapped_env.get_image_plt(*args, **kwargs))
 
     def render(self):
         self.wrapped_env.render()

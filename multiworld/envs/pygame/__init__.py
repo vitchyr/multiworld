@@ -84,12 +84,56 @@ def register_custom_envs():
     )
 
     register(
+        id='Point2DWallEnvEasyU-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': 'f773062', #'9cab5da',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'vectorized_dense',
+        }
+    )
+
+    register(
         id='Image84Point2DWallEnvEasyU-v0',
         entry_point=create_image_84_point2d_wall_easy_u_v0,
         tags={
             'git-commit-hash': 'f773062', #'9cab5da',
             'author': 'Soroush'
         },
+    )
+
+    register(
+        id='Point2DWallEnvEasyU-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': 'f773062', #'9cab5da',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'vectorized_dense',
+            'ball_low': (-2, -0.5),
+            'ball_high': (2, 1),
+            'goal_low': (-4, 2),
+            'goal_high': (4, 4),
+        }
     )
 
     register(

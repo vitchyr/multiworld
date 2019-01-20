@@ -170,6 +170,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 return True
         return False
 
+    def realistic_state_np(self, state):
+        return not self._position_inside_wall(state)
+
     def realistic_goals(self, g, use_double=False):
         collision = None
         for wall in self.walls:
