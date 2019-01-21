@@ -355,11 +355,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.do_simulation(None, self.frame_skip)
 
     def _reset_puck(self):
-        self._set_puck_xy(self.sample_puck_xy())
-
-        while self.end_effector_puck_collision(self.get_endeff_pos()[:2], self.get_puck_pos()[:2]):
-            self._set_puck_xy(self.sample_puck_xy())
-        # print(np.linalg.norm(self.get_endeff_pos()[:2] - self.get_puck_pos()[:2]), self.puck_space.contains(self.get_puck_pos()[:2]))
+        puck_xy = self.sample_puck_xy()
+        while self.end_effector_puck_collision(self.get_endeff_pos()[:2], puck_xy):
+            puck_xy = self.sample_puck_xy()
+        self._set_puck_xy(puck_xy)
 
     def sample_puck_xy(self):
         if self.fix_reset is True:
@@ -524,10 +523,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         subgoals = []
         if num_subgoals == 4:
-            # first subgoal:
-            subgoal_1_hand = ob_puck
+            subgoal_1_hand = ob_puck.copy()
             subgoal_1_hand += ((self.ee_radius + self.puck_radius) * (ob_puck - goal_puck) / np.linalg.norm(ob_puck - goal_puck))
-            subgoal_1_puck = ob_puck
+            subgoal_1_puck = ob_puck.copy()
             subgoals += [np.concatenate((subgoal_1_hand, subgoal_1_puck))]
 
             subgoal_2_hand = (ob_puck + goal_puck) / 2
@@ -535,13 +533,13 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             subgoal_2_puck = (ob_puck + goal_puck) / 2
             subgoals += [np.concatenate((subgoal_2_hand, subgoal_2_puck))]
 
-            subgoal_3_hand = goal_puck
+            subgoal_3_hand = goal_puck.copy()
             subgoal_3_hand += ((self.ee_radius + self.puck_radius) * (goal_hand - goal_puck) / np.linalg.norm(goal_hand - goal_puck))
-            subgoal_3_puck = goal_puck
+            subgoal_3_puck = goal_puck.copy()
             subgoals += [np.concatenate((subgoal_3_hand, subgoal_3_puck))]
 
-            subgoal_4_hand = goal_hand
-            subgoal_4_puck = goal_puck
+            subgoal_4_hand = goal_hand.copy()
+            subgoal_4_puck = goal_puck.copy()
             subgoals += [np.concatenate((subgoal_4_hand, subgoal_4_puck))]
 
         if len(subgoals) == 0:
@@ -581,34 +579,34 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         marker_factor = 0.50
 
         hand_low, hand_high = self.hand_space.low, self.hand_space.high
-        ax.vlines(x=hand_low[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted', color='green')
-        ax.hlines(y=hand_low[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted', color='green')
-        ax.vlines(x=hand_high[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted', color='green')
-        ax.hlines(y=hand_high[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted', color='green')
+        ax.vlines(x=hand_low[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted', color='black')
+        ax.hlines(y=hand_low[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted', color='black')
+        ax.vlines(x=hand_high[0], ymin=hand_low[1], ymax=hand_high[1], linestyles='dotted', color='black')
+        ax.hlines(y=hand_high[1], xmin=hand_low[0], xmax=hand_high[0], linestyles='dotted', color='black')
 
         puck_low, puck_high = self.puck_space.low, self.puck_space.high
-        ax.vlines(x=puck_low[0], ymin=puck_low[1], ymax=puck_high[1], linestyles='dotted', color='blue')
-        ax.hlines(y=puck_low[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='blue')
-        ax.vlines(x=puck_high[0], ymin=puck_low[1], ymax=puck_high[1], linestyles='dotted', color='blue')
-        ax.hlines(y=puck_high[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='blue')
+        ax.vlines(x=puck_low[0], ymin=puck_low[1], ymax=puck_high[1], linestyles='dotted', color='black')
+        ax.hlines(y=puck_low[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='black')
+        ax.vlines(x=puck_high[0], ymin=puck_low[1], ymax=puck_high[1], linestyles='dotted', color='black')
+        ax.hlines(y=puck_high[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='black')
 
         if draw_state:
-            hand = plt.Circle(self.get_endeff_pos()[:2], 0.01 * marker_factor, color='green')
+            hand = plt.Circle(self.get_endeff_pos()[:2], 0.025 * marker_factor, color='green')
             ax.add_artist(hand)
-            puck = plt.Circle(self.get_puck_pos()[:2], 0.01 * marker_factor, color='blue')
+            puck = plt.Circle(self.get_puck_pos()[:2], 0.025 * marker_factor, color='blue')
             ax.add_artist(puck)
         if draw_goal:
-            hand = plt.Circle(self._state_goal[:2], 0.02 * marker_factor, color='#00ff99')
+            hand = plt.Circle(self._state_goal[:2], 0.03 * marker_factor, color='#00ff99')
             ax.add_artist(hand)
-            puck = plt.Circle(self._state_goal[-2:], 0.02 * marker_factor, color='cyan')
+            puck = plt.Circle(self._state_goal[-2:], 0.03 * marker_factor, color='cyan')
             ax.add_artist(puck)
         if draw_subgoals:
             if self.subgoals is not None:
                 subgoals = self.subgoals.reshape((-1, 4))
-                for subgoal in subgoals:
-                    hand = plt.Circle(subgoal[:2], 0.005 * marker_factor, color='green')
+                for subgoal in subgoals[:1]:
+                    hand = plt.Circle(subgoal[:2], 0.015 * marker_factor, color='green')
                     ax.add_artist(hand)
-                    puck = plt.Circle(subgoal[-2:], 0.005 * marker_factor, color='blue')
+                    puck = plt.Circle(subgoal[-2:], 0.015 * marker_factor, color='blue')
                     ax.add_artist(puck)
 
         ax.get_xaxis().set_visible(False)
