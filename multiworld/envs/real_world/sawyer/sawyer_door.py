@@ -9,7 +9,7 @@ import numpy as np
 class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
     ''' Must Wrap with Image Env to use!'''
     def __init__(self,
-                 door_open_epsilon=.1,
+                 door_open_epsilon=2,
                  **kwargs
                 ):
         self.door_open_epsilon=door_open_epsilon
@@ -33,30 +33,37 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         return observation, reward, done, info
 
     def _get_info(self):
-        if self.eval_mode == 'eval':
-            relative_motor_pos = self._get_relative_motor_pos()
-        else:
-            relative_motor_pos = 0
+
         hand_distance = np.linalg.norm(self._state_goal[:3] - self._get_endeffector_pose())
-        relative_abs_motor_angle_difference_from_goal = np.abs(self._state_goal[3] - relative_motor_pos)
-        relative_abs_motor_angle_difference_from_reset =  np.abs(relative_motor_pos)
-        relative_abs_motor_angle_difference_from_reset_indicator =  (relative_abs_motor_angle_difference_from_reset > self.door_open_epsilon).astype(float)
-        return dict(
-            hand_distance=hand_distance,
-            relative_abs_motor_angle_difference_from_goal=relative_abs_motor_angle_difference_from_goal,
-            relative_abs_motor_angle_difference_from_reset=relative_abs_motor_angle_difference_from_reset,
-            relative_abs_motor_angle_difference_from_reset_indicator=relative_abs_motor_angle_difference_from_reset_indicator,
-        )
+        if self.use_dynamixel:
+            if self.eval_mode == 'eval':
+                relative_motor_pos = self._get_relative_motor_pos()
+            else:
+                relative_motor_pos = 0
+            relative_abs_motor_angle_difference_from_goal = np.abs(self._state_goal[3] - relative_motor_pos)
+            relative_abs_motor_angle_difference_from_reset =  np.abs(relative_motor_pos)
+            relative_abs_motor_angle_difference_from_reset_indicator =  (relative_abs_motor_angle_difference_from_reset > self.door_open_epsilon).astype(float)
+            return dict(
+                hand_distance=hand_distance,
+                relative_abs_motor_angle_difference_from_goal=relative_abs_motor_angle_difference_from_goal,
+                relative_abs_motor_angle_difference_from_reset=relative_abs_motor_angle_difference_from_reset,
+                relative_abs_motor_angle_difference_from_reset_indicator=relative_abs_motor_angle_difference_from_reset_indicator,
+            )
+        else:
+            return dict(hand_distance=hand_distance)
 
     def compute_rewards(self, actions, obs):
         raise NotImplementedError('Use Image based reward')
 
     def _get_obs(self):
-        if self.eval_mode == 'eval':
-            relative_motor_pos = self._get_relative_motor_pos()
+        if self.use_dynamixel:
+            if self.eval_mode == 'eval':
+                relative_motor_pos = self._get_relative_motor_pos()
+            else:
+                relative_motor_pos = 0
+            achieved_goal = np.concatenate((self._get_endeffector_pose(), [relative_motor_pos]))
         else:
-            relative_motor_pos = 0
-        achieved_goal = np.concatenate((self._get_endeffector_pose(), [relative_motor_pos]))
+            achieved_goal = self._get_endeffector_pose()
         state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
@@ -69,7 +76,10 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         )
 
     def reset(self):
-        super()._reset_robot_and_door()
+        if self.use_dynamixel:
+            super()._reset_robot_and_door()
+        else:
+            super()._reset_robot()
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         return self._get_obs()
@@ -103,12 +113,17 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
-        for stat_name in [
-            'hand_distance',
-            'relative_abs_motor_angle_difference_from_goal',
-            'relative_abs_motor_angle_difference_from_reset',
-            'relative_abs_motor_angle_difference_from_reset_indicator'
-        ]:
+        if self.use_dynamixel:
+            stats = [
+                'hand_distance',
+                'relative_abs_motor_angle_difference_from_goal',
+                'relative_abs_motor_angle_difference_from_reset',
+                'relative_abs_motor_angle_difference_from_reset_indicator'
+            ]
+        else:
+            stats = ['hand_distance']
+
+        for stat_name in stats:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
             statistics.update(create_stats_ordered_dict(
