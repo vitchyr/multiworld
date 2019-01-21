@@ -45,17 +45,29 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             hand_z_position=0.06,
             puck_z_position=0.02,
-            puck_radius=.04,
-            ee_radius=.015,
 
             reward_type='state_distance',
             norm_order=2,
             indicator_threshold=0.06,
 
-            **kwargs
+            square_puck=False,
+            heavy_puck=False,
     ):
         self.quick_init(locals())
-        MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
+
+        self.square_puck = square_puck
+        self.heavy_puck = heavy_puck
+
+        if self.square_puck and self.heavy_puck:
+            model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_square_heavy.xml')
+        elif self.square_puck and not self.heavy_puck:
+            model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_square.xml')
+        elif not self.square_puck and self.heavy_puck:
+            model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_heavy.xml')
+        else:
+            model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips.xml')
+
+        MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
 
         hand_low = np.array(hand_low)
         hand_high = np.array(hand_high)
@@ -66,8 +78,13 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         puck_low = np.array(puck_low)
         puck_high = np.array(puck_high)
 
-        self.puck_radius=puck_radius
-        self.ee_radius = ee_radius
+        if self.square_puck:
+            self.puck_radius=np.sqrt(2) * 0.04
+        else:
+            self.puck_radius=0.04
+
+        self.ee_radius = 0.015
+
         # puck_low += (self.puck_radius + self.ee_radius)
         # puck_high -= (self.puck_radius + self.ee_radius)
         # print(hand_low)
@@ -125,12 +142,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.puck_z_position = puck_z_position
         self.reset_counter = 0
         self.reset()
-
-    @property
-    def model_name(self):
-        return get_asset_full_path(
-            'sawyer_xyz/sawyer_push_and_reach_mocap_goal_hidden.xml'
-        )
 
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0

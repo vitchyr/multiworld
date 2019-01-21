@@ -12,8 +12,9 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
-    SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
+# from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
+#     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
     SawyerPushAndReachXYDoublePuckEnv,
     SawyerPushAndReachXYZDoublePuckEnv,
@@ -64,7 +65,48 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachXYEnv()
+# env = SawyerReachXYEnv()
+env_kwargs = dict(
+    # hide_goal=True,
+    reward_type='vectorized_state_distance',
+    fix_reset=0.075, #0.06, 0.10, 0.15, 0.25
+    # fixed_reset=(-0.01997255, 0.50003716, 0, 0.6),
+    sample_realistic_goals=True,
+
+    puck_low=(-0.40, 0.40),
+    puck_high=(0.40, 0.80),
+
+    hand_low=(-0.40, 0.40),
+    hand_high=(0.40, 0.80),
+
+    action_scale=0.01,
+
+    square_puck=True,
+    heavy_puck=True,
+
+    # puck_low=(-0.2, 0.50),
+    # puck_high=(0.2, 0.70),
+    #
+    # hand_low=(-0.2, 0.50),
+    # hand_high=(0.2, 0.70),
+
+    # hand_low=(-0.1, 0.55),
+    # hand_high=(-0.099, 0.65),
+
+    # hand_low=(0.099, 0.55),
+    # hand_high=(0.1, 0.65),
+
+    # hand_low=(-0.1, 0.64),
+    # hand_high=(0.1, 0.65),
+
+    # hand_low=(-0.1, 0.54),
+    # hand_high=(0.1, 0.55),
+
+
+    # fixed_reset=(0, 0.55, 0.0, 0.65),
+    fixed_reset=(-0.05, 0.6, 0.05, 0.6),
+)
+env = SawyerPushAndReachXYEnv(**env_kwargs)
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
