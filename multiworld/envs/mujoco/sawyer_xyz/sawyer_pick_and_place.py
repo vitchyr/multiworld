@@ -148,7 +148,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 else:
                     self.eval_pickups += 1
                 self.picked_up_object = True
-            print("picked up object!", self.picked_up_object, self.train_pickups, self.eval_pickups)
         self._set_obj_xyz(new_obj_pos)
         self.last_obj_pos = new_obj_pos.copy()
         # The marker seems to get reset every time you do a simulation
