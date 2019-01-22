@@ -360,10 +360,15 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         else:
             new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
         new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
-        for _ in range(10):
+        for _ in range(250): #10
             self.data.set_mocap_pos('mocap', new_mocap_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
+
+        # hand_xy = self.get_endeff_pos()[:2]
+        # hand_reset_space = Box(self.reset_space.low[:2], self.reset_space.high[:2], dtype=np.float32)
+        # print(hand_reset_space.contains(new_mocap_pos_xy), hand_reset_space.contains(hand_xy), np.linalg.norm(new_mocap_pos_xy - hand_xy))
+        # print(np.linalg.norm(new_mocap_pos_xy - hand_xy))
 
     def _reset_puck(self):
         puck_xy = self.sample_puck_xy()
