@@ -50,6 +50,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             norm_order=2,
             indicator_threshold=0.06,
 
+            num_mocap_calls_for_reset=250,
+
             square_puck=False,
             heavy_puck=False,
     ):
@@ -124,6 +126,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('proprio_desired_goal', Box(goal_low[:2], goal_high[:2], dtype=np.float32)),
             ('proprio_achieved_goal', self.hand_space),
         ])
+
+        self.num_mocap_calls_for_reset = num_mocap_calls_for_reset
 
         self.fix_reset = fix_reset
         self.sample_realistic_goals = sample_realistic_goals
@@ -360,7 +364,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         else:
             new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
         new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
-        for _ in range(250): #10
+        for _ in range(self.num_mocap_calls_for_reset): #10
             self.data.set_mocap_pos('mocap', new_mocap_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)

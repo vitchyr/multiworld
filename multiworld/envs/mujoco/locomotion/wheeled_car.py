@@ -17,7 +17,7 @@ from multiworld.envs.env_util import (
 class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def __init__(
             self,
-            reward_type='dense',
+            reward_type='state_distance',
             norm_order=2,
             action_scale=20,
             frame_skip=3,
@@ -27,7 +27,6 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             car_high=(1.90, 1.90), #list([1.60, 1.60]),
             goal_low=(-1.90, -1.90), #list([-1.60, -1.60]),
             goal_high=(1.90, 1.90), #list([1.60, 1.60]),
-            car_radius=np.sqrt(2)*0.34,
             model_path='wheeled_car.xml',
             *args,
             **kwargs):
@@ -40,7 +39,12 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self.action_scale = action_scale
-        self.car_radius = car_radius
+        if model_path == 'wheeled_car.xml':
+            self.car_radius = np.sqrt(2) * 0.34
+        elif model_path == 'wheeled_car_old.xml':
+            self.car_radius = 0.30
+        else:
+            raise NotImplementedError
 
         self.reward_type = reward_type
         self.norm_order = norm_order
@@ -55,16 +59,15 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
         self.two_frames = two_frames
         self.vel_in_state = vel_in_state
+        obs_space_low = np.concatenate((self.car_low, [-1, -1, -1]))
+        obs_space_high = np.concatenate((self.car_high, [0.03, 1, 1]))
+        goal_space_low = np.concatenate((self.goal_low, [0, -1, -1]))
+        goal_space_high = np.concatenate((self.goal_high, [0, 1, 1]))
         if self.vel_in_state:
-            obs_space_low = np.concatenate((self.car_low, [-1, -1, -1, -10, -10, -10, -10]))
-            obs_space_high = np.concatenate((self.car_high, [0.03, 1, 1, 10, 10, 10, 10]))
-            goal_space_low = np.concatenate((self.goal_low, [0, -1, -1, 0, 0, 0, 0]))
-            goal_space_high = np.concatenate((self.goal_high, [0, 1, 1, 0, 0, 0, 0]))
-        else:
-            obs_space_low = np.concatenate((self.car_low, [-1, -1, -1]))
-            obs_space_high = np.concatenate((self.car_high, [0.03, 1, 1]))
-            goal_space_low = np.concatenate((self.goal_low, [0, -1, -1]))
-            goal_space_high = np.concatenate((self.goal_high, [0, 1, 1]))
+            obs_space_low = np.concatenate((obs_space_low, [-10, -10, -10, -10]))
+            obs_space_high = np.concatenate((obs_space_high, [10, 10, 10, 10]))
+            goal_space_low = np.concatenate((goal_space_low, [0, 0, 0, 0]))
+            goal_space_high = np.concatenate((goal_space_high, [0, 0, 0, 0]))
 
         if self.two_frames:
             self.obs_space = Box(np.concatenate((obs_space_low, obs_space_low)),
@@ -96,17 +99,17 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def step(self, action):
         self._prev_obs = self._cur_obs
         action = self.action_scale * action
-        self.do_simulation(np.array(action))
+        self.do_simulation(np.array(action), self.frame_skip)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         state, goal = ob['state_observation'], ob['state_desired_goal']
-        full_state_diff = np.linalg.norm(state - goal)
+        state_diff = np.linalg.norm(state - goal)
         pos_diff = np.linalg.norm(state[:3] - goal[:3])
         angle_state, angle_goal = np.arctan2(state[3], state[4]), np.arctan2(goal[3], goal[4])
         angle_diff = np.abs(np.arctan2(np.sin(angle_state-angle_goal), np.cos(angle_state-angle_goal)))
         pos_angle_diff = np.linalg.norm(state[:5] - goal[:5])
         info = {
-            'full_state_diff': full_state_diff,
+            'state_diff': state_diff,
             'pos_diff': pos_diff,
             'angle_diff': angle_diff,
             'pos_angle_diff': pos_angle_diff,
@@ -187,13 +190,27 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
-        car_pos = achieved_goals
-        goals = desired_goals
-        diff = car_pos - goals
-        if self.reward_type == 'dense':
-            r = -np.linalg.norm(diff, ord=self.norm_order, axis=1)
-        elif self.reward_type == 'vectorized_dense':
+        diff = achieved_goals - desired_goals
+        if self.reward_type == 'vectorized_state_distance':
             r = -np.abs(diff)
+        elif self.reward_type == 'state_distance':
+            r = -np.linalg.norm(diff, ord=self.norm_order, axis=1)
+        elif self.reward_type == 'pos_distance':
+            if self.two_frames:
+                goal_dim = int(diff.shape[1]/2)
+                diff1, diff2 = diff[:,:goal_dim], diff[:,-goal_dim:]
+                diff = np.hstack((diff1[:,:3], diff2[:,:3]))
+            else:
+                diff = diff[:,:3]
+            r = -np.linalg.norm(diff, ord=self.norm_order, axis=1)
+        elif self.reward_type == 'pos_angle_distance':
+            if self.two_frames:
+                goal_dim = int(diff.shape[1] / 2)
+                diff1, diff2 = diff[:, :goal_dim], diff[:, -goal_dim:]
+                diff = np.hstack((diff1[:,:5], diff2[:,:5]))
+            else:
+                diff = diff[:,:5]
+            r = -np.linalg.norm(diff, ord=self.norm_order, axis=1)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
@@ -243,7 +260,6 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def set_env_state(self, state):
         state, goal, prev_obs = state
         self.sim.set_state(state)
-        self.sim.forward()
         self._state_goal = goal
         self._prev_obs = prev_obs
 
@@ -253,17 +269,17 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def valid_states(self, states):
         states[:,3] = np.clip(states[:,3], -1, 1) #sin
         states[:,4] = np.clip(states[:,4], -1, 1) #cos
-        angle = np.arcsin(states[:,3])
-        for i in range(len(angle)):
+        angles = np.arcsin(states[:,3])
+        for i in range(len(angles)):
             if states[i][4] <= 0:
-                angle[i] = np.pi - angle[i]
-        states[:,3], states[:,4] = np.sin(angle), np.cos(angle)
+                angles[i] = np.pi - angles[i]
+        states[:,3], states[:,4] = np.sin(angles), np.cos(angles)
         return states
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         list_of_stat_names = [
-            'full_state_diff',
+            'state_diff',
             'pos_diff',
             'angle_diff',
             'pos_angle_diff',
