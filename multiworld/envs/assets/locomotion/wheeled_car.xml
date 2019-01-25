@@ -65,8 +65,10 @@
 
 
     <body name='car' pos='0 0 -0.4'>
-      <!--<site name="indicator_front" pos="0.33 0.34 0.5" size="0.05" rgba="0 1 0 1.0"/>
-      <site name="indicator_back" pos="-0.33 0.34 0.5" size="0.05" rgba="0 0 1 1.0"/>-->
+      <!--
+      <site name="indicator_front" pos="0.33 0.34 0.5" size="0.05" rgba="0 1 0 1.0"/>
+      <site name="indicator_back" pos="-0.33 0.34 0.5" size="0.05" rgba="0 0 1 1.0"/>
+      -->
 
 
       <!--<geom name='body_front' type='box' pos ='0.075 0 .6' rgba="0 1 0 1" size='0.075 0.1 0.046' />

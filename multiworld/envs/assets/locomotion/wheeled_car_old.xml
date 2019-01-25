@@ -63,8 +63,11 @@
       -->
 
     <body name='car' pos='0 0 -0.4'>
-      <!-- <site name="indicator_front" pos="0.15 0 0.5" size="0.25" rgba="0 1 0 1.0"/>
-      <site name="indicator_back" pos="-0.15 0 0.5" size="0.25" rgba="0 0 1 1.0"/> -->
+      <!--<site name="indicator_front" pos="0.15 0 0.5" size="0.05" rgba="0 1 0 1.0"/>
+      <site name="indicator_back" pos="-0.15 0 0.5" size="0.05" rgba="0 0 1 1.0"/>-->
+        <!--<site name="indicator_front" pos="0 0.30 0.5" size="0.05" rgba="0 1 0 1.0"/>
+      <site name="indicator_back" pos="0 -0.30 0.5" size="0.05" rgba="0 0 1 1.0"/>-->
+
 
 
       <geom name='body_front' type='box' pos ='0.075 0 .6' rgba="0 1 0 1" size='0.075 0.1 0.046' />
@@ -90,17 +93,6 @@
         <geom name='wheel2' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.046' />
         <joint name="rotate_wheels2" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
       </body>
-      <!--
-              <body name='wheelbody1' pos='0 -0.4 0'>
-        <geom name='wheel1' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.092' />
-        <joint name="rotate_wheels1" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
-      </body>
-
-      <body name='wheelbody2' pos='0 0.4 0'>
-        <geom name='wheel2' type='cylinder' axisangle="1 0 0 1.57" pos ='0 0 0.5' size='0.1 0.092' />
-        <joint name="rotate_wheels2" type="hinge" limited="false" pos="0 0 0.5" axis="0 1 0" margin="0.01" armature="0" damping="0" />
-      </body>
-          -->
     </body>
 
 
