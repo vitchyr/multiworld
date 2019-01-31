@@ -39,12 +39,24 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self.action_scale = action_scale
-        if model_path == 'wheeled_car.xml':
+
+        # set radius
+        if model_path in ['wheeled_car.xml', 'wheeled_car_u_wall.xml']:
             self.car_radius = np.sqrt(2) * 0.34
         elif model_path == 'wheeled_car_old.xml':
             self.car_radius = 0.30
         else:
             raise NotImplementedError
+
+        # set walls
+        if model_path == 'wheeled_car_u_wall.xml':
+            self.walls = [
+                Wall(0, -0.5, 0.75, 0.05, self.car_radius),
+                Wall(0.70, 0.05, 0.05, 0.5, self.car_radius),
+                Wall(-0.70, 0.05, 0.05, 0.5, self.car_radius),
+            ]
+        else:
+            self.walls = []
 
         self.reward_type = reward_type
         self.norm_order = norm_order
@@ -176,6 +188,25 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
         angles = np.random.uniform(0, 2 * np.pi, batch_size)
         goals[:,3], goals[:,4] = np.sin(angles), np.cos(angles)
+
+        # count = 0
+        # for goal in goals:
+        #     while self._position_inside_wall(goal[:2]):
+        #         count += 1
+        #         goal[:2] = np.random.uniform(self.goal_space.low[:2], self.goal_space.high[:2])
+        # print(count)
+
+        collisions = self._positions_inside_wall(goals[:,:2])
+        collision_idxs = np.where(collisions)[0]
+        while len(collision_idxs) > 0:
+            goals[collision_idxs,:2] = np.random.uniform(
+                self.goal_space.low[:2],
+                self.goal_space.high[:2],
+                size=(len(collision_idxs), 2)
+            )
+            collisions = self._positions_inside_wall(goals[:, :2])
+            collision_idxs = np.where(collisions)[0]
+
         if self.two_frames:
             return {
                 'desired_goal': np.concatenate((goals, goals), axis=1),
@@ -186,6 +217,18 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
                 'desired_goal': goals,
                 'state_desired_goal': goals,
             }
+
+    def _positions_inside_wall(self, positions):
+        inside_wall = False
+        for wall in self.walls:
+            inside_wall = inside_wall | wall.contains_points(positions)
+        return inside_wall
+
+    def _position_inside_wall(self, pos):
+        for wall in self.walls:
+            if wall.contains_point(pos):
+                return True
+        return False
 
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
@@ -226,7 +269,10 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def _reset_car(self):
         qpos = np.zeros(6)
         qvel = np.zeros(6)
-        qpos[0:2] = np.random.uniform(self.car_low, self.car_high)
+        pos_2d = np.random.uniform(self.car_low, self.car_high)
+        while self._position_inside_wall(pos_2d):
+            pos_2d = np.random.uniform(self.car_low, self.car_high)
+        qpos[0:2] = pos_2d
         qpos[3] = np.random.uniform(0, 2*np.pi)
         self.set_state(qpos, qvel)
 
@@ -310,3 +356,18 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
         self.viewer.cam.lookat[2] = 0.5
         self.viewer.cam.distance = 6.5
         self.viewer.cam.elevation = -90
+
+
+class Wall(object, metaclass=abc.ABCMeta):
+    def __init__(self, x_center, y_center, x_thickness, y_thickness, min_dist):
+        self.min_x = x_center - x_thickness - min_dist
+        self.max_x = x_center + x_thickness + min_dist
+        self.min_y = y_center - y_thickness - min_dist
+        self.max_y = y_center + y_thickness + min_dist
+
+    def contains_point(self, point):
+        return (self.min_x < point[0] < self.max_x) and (self.min_y < point[1] < self.max_y)
+
+    def contains_points(self, points):
+        return (self.min_x < points[:,0]) * (points[:,0] < self.max_x) \
+               * (self.min_y < points[:,1]) * (points[:,1] < self.max_y)
