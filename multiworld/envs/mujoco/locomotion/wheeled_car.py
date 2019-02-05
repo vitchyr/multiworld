@@ -3,6 +3,7 @@ import numpy as np
 from gym.spaces import Box, Dict
 
 from multiworld.core.serializable import Serializable
+from multiworld.envs.env_util import concatenate_box_spaces
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_asset_full_path
@@ -81,16 +82,12 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             goal_space_low = np.concatenate((goal_space_low, [0, 0, 0, 0]))
             goal_space_high = np.concatenate((goal_space_high, [0, 0, 0, 0]))
 
+
+        self.obs_space = Box(obs_space_low, obs_space_high, dtype=np.float32)
+        self.goal_space = Box(goal_space_low, goal_space_high, dtype=np.float32)
         if self.two_frames:
-            self.obs_space = Box(np.concatenate((obs_space_low, obs_space_low)),
-                                 np.concatenate((obs_space_high, obs_space_high)),
-                                 dtype=np.float32)
-            self.goal_space = Box(np.concatenate((goal_space_low, goal_space_low)),
-                                  np.concatenate((goal_space_high, goal_space_high)),
-                                  dtype=np.float32)
-        else:
-            self.obs_space = Box(obs_space_low, obs_space_high, dtype=np.float32)
-            self.goal_space = Box(goal_space_low, goal_space_high, dtype=np.float32)
+            self.obs_space = concatenate_box_spaces(self.obs_space, self.obs_space)
+            self.goal_space = concatenate_box_spaces(self.goal_space, self.goal_space)
 
         self.observation_space = Dict([
             ('observation', self.obs_space),
@@ -105,6 +102,7 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
         ])
 
         self._state_goal = None
+        self._cur_obs = None
         self._prev_obs = None
         self.reset()
 
@@ -301,12 +299,13 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def get_env_state(self):
         joint_state = self.sim.get_state()
         goal = self._state_goal.copy()
-        return joint_state, goal, self._prev_obs
+        return joint_state, goal, self._cur_obs, self._prev_obs
 
     def set_env_state(self, state):
-        state, goal, prev_obs = state
+        state, goal, cur_obs, prev_obs = state
         self.sim.set_state(state)
         self._state_goal = goal
+        self._cur_obs = cur_obs
         self._prev_obs = prev_obs
 
     def valid_state(self, state):
