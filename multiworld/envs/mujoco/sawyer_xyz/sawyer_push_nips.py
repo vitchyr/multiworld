@@ -571,7 +571,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         # print()
         return np.array(subgoals)
 
-    def update_goals(self, subgoals):
+    def update_subgoals(self, subgoals):
         self.subgoals = subgoals
 
     def get_image_rew(self, obs):

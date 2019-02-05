@@ -57,6 +57,11 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.recompute_reward = recompute_reward
         self.non_presampled_goal_img_is_garbage = non_presampled_goal_img_is_garbage
 
+        if hasattr(self.wrapped_env, "two_frames"):
+            self.two_frames = self.wrapped_env.two_frames
+        else:
+            self.two_frames = False
+
         if image_length is not None:
             self.image_length = image_length
         else:
@@ -64,6 +69,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 self.image_length = self.imsize * self.imsize
             else:
                 self.image_length = 3 * self.imsize * self.imsize
+
+        if self.two_frames:
+            self.image_length *= 2
+
         self.channels = 1 if grayscale else 3
 
         # This is torch format rather than PIL image
@@ -77,7 +86,14 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # sim.add_render_context(viewer)
         self._render_local = False
         img_space = Box(0, 1, (self.image_length,), dtype=np.float32)
+        # if self.two_frames:
+        #     img_space = concatenate_box_spaces(img_space, img_space)
+
+
         self._img_goal = img_space.sample() #has to be done for presampling
+        if self.two_frames:
+            self._img_goal = self._img_goal[:int(self._img_goal.size/2)]
+
         spaces = self.wrapped_env.observation_space.spaces.copy()
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
@@ -112,17 +128,21 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
+        self._cur_obs = None
+        self._prev_obs = None
+
     def step(self, action):
+        self._prev_obs = self._cur_obs
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
         if self.recompute_reward:
             reward = self.compute_reward(action, new_obs)
-        self._update_info(info, obs)
+        self._update_info(info, new_obs)
         return new_obs, reward, done, info
 
     def _update_info(self, info, obs):
         achieved_goal = obs['image_achieved_goal']
-        desired_goal = self._img_goal
+        desired_goal = obs['image_desired_goal'] #self._img_goal
         image_dist = np.linalg.norm(achieved_goal-desired_goal)
         image_success = (image_dist<self.threshold).astype(float)-1
         info['image_dist'] = image_dist
@@ -130,6 +150,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
+        self._prev_obs = None
+        self._cur_obs = None
         if self.num_goals_presampled > 0:
             goal = self.sample_goal()
             self._img_goal = goal['image_desired_goal']
@@ -169,7 +191,31 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 (obs['image_achieved_goal'], obs['proprio_achieved_goal'])
             )
 
-        return obs
+        self._cur_obs = obs
+
+        if self.two_frames:
+            if self._prev_obs is None:
+                self._prev_obs = self._cur_obs
+            frames = self.merge_frames(self._prev_obs, self._cur_obs)
+            return frames
+
+        return self._cur_obs
+
+    def merge_frames(self, frame1, frame2):
+        frame = frame1.copy()
+        for key in [
+            'image_observation',
+            'image_desired_goal',
+            'image_achieved_goal',
+            'observation',
+            'desired_goal',
+            'achieved_goal',
+            'image_proprio_observation',
+            'image_proprio_desired_goal',
+            'image_proprio_achieved_goal',
+        ]:
+            frame[key] = np.concatenate((frame1[key], frame2[key]))
+        return frame
 
     def _get_flat_img(self):
         # returns the image as a torch format np array
@@ -183,6 +229,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return self.states_to_images(state[None])[0]
 
     def states_to_images(self, states):
+        assert False
         states = self._wrapped_env.valid_states(states)
         pre_state = self.wrapped_env.get_env_state()
 
@@ -233,13 +280,22 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
     """
     def get_goal(self):
         goal = self.wrapped_env.get_goal()
-        goal['desired_goal'] = self._img_goal
-        goal['image_desired_goal'] = self._img_goal
+        if self.two_frames:
+            goal['desired_goal'] = np.concatenate((self._img_goal, self._img_goal))
+            goal['image_desired_goal'] = np.concatenate((self._img_goal, self._img_goal))
+        else:
+            goal['desired_goal'] = self._img_goal
+            goal['image_desired_goal'] = self._img_goal
         return goal
 
     def set_goal(self, goal):
         ''' Assume goal contains both image_desired_goal and any goals required for wrapped envs'''
-        self._img_goal = goal['image_desired_goal']
+        if self.two_frames:
+            self._img_goal = goal['image_desired_goal'][int(len(goal['image_desired_goal'])/2):]
+        else:
+            self._img_goal = goal['image_desired_goal']
+        self._prev_obs = None
+        self._cur_obs = None
         self.wrapped_env.set_goal(goal)
 
     def sample_goals(self, batch_size):
@@ -257,7 +313,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         for i in range(batch_size):
             goal = self.unbatchify_dict(goals, i)
             self.wrapped_env.set_to_goal(goal)
-            img_goals[i, :] = self._get_flat_img()
+            img = self._get_flat_img()
+            if self.two_frames:
+                img = np.concatenate((img, img))
+            img_goals[i, :] = img
         self.wrapped_env.set_env_state(pre_state)
         goals['desired_goal'] = img_goals
         goals['image_desired_goal'] = img_goals
