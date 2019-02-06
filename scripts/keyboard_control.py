@@ -54,7 +54,7 @@ import gym
 import multiworld
 import pygame
 # env = gym.make('SawyerPushAndReachEnvEasy-v0')
-env = SawyerReachXYZEnv(
+env = SawyerDoorEnv(
     action_mode='position',
     config_name='austri_config',
     position_action_scale=0.1,
