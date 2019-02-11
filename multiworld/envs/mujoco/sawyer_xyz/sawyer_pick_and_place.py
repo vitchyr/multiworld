@@ -439,8 +439,8 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         **kwargs
     ):
         self.quick_init(locals())
-        super().__init__(*args, **kwargs)
         self.x_axis = x_axis
+        super().__init__(*args, **kwargs)
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
             self.hand_and_obj_space.low[3:],
