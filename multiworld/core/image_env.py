@@ -1,7 +1,7 @@
 import random
 
 import cv2
-import mujoco_py
+# import mujoco_py
 import numpy as np
 import warnings
 from PIL import Image
@@ -28,6 +28,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             presampled_goals=None,
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
+            camera_name=None,
     ):
         """
 
@@ -48,6 +49,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         don't provide pre-sampled goals. The main use case is if you want to
         use an ImageEnv to pre-sample a bunch of goals.
         """
+        # init_camera = None
+        # camera_name = "topview"
+
         self.quick_init(locals())
         super().__init__(wrapped_env)
         self.wrapped_env.hide_goal_markers = True
@@ -58,6 +62,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.normalize = normalize
         self.recompute_reward = recompute_reward
         self.non_presampled_goal_img_is_garbage = non_presampled_goal_img_is_garbage
+        self.camera_name = camera_name
 
         if image_length is not None:
             self.image_length = image_length
@@ -178,6 +183,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         image_obs = self._wrapped_env.get_image(
             width=self.imsize,
             height=self.imsize,
+            camera_name=self.camera_name,
         )
         if self._render_local:
             cv2.imshow('env', image_obs)

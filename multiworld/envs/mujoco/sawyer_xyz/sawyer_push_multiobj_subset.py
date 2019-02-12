@@ -343,7 +343,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                 self.set_object_xy(i, np.array([0, 0.6]))
         else: # set object to middle of workspace always
             n_o = np.random.choice(self.num_scene_objects)
-            # print("n_o", n_o)
+            self.cur_objects = np.random.choice(self.num_objects, n_o, replace=False)
+            print("n_o", n_o, self.cur_objects)
             while True:
                 pos = [self.INIT_HAND_POS[:2], ]
                 for i in range(n_o):
@@ -356,7 +357,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                         touching.append(t)
                 if not any(touching):
                     break
-            self.cur_objects = np.random.choice(self.num_objects, n_o, replace=False)
             pos.reverse()
             positions = []
             for i in range(self.num_objects):
