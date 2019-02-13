@@ -111,6 +111,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
             self.num_goals_presampled = num_goals_presampled
+        self.cur_mode = 'train'
         self.picked_up_object = False
         self.train_pickups = 0
         self.eval_pickups = 0
@@ -257,11 +258,29 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.picked_up_object = False
         return self._get_obs()
 
+    # def _reset_hand(self):
+        # for _ in range(30):
+            # self.data.set_mocap_pos('mocap', self.hand_reset_pos)
+            # self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            # self.do_simulation(None, self.frame_skip)
+
     def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_reset_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-            self.do_simulation(None, self.frame_skip)
+        velocities = self.data.qvel.copy()
+        angles = self.data.qpos.copy()
+        # Do this to make sure the robot isn't in some weird configuration.
+        angles[:7] = [
+            1.7244448,
+            -0.92036369,
+            0.10234232,
+            2.11178144,
+            2.97668632,
+            -0.38664629,
+            0.54065733
+        ]
+        self.set_state(angles.flatten(), velocities.flatten())
+        # self._set_hand_pos(np.array([-.05, .635,  .225]))
+
+
 
     def set_to_goal(self, goal):
         """
