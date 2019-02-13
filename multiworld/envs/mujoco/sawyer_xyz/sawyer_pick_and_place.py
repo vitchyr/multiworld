@@ -435,6 +435,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
+        hand_reset_pos=None,
         *args,
         **kwargs
     ):
@@ -463,7 +464,10 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([1, 1, 1]),
             dtype=np.float32
         )
-        self.hand_reset_pos = np.array([x_axis, .6, .2])
+        if hand_reset_pos:
+            self.hand_reset_pos = np.array(hand_reset_pos)
+        else:
+            self.hand_reset_pos = np.array([x_axis, .6, .2])
 
     def convert_2d_action(self, action):
         cur_x_pos = self.get_endeff_pos()[0]

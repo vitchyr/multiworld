@@ -423,12 +423,13 @@ def register_custom_envs():
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
-            hand_high=(0.0, 0.65, 0.13),
+            hand_high=(0.0, 0.65, 0.15),
+            hand_reset_pos=(0.0, .55, .07),
             action_scale=0.02,
             hide_goal_markers=True,
             num_goals_presampled=10,
 
-            p_obj_in_hand=.1
+            p_obj_in_hand=.75
         )
     )
 
@@ -482,6 +483,9 @@ def register_custom_envs():
             'author': 'steven',
         },
         kwargs=dict(
+            force_puck_in_goal_space=True,
+            hand_goal_low=(-0.1, 0.5),
+            hand_goal_high=(0.1, 0.7),
             hide_goal=True,
             reward_info=dict(
                 type="state_distance",
@@ -489,6 +493,32 @@ def register_custom_envs():
         )
 
     )
+    register(
+        id='SawyerPushNIPSEasy-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            force_puck_in_goal_space=True,
+            mocap_low=(-0.15, 0.5, 0.0),
+            mocap_high=(0.15, 0.7, 0.5),
+            hand_goal_low=(-0.15, 0.5),
+            hand_goal_high=(0.15, 0.7),
+            puck_goal_low=(-0.15, 0.5),
+            puck_goal_high=(0.15, 0.7),
+
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+
+    )
+
+
     register(
         id='SawyerDoorHookResetFreeEnv-v1',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
