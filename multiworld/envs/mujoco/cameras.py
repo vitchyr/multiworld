@@ -96,7 +96,7 @@ def sawyer_pick_and_place_camera_zoomed(camera):
     camera.lookat[0] = 0.0
     camera.lookat[1] = .67
     camera.lookat[2] = .1
-    camera.distance = .6
+    camera.distance = .52
     camera.elevation = 0
     camera.azimuth = 180
     camera.trackbodyid = 0

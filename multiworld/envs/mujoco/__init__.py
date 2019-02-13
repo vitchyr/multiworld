@@ -423,7 +423,7 @@ def register_custom_envs():
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
-            hand_high=(0.0, 0.65, 0.15),
+            hand_high=(0.0, 0.65, 0.2),
             hand_reset_pos=(0.0, .55, .1),
             action_scale=0.02,
             hide_goal_markers=True,
