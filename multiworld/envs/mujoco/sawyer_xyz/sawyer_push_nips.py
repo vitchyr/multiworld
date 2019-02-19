@@ -258,7 +258,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             proprio_achieved_goal=flat_obs[:2],
         )
 
-    def compute_rewards(self, actions, obs):
+    def compute_rewards(self, actions, obs, prev_obs=None):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals[:, :2]
@@ -286,6 +286,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             )
         elif self.reward_type == 'vectorized_state_distance':
             r = -np.abs(achieved_goals - desired_goals)
+        elif self.reward_type == 'telescoping_state_distance':
+            """DONT JUST USE THIS REWARD, IT ISNT SCALED BY DISCOUNT FACTOR (THAT'S DONE IN RPLY BFR)"""
+            if prev_obs is None:
+                return np.zeros((len(obs)))
+            prev_achieved_goals = prev_obs['state_achieved_goal']
+            prev_desired_goals = prev_obs['state_desired_goal']
+            assert (desired_goals == prev_desired_goals).all()
+            new_dist = np.linalg.norm(desired_goals - achieved_goals, ord=self.norm_order, axis=1)
+            prev_dist = np.linalg.norm(prev_desired_goals - prev_achieved_goals, ord=self.norm_order, axis=1)
+            return -1 * (new_dist - prev_dist)
         elif self.reward_type == 'touch_distance':
             r = -touch_distances
         elif self.reward_type == 'touch_success':

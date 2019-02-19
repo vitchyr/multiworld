@@ -280,7 +280,7 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
                 return True
         return False
 
-    def compute_rewards(self, actions, obs):
+    def compute_rewards(self, actions, obs, prev_obs=None):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         diff = achieved_goals - desired_goals
