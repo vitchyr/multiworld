@@ -114,7 +114,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.picked_up_object = False
         self.train_pickups = 0
         self.eval_pickups = 0
-        self.train = True
+        self.cur_mode = 'train'
         self.reset()
 
     @property
