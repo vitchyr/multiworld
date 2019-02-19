@@ -26,7 +26,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
             reset_free=False,
-            reset_hand_type='above_object',
 
             hide_goal_markers=False,
             oracle_reset_prob=0.0,
@@ -54,7 +53,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if goal_high is None:
             goal_high = np.hstack((self.hand_high, obj_high))
 
-        self.reset_hand_type = reset_hand_type
         self.reward_type = reward_type
         self.random_init = random_init
         self.p_obj_in_hand = p_obj_in_hand
@@ -113,10 +111,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
             self.num_goals_presampled = num_goals_presampled
-        self.cur_mode = 'train'
         self.picked_up_object = False
         self.train_pickups = 0
         self.eval_pickups = 0
+        self.train = True
         self.reset()
 
     @property
@@ -260,23 +258,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.picked_up_object = False
         return self._get_obs()
 
-    def _reset_hand_mocap(self):
-        for _ in range(30):
+    def _reset_hand(self):
+        for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_reset_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
-
-    def _reset_hand(self):
-        velocities = self.data.qvel.copy()
-        angles = reset_positions[self.reset_hand_type]
-        velocities = np.zeros(velocities.shape)
-        self.set_state(angles.flatten(), velocities.flatten())
-        self.data.set_mocap_pos('mocap', self.get_endeff_pos())
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        self.do_simulation(None, self.frame_skip)
-
-
-
 
     def set_to_goal(self, goal):
         """
@@ -450,7 +436,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
-        hand_reset_pos=None,
         *args,
         **kwargs
     ):
@@ -479,10 +464,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             np.array([1, 1, 1]),
             dtype=np.float32
         )
-        if hand_reset_pos:
-            self.hand_reset_pos = np.array(hand_reset_pos)
-        else:
-            self.hand_reset_pos = np.array([x_axis, .6, .2])
+        self.hand_reset_pos = np.array([x_axis, .6, .2])
 
     def convert_2d_action(self, action):
         cur_x_pos = self.get_endeff_pos()[0]
@@ -490,7 +472,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         return np.r_[adjust_x, action]
 
     def step(self, action):
-
         new_obj_pos = self.data.get_site_xpos('obj')
         new_obj_pos[0] = self.x_axis
         self._set_obj_xyz(new_obj_pos)
@@ -560,34 +541,4 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
         pickup_env.generate_uncorrected_env_goals(num_presampled_goals)
     )
     return image_env_goals
-
-
-
-above_object_angles = np.array([
-    6.37088130e-01,
-    -1.06070835e+00,
-    3.09920888e+00,
-    3.75361718e+00,
-     3.33330504e+00,
-    1.00684225e-01,
-    2.15472501e+00,
-    -8.55407956e-08,
-     0.00000000e+00,
-    6.00000000e-01,
-    1.59921520e-02,
-    1.00000000e+00,
-     1.08382176e-33,
-    0.00000000e+00,
-    0.00000000e+00
-])
-slightly_above_object_angles = np.array([
-    5.80226125e-01, -9.62228873e-01, 3.13814896e+00, 3.72899358e+00,
-    3.27632247e+00, -2.44083159e-02, 2.18803490e+00, 4.00018765e-02,
-    0.00000000e+00, 6.00000000e-01, 1.59921520e-02, 1.00000000e+00,
-    1.08681525e-33, 0.00000000e+00, 0.00000000e+00
-])
-reset_positions = {
-    'above_object':          above_object_angles,
-    'slightly_above_object': slightly_above_object_angles,
-}
 
