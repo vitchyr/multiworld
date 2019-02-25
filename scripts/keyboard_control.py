@@ -20,7 +20,7 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 )
 
 import pygame
-# from multiworld.envs.real_world.sawyer.sawyer_door import SawyerDoorEnv
+from multiworld.envs.real_world.sawyer.sawyer_door import SawyerDoorEnv
 from multiworld.envs.real_world.sawyer.sawyer_reaching import SawyerReachXYZEnv
 from pygame.locals import QUIT, KEYDOWN
 
@@ -59,7 +59,8 @@ env = SawyerDoorEnv(
     config_name='austri_config',
     position_action_scale=0.1,
     max_speed=0.1,
-    use_compliant_position_controller=True
+    use_compliant_position_controller=True,
+    reset_free=True,
 )
 
 NDIM = env.action_space.low.size
@@ -101,4 +102,4 @@ while True:
     # env.render()
     if done:
         obs = env.reset()
-    env.render()
+    # env.render()
