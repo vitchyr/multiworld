@@ -27,6 +27,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             presampled_goals=None,
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
+            high_res_size=600,
     ):
         """
 
@@ -57,6 +58,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.normalize = normalize
         self.recompute_reward = recompute_reward
         self.non_presampled_goal_img_is_garbage = non_presampled_goal_img_is_garbage
+        self.high_res_size = high_res_size
 
         if image_length is not None:
             self.image_length = image_length
@@ -78,6 +80,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # sim.add_render_context(viewer)
         self._render_local = False
         img_space = Box(0, 1, (self.image_length,), dtype=np.float32)
+        high_res_img_space = Box(0, 1, (high_res_size**2 * 3,), dtype=np.float32)
         self._img_goal = img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces.copy()
         spaces['observation'] = img_space
@@ -86,6 +89,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         spaces['image_observation'] = img_space
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
+        spaces['high_res_image_desired_goal'] = high_res_img_space
 
         self.return_image_proprio = False
         if 'proprio_observation' in spaces.keys():
@@ -134,30 +138,48 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if self.num_goals_presampled > 0:
             goal = self.sample_goal()
             self._img_goal = goal['image_desired_goal']
+            self._high_res_img_goal = goal['high_res_image_desired_goal']
+            self.temp_img_goal = self._img_goal.copy()
             self.wrapped_env.set_goal(goal)
             for key in goal:
                 obs[key] = goal[key]
         elif self.non_presampled_goal_img_is_garbage:
             # This is use mainly for debugging or pre-sampling goals.
             self._img_goal = self._get_flat_img()
+            self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size))
         else:
             env_state = self.wrapped_env.get_env_state()
             self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
             self._img_goal = self._get_flat_img()
+            self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size))
             self.wrapped_env.set_env_state(env_state)
-        return self._update_obs(obs)
+
+        return self._update_obs(obs, debug=True)
 
     def _get_obs(self):
         return self._update_obs(self.wrapped_env._get_obs())
 
-    def _update_obs(self, obs):
+    def _update_obs(self, obs, debug=False):
+
         img_obs = self._get_flat_img()
+        high_res_img_obs = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size))
         obs['image_observation'] = img_obs
+        obs['high_res_image_observation'] = high_res_img_obs
+        obs['high_res_image_desired_goal'] = self._high_res_img_goal
         obs['image_desired_goal'] = self._img_goal
         obs['image_achieved_goal'] = img_obs
         obs['observation'] = img_obs
         obs['desired_goal'] = self._img_goal
         obs['achieved_goal'] = img_obs
+
+        # if True or debug:
+            # if not (self._img_goal == self.temp_img_goal).all():
+                # import pdb; pdb.set_trace()
+            # import cv2
+            # cv2.imshow('low_res', obs['image_desired_goal'].reshape(3, 48, 48).transpose())
+            # cv2.imshow('high_res', obs['high_res_image_desired_goal'].reshape(3, 600, 600).transpose())
+            # cv2.waitKey(100)
+
 
         if self.return_image_proprio:
             obs['image_proprio_observation'] = np.concatenate(
@@ -172,11 +194,13 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         return obs
 
-    def _get_flat_img(self):
+    def _get_flat_img(self, imsize=None):
+        if imsize is None:
+            imsize = (self.imsize, self.imsize)
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image(
-            width=self.imsize,
-            height=self.imsize,
+            width=imsize[0],
+            height=imsize[1],
         )
         if self._render_local:
             cv2.imshow('env', image_obs)

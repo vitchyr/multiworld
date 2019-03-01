@@ -426,7 +426,7 @@ def register_custom_envs():
             hand_high=(0.0, 0.65, 0.13),
             action_scale=0.02,
             hide_goal_markers=True,
-            num_goals_presampled=10,
+            num_goals_presampled=500,
 
             p_obj_in_hand=.75,
         )

@@ -501,7 +501,7 @@ def corrected_state_goals(pickup_env, pickup_env_goals):
         goals['state_desired_goal'][idx] = corrected_state_goal
     return goals
 
-def corrected_image_env_goals(image_env, pickup_env_goals):
+def corrected_image_env_goals(image_env, pickup_env_goals, high_res_imsize=600):
     """
     This isn't as easy as setting to the corrected since mocap will fail to
     move to the exact position, and the object will fail to stay in the hand.
@@ -517,16 +517,19 @@ def corrected_image_env_goals(image_env, pickup_env_goals):
         state_desired_goal=np.zeros((num_goals, 6)),
         proprio_desired_goal=np.zeros((num_goals, 3))
     )
+    goals['high_res_image_desired_goal'] = np.zeros((num_goals, 3 * high_res_imsize ** 2))
     for idx in range(num_goals):
         if idx % 100 == 0:
             print(idx)
         image_env.set_to_goal(
             {'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]}
         )
-        corrected_state_goal = image_env._get_obs()['state_achieved_goal']
-        corrected_proprio_goal = image_env._get_obs()['proprio_achieved_goal']
-        corrected_image_goal = image_env._get_obs()['image_achieved_goal']
-
+        image_obs = image_env._get_obs()
+        corrected_state_goal = image_obs['state_achieved_goal']
+        corrected_proprio_goal = image_obs['proprio_achieved_goal']
+        corrected_image_goal = image_obs['image_achieved_goal']
+        corrected_high_res_image_goal = image_obs['high_res_image_observation']
+        goals['high_res_image_desired_goal'][idx] = corrected_high_res_image_goal
         goals['image_desired_goal'][idx] = corrected_image_goal
         goals['desired_goal'][idx] = corrected_image_goal
         goals['state_desired_goal'][idx] = corrected_state_goal
