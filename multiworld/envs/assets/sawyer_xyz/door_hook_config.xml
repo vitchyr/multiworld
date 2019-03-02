@@ -15,6 +15,25 @@ Usage:
 
 <mujoco>
     <asset>
+        <texture name="wood" file="../texture/wood.png" type="cube"/>
+		<material shininess=".1" name="wood" texture="wood" specular="0.4"/>
+
+        <texture name="real_door" file="../texture/real_door.png" type="cube"/>
+		<material shininess=".1" name="real_door" texture="real_door" specular=".4"/>
+
+        <texture name="darkwood" file="../texture/darkwood.png" type="cube"/>
+		<material shininess=".1" name="darkwood" texture="darkwood" specular="0.4"/>
+
+        <texture name="granite" file="../texture/granite.png" type="cube"/>
+		<material shininess=".1" name="granite" texture="granite" specular="0.4"/>
+
+        <texture name="light_wood" file="../texture/light_wood.png" type="cube"/>
+		<material shininess=".1" name="light_wood" texture="light_wood" specular="0.4"/>
+
+         <texture name="light_wood_v2" file="../texture/light_wood_v2.png" type="cube"/>
+		<material shininess=".1" name="light_wood_v2" texture="light_wood_v2" specular="0.4"/>
+
+        <texture type="skybox" builtin="gradient" rgb1=".8 1 1" rgb2=".6 1 1" width="32" height="32"></texture>
         <mesh name="pedestal" file="pedestal.stl" />
         <mesh name="base" file="base.stl" />
         <mesh name="l0" file="l0.stl" />

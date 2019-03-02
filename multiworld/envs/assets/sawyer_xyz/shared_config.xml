@@ -15,6 +15,7 @@ Usage:
 
 <mujoco>
     <asset>
+        <texture type="skybox" builtin="gradient" rgb1=".8 1 1" rgb2=".6 1 1" width="32" height="32"></texture>
         <mesh name="pedestal" file="pedestal.stl" />
         <mesh name="base" file="base.stl" />
         <mesh name="l0" file="l0.stl" />
