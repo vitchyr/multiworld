@@ -58,11 +58,12 @@ env = SawyerDoorEnv(
     action_mode='position',
     config_name='austri_config',
     position_action_scale=0.1,
-    max_speed=0.1,
+    max_speed=0.4,
     use_compliant_position_controller=True,
     reset_free=True,
 )
-
+print(env.config.POSITION_SAFETY_BOX.low)
+print(env.config.POSITION_SAFETY_BOX.high)
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -96,10 +97,5 @@ while True:
                 action = np.zeros(3)
     env.step(action[:3])
     print(env._get_endeffector_pose())
-    # print(env.get_puck_pos())
-    # goal = env.sample_valid_goal()
-    # env.set_to_goal(goal)
-    # env.render()
     if done:
         obs = env.reset()
-    # env.render()
