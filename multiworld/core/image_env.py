@@ -82,6 +82,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         img_space = Box(0, 1, (self.image_length,), dtype=np.float32)
         high_res_img_space = Box(0, 1, (high_res_size**2 * 3,), dtype=np.float32)
         self._img_goal = img_space.sample() #has to be done for presampling
+        self._high_res_img_goal = high_res_img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces.copy()
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
