@@ -1,3 +1,4 @@
+import copy
 import random
 
 import cv2
@@ -27,7 +28,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             presampled_goals=None,
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
-            high_res_size=600,
+            high_res_size=480,
     ):
         """
 
@@ -118,6 +119,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
+        self.high_res_cam = cv2.VideoCapture(0)
+
+
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
         new_obs = self._update_obs(obs)
@@ -152,7 +156,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             env_state = self.wrapped_env.get_env_state()
             self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
             self._img_goal = self._get_flat_img()
-            self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size))
+            self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size), use_webcam=True)
             self.wrapped_env.set_env_state(env_state)
 
         return self._update_obs(obs, debug=True)
@@ -161,9 +165,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return self._update_obs(self.wrapped_env._get_obs())
 
     def _update_obs(self, obs, debug=False):
-
-        img_obs = self._get_flat_img()
-        high_res_img_obs = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size))
+        img_obs = self._get_flat_img(use_webcam=False)
+        high_res_img_obs = self._get_flat_img((self.high_res_size, self.high_res_size), use_webcam=True)
         obs['image_observation'] = img_obs
         obs['high_res_image_observation'] = high_res_img_obs
         obs['high_res_image_desired_goal'] = self._high_res_img_goal
@@ -195,14 +198,26 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         return obs
 
-    def _get_flat_img(self, imsize=None):
+    def _get_flat_img(self, imsize=None, use_webcam=False):
         if imsize is None:
             imsize = (self.imsize, self.imsize)
         # returns the image as a torch format np array
-        image_obs = self._wrapped_env.get_image(
-            width=imsize[0],
-            height=imsize[1],
-        )
+        if use_webcam:
+            success, img_obs = self.high_res_cam.read()
+            if success:
+                img_obs = copy.deepcopy(img_obs)
+                img_obs = np.array(img_obs).reshape(480, 640, 3)
+                img_obs = img_obs[:, 50:(640-110), :]
+                img_obs = cv2.resize(img_obs, (0, 0), fx=imsize[0] / img_obs.shape[0], fy=imsize[1] / img_obs.shape[1],
+                                     interpolation=cv2.INTER_AREA)
+                image_obs = np.asarray(img_obs).reshape(imsize[0], imsize[1], 3)[:, :, [2, 1, 0]]
+            else:
+                raise EnvironmentError('unable to read video')
+        else:
+            image_obs = self._wrapped_env.get_image(
+                width=imsize[0],
+                height=imsize[1],
+            )
         if self._render_local:
             cv2.imshow('env', image_obs)
             cv2.waitKey(1)
