@@ -84,6 +84,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         high_res_img_space = Box(0, 1, (high_res_size**2 * 3,), dtype=np.float32)
         self._img_goal = img_space.sample() #has to be done for presampling
         self._high_res_img_goal = high_res_img_space.sample() #has to be done for presampling
+        self._high_res_3d_img_goal = high_res_img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces.copy()
         spaces['observation'] = img_space
         spaces['desired_goal'] = img_space
@@ -92,6 +93,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         spaces['image_desired_goal'] = img_space
         spaces['image_achieved_goal'] = img_space
         spaces['high_res_image_desired_goal'] = high_res_img_space
+        spaces['high_res_3d_image_desired_goal'] = high_res_img_space
 
         self.return_image_proprio = False
         if 'proprio_observation' in spaces.keys():
@@ -118,9 +120,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.num_goals_presampled = 0
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
-
         self.high_res_cam = cv2.VideoCapture(0)
-
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
@@ -140,10 +140,15 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
+
+        self.high_res_cam.release()
+        self.high_res_cam = cv2.VideoCapture(0)
+
         if self.num_goals_presampled > 0:
             goal = self.sample_goal()
             self._img_goal = goal['image_desired_goal']
             self._high_res_img_goal = goal['high_res_image_desired_goal']
+            self._high_res_3d_img_goal = goal['high_res_3d_image_desired_goal']
             self.temp_img_goal = self._img_goal.copy()
             self.wrapped_env.set_goal(goal)
             for key in goal:
@@ -152,38 +157,37 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # This is use mainly for debugging or pre-sampling goals.
             self._img_goal = self._get_flat_img()
             self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size))
+            self._high_res_3d_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size), use_webcam=True)
         else:
             env_state = self.wrapped_env.get_env_state()
             self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
             self._img_goal = self._get_flat_img()
-            self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size), use_webcam=True)
+            self._high_res_img_goal = self._get_flat_img(imsize=(self.high_res_size, self.high_res_size), use_webcam=False)
             self.wrapped_env.set_env_state(env_state)
 
-        return self._update_obs(obs, debug=True)
+        return self._update_obs(obs)
 
     def _get_obs(self):
         return self._update_obs(self.wrapped_env._get_obs())
 
-    def _update_obs(self, obs, debug=False):
+    def _update_obs(self, obs):
         img_obs = self._get_flat_img(use_webcam=False)
-        high_res_img_obs = self._get_flat_img((self.high_res_size, self.high_res_size), use_webcam=True)
+        high_res_img_obs = self._get_flat_img((self.high_res_size, self.high_res_size), use_webcam=False)
+        high_res_3d_img_obs = self._get_flat_img((self.high_res_size, self.high_res_size), use_webcam=True)
+
         obs['image_observation'] = img_obs
-        obs['high_res_image_observation'] = high_res_img_obs
-        obs['high_res_image_desired_goal'] = self._high_res_img_goal
         obs['image_desired_goal'] = self._img_goal
         obs['image_achieved_goal'] = img_obs
+
+        obs['high_res_image_observation'] = high_res_img_obs
+        obs['high_res_image_desired_goal'] = self._high_res_img_goal
+
+        obs['high_res_3d_image_observation'] = high_res_3d_img_obs
+        obs['high_res_3d_image_desired_goal'] = self._high_res_3d_img_goal
+
         obs['observation'] = img_obs
         obs['desired_goal'] = self._img_goal
         obs['achieved_goal'] = img_obs
-
-        # if True or debug:
-            # if not (self._img_goal == self.temp_img_goal).all():
-                # import pdb; pdb.set_trace()
-            # import cv2
-            # cv2.imshow('low_res', obs['image_desired_goal'].reshape(3, 48, 48).transpose())
-            # cv2.imshow('high_res', obs['high_res_image_desired_goal'].reshape(3, 600, 600).transpose())
-            # cv2.waitKey(100)
-
 
         if self.return_image_proprio:
             obs['image_proprio_observation'] = np.concatenate(
@@ -207,7 +211,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             if success:
                 img_obs = copy.deepcopy(img_obs)
                 img_obs = np.array(img_obs).reshape(480, 640, 3)
-                img_obs = img_obs[:, 50:(640-110), :]
+                img_obs = img_obs[:, 0:(640-160), :]
                 img_obs = cv2.resize(img_obs, (0, 0), fx=imsize[0] / img_obs.shape[0], fy=imsize[1] / img_obs.shape[1],
                                      interpolation=cv2.INTER_AREA)
                 image_obs = np.asarray(img_obs).reshape(imsize[0], imsize[1], 3)[:, :, [2, 1, 0]]
