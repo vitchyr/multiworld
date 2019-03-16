@@ -457,25 +457,6 @@ def register_custom_envs():
     ICML Envs
     """
     register(
-        id='SawyerPushNIPS-v1',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz'
-                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
-        tags={
-            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
-            'author': 'steven',
-        },
-        kwargs=dict(
-            force_puck_in_goal_space=True,
-            hand_goal_low=(-0.1, 0.5),
-            hand_goal_high=(0.1, 0.7),
-            hide_goal=True,
-            reward_info=dict(
-                type="state_distance",
-            ),
-        )
-
-    )
-    register(
         id='SawyerPickupEnvYZEasy-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
