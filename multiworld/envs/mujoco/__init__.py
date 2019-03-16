@@ -493,6 +493,27 @@ def register_custom_envs():
             p_obj_in_hand=.75,
         )
     )
+    # This env is used for the image pickup version. We don't need state goals,
+    # as the image env already generates image goals + state goals.
+    register(
+        id='SawyerPickupEnvYZEasyFewGoals-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '8bfd74b40f983e15026981344323b8e9539b4b21',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.13),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1,
+
+            p_obj_in_hand=.75,
+        )
+    )
+
     register(
         id='SawyerPickupEnvYZEasyImage48-v0',
         entry_point=create_image_48_sawyer_pickup_easy_v0,
@@ -664,7 +685,7 @@ def create_image_48_sawyer_pickup_easy_v0():
     )
     goals = np.load(goal_path).item()
     return ImageEnv(
-        wrapped_env=gym.make('SawyerPickupEnvYZEasy-v0'),
+        wrapped_env=gym.make('SawyerPickupEnvYZEasyFewGoals-v0'),
         imsize=48,
         init_camera=sawyer_pick_and_place_camera,
         transpose=True,
