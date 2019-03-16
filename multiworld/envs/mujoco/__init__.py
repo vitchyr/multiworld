@@ -12,9 +12,10 @@ def register_custom_envs():
     if _REGISTERED:
         return
     _REGISTERED = True
-
     LOGGER.info("Registering multiworld mujoco gym environments")
-
+    from multiworld.envs.mujoco.cameras import (
+        sawyer_init_camera_zoomed_in
+    )
     """
     Reaching tasks
     """
@@ -479,7 +480,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
         tags={
-            'git-commit-hash': '30f23f7',
+            'git-commit-hash': '8bfd74b40f983e15026981344323b8e9539b4b21',
             'author': 'steven',
         },
         kwargs=dict(
@@ -491,6 +492,22 @@ def register_custom_envs():
 
             p_obj_in_hand=.75,
         )
+    )
+    register(
+        id='SawyerPickupEnvYZEasyImage48-v0',
+        entry_point=create_image_48_sawyer_pickup_easy_v0,
+        tags={
+            'git-commit-hash': '8bfd74b40f983e15026981344323b8e9539b4b21',
+            'author': 'steven'
+        },
+    )
+    register(
+        id='SawyerDoorHookResetFreeEnvImage48-v1',
+        entry_point=create_image_48_sawyer_door_hook_reset_free_v1,
+        tags={
+            'git-commit-hash': '8bfd74b40f983e15026981344323b8e9539b4b21',
+            'author': 'steven'
+        },
     )
     register(
         id='SawyerPushNIPSEasy-v0',
@@ -513,6 +530,21 @@ def register_custom_envs():
             reward_info=dict(
                 type="state_distance",
             ),
+        )
+    )
+    register(
+        id='SawyerPushNIPSEasyImage48-v0',
+        entry_point='multiworld.core.image_env:ImageEnv',
+        tags={
+            'git-commit-hash': 'b8d77fef5f3ebe4c1c9c3874a5e3faaab457a350',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            wrapped_env=gym.make('SawyerPushNIPSEasy-v0'),
+            imsize=48,
+            init_camera=sawyer_init_camera_zoomed_in,
+            transpose=True,
+            normalize=True,
         )
     )
     register(
@@ -601,5 +633,44 @@ def create_image_48_sawyer_push_and_reach_arena_env_reset_free_v0():
         transpose=True,
         normalize=True,
     )
+
+def create_image_48_sawyer_door_hook_reset_free_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_door_env_camera_v0
+    import os.path
+    import numpy as np
+    goal_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'goals/door_goals.npy'
+    )
+    goals = np.load(goal_path).item()
+    return ImageEnv(
+        wrapped_env=gym.make('SawyerDoorHookResetFreeEnv-v1'),
+        imsize=48,
+        init_camera=sawyer_door_env_camera_v0,
+        transpose=True,
+        normalize=True,
+        presampled_goals=goals,
+    )
+
+def create_image_48_sawyer_pickup_easy_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
+    import os.path
+    import numpy as np
+    goal_path = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        'goals/pickup_goals.npy'
+    )
+    goals = np.load(goal_path).item()
+    return ImageEnv(
+        wrapped_env=gym.make('SawyerPickupEnvYZEasy-v0'),
+        imsize=48,
+        init_camera=sawyer_pick_and_place_camera,
+        transpose=True,
+        normalize=True,
+        presampled_goals=goals,
+    )
+
 
 register_custom_envs()
