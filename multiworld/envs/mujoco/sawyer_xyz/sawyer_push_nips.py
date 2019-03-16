@@ -36,6 +36,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             fixed_hand_goal=(-0.05, 0.6),
             mocap_low=(-0.1, 0.5, 0.0),
             mocap_high=(0.1, 0.7, 0.5),
+            force_puck_in_goal_space=False,
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -53,6 +54,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fixed_hand_goal = np.array(fixed_hand_goal)
         self.mocap_low = np.array(mocap_low)
         self.mocap_high = np.array(mocap_high)
+        self.force_puck_in_goal_space = force_puck_in_goal_space
 
         self._goal_xyxy = self.sample_goal_xyxy()
         # MultitaskEnv.__init__(self, distance_metric_order=2)
@@ -133,6 +135,15 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             np.array([mocap_delta_z])
         ))
         self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
+        if self.force_puck_in_goal_space:
+            puck_pos = self.get_puck_pos()[:2]
+            clipped = np.clip(
+                puck_pos,
+                self.puck_goal_low,
+                self.puck_goal_high
+            )
+            if not (clipped == puck_pos).all():
+                self.set_puck_xy(clipped)
         u = np.zeros(7)
         self.do_simulation(u, self.frame_skip)
         obs = self._get_obs()
@@ -471,11 +482,17 @@ class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
             **kwargs
     ):
         self.quick_init(locals())
-        SawyerPushAndReachXYEnv.__init__(
-            self,
+        default_kwargs = dict(
             puck_goal_low=(-0.2, 0.5),
             puck_goal_high=(0.2, 0.7),
+        )
+        actual_kwargs = {
+            **default_kwargs,
             **kwargs
+        }
+        SawyerPushAndReachXYEnv.__init__(
+            self,
+            **actual_kwargs
         )
 
     def sample_puck_xy(self):

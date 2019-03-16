@@ -111,6 +111,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
             self.num_goals_presampled = num_goals_presampled
+        self.picked_up_object = False
+        self.train_pickups = 0
+        self.eval_pickups = 0
+        self.cur_mode = 'train'
         self.reset()
 
     @property
@@ -120,6 +124,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def mode(self, name):
         if 'train' not in name:
             self.oracle_reset_prob = 0.0
+            self.cur_mode = 'train'
+        else:
+            self.cur_mode = 'eval'
 
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
@@ -128,12 +135,20 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_xyz_action(action[:3])
         self.do_simulation(action[3:])
         new_obj_pos = self.get_obj_pos()
+        # if the object is out of bounds and not in the air, move it back
         if new_obj_pos[2] < .05:
             new_obj_pos[0:2] = np.clip(
                 new_obj_pos[0:2],
                 self.obj_low[0:2],
                 self.obj_high[0:2]
             )
+        elif new_obj_pos[2] > .05:
+            if not self.picked_up_object:
+                if self.cur_mode == 'train':
+                    self.train_pickups += 1
+                else:
+                    self.eval_pickups += 1
+                self.picked_up_object = True
         self._set_obj_xyz(new_obj_pos)
         self.last_obj_pos = new_obj_pos.copy()
         # The marker seems to get reset every time you do a simulation
@@ -182,6 +197,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             hand_and_obj_success=float(
                 hand_distance+obj_distance < self.indicator_threshold
             ),
+            total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
             touch_success=float(touch_distance < self.indicator_threshold),
         )
 
@@ -239,6 +255,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.set_goal(self.sample_goal())
         self._set_goal_marker(self._state_goal)
+        self.picked_up_object = False
         return self._get_obs()
 
     def _reset_hand(self):
@@ -349,6 +366,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'hand_distance',
             'obj_distance',
             'hand_and_obj_distance',
+            'total_pickups',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -422,8 +440,8 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         **kwargs
     ):
         self.quick_init(locals())
-        super().__init__(*args, **kwargs)
         self.x_axis = x_axis
+        super().__init__(*args, **kwargs)
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
             self.hand_and_obj_space.low[3:],
