@@ -145,8 +145,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
     def reset(self):
         obs = self.wrapped_env.reset()
 
-        # self.high_res_cam.release()
-        # self.high_res_cam = cv2.VideoCapture(0)
+        if self.use_high_res:
+            self.high_res_cam.release()
+            self.high_res_cam = cv2.VideoCapture(0)
 
         if self.num_goals_presampled > 0:
             goal = self.sample_goal()
