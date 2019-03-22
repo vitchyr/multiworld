@@ -23,6 +23,7 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space),
         ])
+        self.set_mode('eval')
 
     def step(self, action):
         self._act(action)
