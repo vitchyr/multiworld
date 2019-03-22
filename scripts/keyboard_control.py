@@ -20,12 +20,10 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 )
 
 import pygame
-from multiworld.envs.real_world.sawyer.sawyer_door import SawyerDoorEnv
-from multiworld.envs.real_world.sawyer.sawyer_reaching import SawyerReachXYZEnv
 from pygame.locals import QUIT, KEYDOWN
 
-# from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
-#     SawyerReachXYZEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
+    SawyerReachXYZEnv
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
@@ -54,16 +52,19 @@ import gym
 import multiworld
 import pygame
 # env = gym.make('SawyerPushAndReachEnvEasy-v0')
-env = SawyerDoorEnv(
-    action_mode='position',
-    config_name='austri_config',
-    position_action_scale=0.1,
-    max_speed=0.4,
-    use_compliant_position_controller=True,
-    reset_free=True,
-)
-print(env.config.POSITION_SAFETY_BOX.low)
-print(env.config.POSITION_SAFETY_BOX.high)
+# env = SawyerPushAndReachXYEnv(
+#     goal_low=(-0.15, 0.4, 0.02, -.1, .5),
+#     goal_high=(0.15, 0.75, 0.02, .1, .7),
+#     puck_low=(-.3, .25),
+#     puck_high=(.3, .9),
+#     hand_low=(-0.15, 0.4, 0.05),
+#     hand_high=(0.15, .75, 0.3),
+#     norm_order=2,
+#     xml_path='sawyer_xyz/sawyer_push_puck_small_arena.xml',
+#     reward_type='state_distance',
+#     reset_free=False,
+# )
+env = SawyerReachXYEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -95,7 +96,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:3])
-    print(env._get_endeffector_pose())
+    env.step(action[:2])
     if done:
         obs = env.reset()
+    env.render()
