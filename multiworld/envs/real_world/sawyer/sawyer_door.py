@@ -76,10 +76,7 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         )
 
     def reset(self):
-        if self.use_dynamixel:
-            super()._reset_robot_and_door()
-        else:
-            super()._reset_robot_and_door()
+        super()._reset_robot_and_door()
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         return self._get_obs()
