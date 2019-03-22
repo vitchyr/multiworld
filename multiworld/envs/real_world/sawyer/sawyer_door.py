@@ -33,37 +33,14 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         return observation, reward, done, info
 
     def _get_info(self):
-
         hand_distance = np.linalg.norm(self._state_goal[:3] - self._get_endeffector_pose())
-        if self.use_dynamixel:
-            if self.eval_mode == 'eval':
-                relative_motor_pos = self._get_relative_motor_pos()
-            else:
-                relative_motor_pos = 0
-            relative_abs_motor_angle_difference_from_goal = np.abs(self._state_goal[3] - relative_motor_pos)
-            relative_abs_motor_angle_difference_from_reset =  np.abs(relative_motor_pos)
-            relative_abs_motor_angle_difference_from_reset_indicator =  (relative_abs_motor_angle_difference_from_reset > self.door_open_epsilon).astype(float)
-            return dict(
-                hand_distance=hand_distance,
-                relative_abs_motor_angle_difference_from_goal=relative_abs_motor_angle_difference_from_goal,
-                relative_abs_motor_angle_difference_from_reset=relative_abs_motor_angle_difference_from_reset,
-                relative_abs_motor_angle_difference_from_reset_indicator=relative_abs_motor_angle_difference_from_reset_indicator,
-            )
-        else:
-            return dict(hand_distance=hand_distance)
+        return dict(hand_distance=hand_distance)
 
     def compute_rewards(self, actions, obs):
         raise NotImplementedError('Use Image based reward')
 
     def _get_obs(self):
-        if self.use_dynamixel:
-            if self.eval_mode == 'eval':
-                relative_motor_pos = self._get_relative_motor_pos()
-            else:
-                relative_motor_pos = 0
-            achieved_goal = np.concatenate((self._get_endeffector_pose(), [relative_motor_pos]))
-        else:
-            achieved_goal = self._get_endeffector_pose()
+        achieved_goal = self._get_endeffector_pose()
         state_obs = super()._get_obs()
         return dict(
             observation=state_obs,
@@ -76,7 +53,8 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
         )
 
     def reset(self):
-        super()._reset_robot_and_door()
+        if not self.reset_free or self.eval_mode=='eval':
+            super()._reset_robot_and_door()
         goal = self.sample_goal()
         self._state_goal = goal['state_desired_goal']
         return self._get_obs()
@@ -110,15 +88,7 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
-        if self.use_dynamixel:
-            stats = [
-                'hand_distance',
-                'relative_abs_motor_angle_difference_from_goal',
-                'relative_abs_motor_angle_difference_from_reset',
-                'relative_abs_motor_angle_difference_from_reset_indicator'
-            ]
-        else:
-            stats = ['hand_distance']
+        stats = ['hand_distance']
 
         for stat_name in stats:
             stat_name = stat_name
@@ -134,6 +104,9 @@ class SawyerDoorEnv(sawyer_door.SawyerDoorEnv, MultitaskEnv):
                 always_show_all_stats=True,
                 ))
         return statistics
+
+    def set_mode(self, mode):
+        self.eval_mode = mode
 
 if __name__=="__main__":
     env = SawyerDoorEnv()
