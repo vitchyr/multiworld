@@ -1,4 +1,3 @@
-import copy
 import random
 
 import cv2
@@ -132,7 +131,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
-
         if self.num_goals_presampled > 0:
             goal = self.sample_goal()
             self._img_goal = goal['image_desired_goal']
@@ -158,7 +156,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         obs['image_observation'] = img_obs
         obs['image_desired_goal'] = self._img_goal
         obs['image_achieved_goal'] = img_obs
-
         obs['observation'] = img_obs
         obs['desired_goal'] = self._img_goal
         obs['achieved_goal'] = img_obs
@@ -176,13 +173,11 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         return obs
 
-    def _get_flat_img(self, imsize=None):
-        if imsize is None:
-            imsize = (self.imsize, self.imsize)
+    def _get_flat_img(self):
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image(
-            width=imsize[0],
-            height=imsize[1],
+            width=self.imsize,
+            height=self.imsize,
         )
         if self._render_local:
             cv2.imshow('env', image_obs)
