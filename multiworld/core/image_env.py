@@ -145,6 +145,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
             self._img_goal = self._get_flat_img()
             self.wrapped_env.set_env_state(env_state)
+
         return self._update_obs(obs)
 
     def _get_obs(self):
