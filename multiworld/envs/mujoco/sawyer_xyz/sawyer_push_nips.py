@@ -439,8 +439,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def set_goal(self, goal):
         state_goal = goal['state_desired_goal']
-        self.set_goal_xyxy(_state_goal)
-        self._set_goal_marker(_state_goal)
+        self.set_goal_xyxy(state_goal)
 
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
