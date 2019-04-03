@@ -8,6 +8,8 @@ import sys
 import gym
 
 import numpy as np
+
+from multiworld.envs.mujoco.dynamic_robotics.sawyer_torque_reacher_with_gripper import SawyerReachTorqueEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
@@ -64,7 +66,7 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachXYEnv()
+env = SawyerReachTorqueEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
@@ -96,7 +98,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
+    env.step(action[:8])
     if done:
         obs = env.reset()
     env.render()
