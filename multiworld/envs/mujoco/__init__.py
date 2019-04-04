@@ -60,6 +60,19 @@ def register_custom_envs():
     )
 
     register(
+        id='SawyerReachTorqueEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_reach_torque.sawyer_reach_torque_env:SawyerReachTorqueEnv',
+        tags={
+            'git-commit-hash': 'c2d8609',
+            'author': 'murtaza'
+        },
+        kwargs={
+            'keep_vel_in_obs': True,
+            'use_safety_box': False,
+        },
+    )
+
+    register(
         id='Image48SawyerReachXYEnv-v1',
         entry_point=create_image_48_sawyer_reach_xy_env_v1,
         tags={
