@@ -71,7 +71,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     @property
     def model_name(self):
-       return get_asset_full_path('sawyer_xyz/sawyer_reach_torque.xml')
+       return get_asset_full_path('dynamic_robotics/sawyer_reach_torque.xml')
 
     def reset_to_prev_qpos(self):
         angles = self.data.qpos.copy()
