@@ -183,7 +183,6 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     @property
     def endeff_id(self):
-        # return self.model.body_names.index('leftclaw')
         return self.model.body_names.index('right_hand')
 
     def get_diagnostics(self, paths, prefix=''):
