@@ -50,7 +50,7 @@ char_to_action = {
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerThrowingEnv()
+env = SawyerThrowingEnv(action_scale=1)
 # env = SawyerReachTorqueEnv()
 # env = SawyerReachTorqueGripperEnv()
 NDIM = env.action_space.low.size
@@ -85,11 +85,10 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    # action = env.action_space.sample()
-    # action[-1] = 0.01
-    # action = np.zeros(8)
-    # print(action)
+    action = env.action_space.sample()
+    action[-1] = 0.01
     env.step(action[:8])
+    print(env.data.qpos[:8])
     # env.reset()
     if done:
         obs = env.reset()
