@@ -371,14 +371,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 1, 0, 1, 0,
                 ]
 
-    def log_diagnostics(self, paths, logger=None, prefix=""):
-        if logger is None:
-            return
-        statistics = self.get_diagnostics(paths, prefix=prefix)
-
-        for key, value in statistics.items():
-            logger.record_tabular(key, value)
-
     def get_diagnostics(self, paths, prefix=""):
         statistics = OrderedDict()
         for stat_name in [
