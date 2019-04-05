@@ -28,8 +28,10 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.action_scale = action_scale
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
         bounds = self.model.actuator_ctrlrange.copy()
-        low = bounds[:8, 0]
-        high = bounds[:8, 1]
+        low = bounds[:7, 0]
+        high = bounds[:7, 1]
+        low = np.concatenate((low, [-1]))
+        high = np.concatenate((high, [1]))
         self.action_space = Box(low=low, high=high)
         if goal_low is None:
             goal_low = np.array([-0.1, 0.5, 0.02])
@@ -108,7 +110,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        action = action * self.action_scale
+        action[:7] = action[:7] * self.action_scale
         self.do_simulation(action, self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():

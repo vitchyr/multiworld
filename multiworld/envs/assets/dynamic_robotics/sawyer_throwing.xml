@@ -16,7 +16,7 @@
 		Last edits 	: 30Apr16, 30Nov15, 26Sept'15, 26July'15
 ====================================================== -->
 
-<mujoco model="jaco(v1.31)">
+<mujoco model="sawyer">
     <compiler angle="radian" meshdir="../meshes/sawyer"/>
     <option timestep="0.01" gravity="0 0 -9.8" iterations="10" integrator="Euler"/>
 
@@ -35,13 +35,12 @@
 
 		<texture name="groundplane" type="2d" builtin="checker" rgb1=".25 .26 .25" 
 			rgb2=".22 .22 .22" width="100" height="100" mark="none" markrgb=".8 .8 .8"/>
-    <texture type="skybox" builtin="checker" rgb1="1 1 1" rgb2="1 1 1"
-                 width="256" height="256"/>
+        <texture type="skybox" builtin="gradient" rgb1=".8 1 1" rgb2=".6 1 1" width="32" height="32"></texture>
         <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01" />
         <texture name="texplane" type="2d" builtin="checker" rgb1=".8 .8 .8" rgb2=".8 .8 .8" width="100" height="100" />
         <texture name="texplane_show" type="2d" builtin="checker" rgb1="0 0 0" rgb2="0.9 0.9 0.9" width="100" height="100" />
 
-        <material name='MatPlane' texture="texplane" shininess="1" texrepeat="30 30" specular="1"  reflectance="0.5" />
+        <material name='MatPlane' texture="texplane" shininess="1" texrepeat="30 30" specular="1"  reflectance="0" />
         <material name='MatPlaneShow' texture="texplane_show" shininess="1" texrepeat="30 30" specular="1"  reflectance="0.5" />
         <material name='geom' texture="texgeom" texuniform="true" />
 		<material name="MatViz" specular="1" shininess=".1" reflectance="0.5" rgba=".07 .07 .1 1"/>
@@ -185,7 +184,7 @@
                                                     <body name="rightclaw" pos=".03 -.03 0.0" >
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
-                                                                name="rightclaw_it" condim="4" contype="2" conaffinity="2" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                name="rightclaw_it" condim="4" contype="1" conaffinity="1" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
                                                                 euler="0 0 0.2"
                                                         />
                                                         <joint name="rc_close" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
@@ -194,7 +193,7 @@
                                                     <body name="leftclaw" pos=".03 .03 0">
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
-                                                                name="leftclaw_it" condim="4" contype="2" conaffinity="2" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                name="leftclaw_it" condim="4" contype="1" conaffinity="1" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
                                                                 euler="0 0 -0.2"
                                                         />
                                                         <site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0"  />

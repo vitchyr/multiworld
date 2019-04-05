@@ -85,8 +85,12 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    action = np.zeros(8)
+    # action = env.action_space.sample()
+    # action[-1] = 0.01
+    # action = np.zeros(8)
+    # print(action)
     env.step(action[:8])
+    # env.reset()
     if done:
         obs = env.reset()
     env.render()

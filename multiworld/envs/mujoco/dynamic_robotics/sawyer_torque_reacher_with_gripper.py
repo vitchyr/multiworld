@@ -28,8 +28,10 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.action_scale = action_scale
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
         bounds = self.model.actuator_ctrlrange.copy()
-        low = bounds[:, 0]
-        high = bounds[:, 1]
+        low = bounds[:7, 0]
+        high = bounds[:7, 1]
+        low = np.concatenate((low, [-1]))
+        high = np.concatenate((high, [1]))
         self.action_space = Box(low=low, high=high)
         if goal_low is None:
             goal_low = np.array([-0.1, 0.5, 0.02])
