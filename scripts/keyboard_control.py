@@ -89,7 +89,7 @@ while True:
     action[-1] = 0.01
     env.step(action[:8])
     print(env.data.qpos[:8])
-    # env.reset()
+    env.reset()
     if done:
         obs = env.reset()
     env.render()

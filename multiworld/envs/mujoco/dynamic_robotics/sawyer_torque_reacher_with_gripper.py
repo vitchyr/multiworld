@@ -111,6 +111,7 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def step(self, action):
         action = action * self.action_scale
+        action[:7] = action[:7] * self.action_scale
         self.do_simulation(action, self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
