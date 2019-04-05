@@ -10,6 +10,7 @@ import numpy as np
 from multiworld.envs.mujoco.dynamic_robotics.sawyer_reach_torque_env import SawyerReachTorqueEnv
 
 import pygame
+from pygame.locals import QUIT, KEYDOWN
 
 from multiworld.envs.mujoco.dynamic_robotics.sawyer_throwing_env import SawyerThrowingEnv
 from multiworld.envs.mujoco.dynamic_robotics.sawyer_torque_reacher_with_gripper import SawyerReachTorqueGripperEnv
@@ -52,39 +53,40 @@ char_to_action = {
 env = SawyerThrowingEnv()
 # env = SawyerReachTorqueEnv()
 # env = SawyerReachTorqueGripperEnv()
-# NDIM = env.action_space.low.size
-# lock_action = False
-# obs = env.reset()
-# action = np.zeros(10)
+NDIM = env.action_space.low.size
+lock_action = False
+obs = env.reset()
+action = np.zeros(10)
+env.reset()
 while True:
-    # done = False
-    # if not lock_action:
-    #     action[:3] = 0
-    # for event in pygame.event.get():
-    #     event_happened = True
-    #     if event.type == QUIT:
-    #         sys.exit()
-    #     if event.type == KEYDOWN:
-    #         char = event.dict['key']
-    #         new_action = char_to_action.get(chr(char), None)
-    #         if new_action == 'toggle':
-    #             lock_action = not lock_action
-    #         elif new_action == 'reset':
-    #             done = True
-    #         elif new_action == 'close':
-    #             action[3] = 1
-    #         elif new_action == 'open':
-    #             action[3] = -1
-    #         elif new_action == 'put obj in hand':
-    #             print("putting obj in hand")
-    #             env.put_obj_in_hand()
-    #             action[3] = 1
-    #         elif new_action is not None:
-    #             action[:3] = new_action[:3]
-    #         else:
-    #             action = np.zeros(3)
-    # env.step(action[:8])
-    # if done:
-    #     obs = env.reset()
-    env.reset()
+    done = False
+    if not lock_action:
+        action[:3] = 0
+    for event in pygame.event.get():
+        event_happened = True
+        if event.type == QUIT:
+            sys.exit()
+        if event.type == KEYDOWN:
+            char = event.dict['key']
+            new_action = char_to_action.get(chr(char), None)
+            if new_action == 'toggle':
+                lock_action = not lock_action
+            elif new_action == 'reset':
+                done = True
+            elif new_action == 'close':
+                action[3] = 1
+            elif new_action == 'open':
+                action[3] = -1
+            elif new_action == 'put obj in hand':
+                print("putting obj in hand")
+                env.put_obj_in_hand()
+                action[3] = 1
+            elif new_action is not None:
+                action[:3] = new_action[:3]
+            else:
+                action = np.zeros(3)
+    action = np.zeros(8)
+    env.step(action[:8])
+    if done:
+        obs = env.reset()
     env.render()
