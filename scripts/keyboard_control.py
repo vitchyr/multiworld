@@ -50,7 +50,7 @@ char_to_action = {
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachTorqueGripperEnv(action_scale=1)
+env = SawyerThrowingEnv(action_scale=1)
 # env = SawyerReachTorqueEnv()
 # env = SawyerReachTorqueGripperEnv()
 NDIM = env.action_space.low.size

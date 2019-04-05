@@ -98,9 +98,9 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.distance = 1.0
 
         # 3rd person view
-        cam_dist = 0.3
-        rotation_angle = 270
-        cam_pos = np.array([0, 1.0, 0.5, cam_dist, -45, rotation_angle])
+        cam_dist = 3
+        rotation_angle = 180
+        cam_pos = np.array([.5, 0, 0.3, cam_dist, -45, rotation_angle])
 
         for i in range(3):
             self.viewer.cam.lookat[i] = cam_pos[i]
@@ -186,7 +186,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     @property
     def endeff_id(self):
-        return self.model.body_names.index('leftclaw')
+        return self.model.body_names.index('right_hand')
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
