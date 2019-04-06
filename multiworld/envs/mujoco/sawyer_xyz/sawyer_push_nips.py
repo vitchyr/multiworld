@@ -371,10 +371,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 1, 0, 1, 0,
                 ]
 
-    def log_diagnostics(self, paths, logger=None, prefix=""):
-        if logger is None:
-            return
-
+    def get_diagnostics(self, paths, prefix=""):
         statistics = OrderedDict()
         for stat_name in [
             'hand_distance',
@@ -385,18 +382,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
             statistics.update(create_stats_ordered_dict(
-                '%s %s' % (prefix, stat_name),
+                '%s%s' % (prefix, stat_name),
                 stat,
                 always_show_all_stats=True,
             ))
             statistics.update(create_stats_ordered_dict(
-                'Final %s %s' % (prefix, stat_name),
+                'Final %s%s' % (prefix, stat_name),
                 [s[-1] for s in stat],
                 always_show_all_stats=True,
             ))
-
-        for key, value in statistics.items():
-            logger.record_tabular(key, value)
+        return statistics
 
     """
     Multitask functions
