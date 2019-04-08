@@ -85,13 +85,6 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         pos = self.get_endeff_pos()
         return not self.safety_box.contains(pos)
 
-    def set_to_qpos(self, qpos):
-        angles = self.data.qpos.copy()
-        velocities = self.data.qvel.copy()
-        angles[:] = qpos
-        velocities[:] = 0
-        self.set_state(angles.flatten(), velocities.flatten())
-
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.distance = 1.0
