@@ -50,7 +50,7 @@ char_to_action = {
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerThrowingEnv(action_scale=1)
+env = SawyerThrowingEnv(action_scale=1, fix_goal=True)
 # env = SawyerReachTorqueEnv()
 # env = SawyerReachTorqueGripperEnv()
 NDIM = env.action_space.low.size
@@ -58,6 +58,7 @@ lock_action = False
 obs = env.reset()
 action = np.zeros(10)
 env.reset()
+act = 1
 while True:
     done = False
     if not lock_action:
@@ -86,10 +87,16 @@ while True:
             else:
                 action = np.zeros(3)
     # action = env.action_space.sample()
-    action[-1] = -1
-    env.step(action[:8])
+    action = np.zeros(8)
+    # action[-1] = -1*act
+    # act = -1*act
+    action[-1] = 1
+    reward = env.step(action[:8])[1]
     # print(env.data.qpos[:8])
     # env.reset()
+    reward = env.compute_reward(action, env._get_obs())
+    print(env._get_obs()['desired_goal'])
+    print(reward)
     if done:
         obs = env.reset()
     env.render()

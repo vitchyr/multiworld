@@ -17,8 +17,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
                  keep_vel_in_obs=True,
                  use_safety_box=False,
                  fix_goal=False,
-                 fixed_goal=(0.05, 0.6, 0.15),
-                 reward_type='hand_distance',
+                 reward_type='obj_distance',
                  indicator_threshold=.05,
                  goal_low=None,
                  goal_high=None,
@@ -34,11 +33,11 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         high = np.concatenate((high, [1]))
         self.action_space = Box(low=low, high=high)
         if goal_low is None:
-            goal_low = np.array([-0.1, 0.5, 0.02])
+            goal_low = np.array([-0.1, 0.5, 0.]) #TODO: set reasonable defaults here
         else:
             goal_low = np.array(goal_low)
         if goal_high is None:
-            goal_high = np.array([0.1, 0.7, 0.2])
+            goal_high = np.array([0.1, 0.7, 0.]) #TODO: set reasonable defaults here
         else:
             goal_high = np.array(goal_low)
         self.safety_box = Box(
@@ -64,7 +63,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('state_achieved_goal', self.achieved_goal_space),
         ])
         self.fix_goal = fix_goal
-        self.fixed_goal = np.array(fixed_goal)
+        self.fixed_goal = np.concatenate((np.array(self.init_angles[-2:]), [0]))
         self.use_safety_box=use_safety_box
         self.prev_qpos = self.init_angles.copy()
         self.reward_type = reward_type
@@ -124,36 +123,31 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         return ob, reward, done, info
 
     def _get_env_obs(self):
-        if self.keep_vel_in_obs:
-            return np.concatenate([
-                self.sim.data.qpos.flat,
-                self.sim.data.qvel.flat,
-                self.get_endeff_pos(),
-            ])
-        else:
-            return np.concatenate([
-                self.sim.data.qpos.flat,
-                self.get_endeff_pos(),
-            ])
+        return np.concatenate([
+            self.sim.data.qpos.flat,
+            self.sim.data.qvel.flat,
+            self.get_endeff_pos(),
+        ])
 
     def _get_obs(self):
-        ee_pos = self.get_endeff_pos()
         state_obs = self._get_env_obs()
+
+        obj_pos = state_obs[8:11]
         return dict(
             observation=state_obs,
             desired_goal=self._state_goal,
-            achieved_goal=ee_pos,
+            achieved_goal=obj_pos,
 
             state_observation=state_obs,
             state_desired_goal=self._state_goal,
-            state_achieved_goal=ee_pos,
+            state_achieved_goal=obj_pos,
         )
 
     def _get_info(self):
-        hand_distance = np.linalg.norm(self._state_goal - self.get_endeff_pos())
+        obj_distance = np.linalg.norm(self._state_goal - self._get_env_obs()[8:11])
         return dict(
-            hand_distance=hand_distance,
-            hand_success=float(hand_distance < self.indicator_threshold),
+            obj_distance=obj_distance,
+            obj_success=float(obj_distance < self.indicator_threshold),
         )
 
     def get_endeff_pos(self):
@@ -179,9 +173,10 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
     def init_angles(self):
         return [
             -0.25, -.3+-6.95207647e-01, 0,
-            .5+1.76670458e+00, 0, 0.3,
-            0, 0, 0.4425, 0.05, 0.1,
-            1.  , 0.01  , 0.  , 0.  , 0.  , 0.
+            .5+1.76670458e+00, 0, 0.3, 0,
+            0.01,
+            0.44, 0.05, 0.105, 0., 0, 0, 0,
+            .25 , -.5
         ]
 
     @property
@@ -191,8 +186,8 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'hand_distance',
-            'hand_success',
+            'obj_distance',
+            'obj_success',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -245,12 +240,12 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
-        hand_pos = achieved_goals
+        obj_pos = achieved_goals
         goals = desired_goals
-        distances = np.linalg.norm(hand_pos - goals, axis=1)
-        if self.reward_type == 'hand_distance':
+        distances = np.linalg.norm(obj_pos - goals, axis=1)
+        if self.reward_type == 'obj_distance':
             r = -distances
-        elif self.reward_type == 'hand_success':
+        elif self.reward_type == 'obj_success':
             r = -(distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
