@@ -86,17 +86,18 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    # action = env.action_space.sample()
-    action = np.zeros(8)
+    action = env.action_space.sample()
+    # action = np.ones(8)
     # action[-1] = -1*act
     # act = -1*act
     action[-1] = 1
     reward = env.step(action[:8])[1]
     # print(env.data.qpos[:8])
     # env.reset()
-    reward = env.compute_reward(action, env._get_obs())
-    print(env._get_obs()['desired_goal'])
-    print(reward)
+    # reward = env.compute_reward(action, env._get_obs())
+    # print(env._get_obs()['desired_goal'])
+    # print(reward)
     if done:
         obs = env.reset()
-    env.render()
+    for i in range(int(1e2)):
+        env.render()

@@ -18,10 +18,10 @@
 
 <mujoco model="sawyer">
     <compiler angle="radian" meshdir="../meshes/sawyer"/>
-    <option timestep="0.01" gravity="0 0 -9.8" iterations="10" integrator="Euler"/>
+    <option timestep="0.002" gravity="0 0 -9.8" iterations="50" integrator="Euler"/>
 
 	<asset>
-		 <mesh name="pedestal" file="pedestal.stl" />
+        <mesh name="pedestal" file="pedestal.stl" />
         <mesh name="base" file="base.stl" />
         <mesh name="l0" file="l0.stl" />
         <mesh name="head" file="head.stl" />
@@ -56,11 +56,7 @@
         <joint limited="true" damping="0.5" armature=".01"/>
 		
 		<!--geom class for visual and collision geometry-->
-		<default class ="vizNcoll"> 
-			<geom material="MatViz" type="mesh" group="0"  contype="1" conaffinity="0"/>
-			<joint pos="0 0 0" type="hinge"/>
-		</default>	
-		<default class ="ground"> 
+		<default class ="ground">
 			<geom material="MatPlane" type="plane" contype="1" conaffinity="1"/>
 		</default>
 
@@ -184,7 +180,7 @@
                                                     <body name="rightclaw" pos=".03 -.03 0.0" >
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
-                                                                name="rightclaw_it" condim="4" contype="1" conaffinity="1" class="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                name="rightclaw_it" condim="4" contype="1" conaffinity="1" mass="0.08" type="box" pos="0 0 0" size="0.025 0.005 0.03" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.0001"
                                                                 euler="0 0 0.0"
                                                         />
                                                         <joint name="gripper_right" type="slide" pos="0 0 0" axis="0 1 0" range="0 .04" user="008" limited="true"/>
@@ -193,7 +189,7 @@
                                                     <body name="leftclaw" pos=".03 .03 0">
                                                         <inertial diaginertia="0.1 0.1 0.1" mass="4" pos="-0.01 0 0"></inertial>
                                                         <geom
-                                                                name="leftclaw_it" condim="4" contype="1" conaffinity="1" class="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.02" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.01"
+                                                                name="leftclaw_it" condim="4" contype="1" conaffinity="1" type="box" mass="0.08" pos="0 0 0" size="0.025 0.005 0.03" rgba="0.0 1.0 0.0 1.0" friction="1 0.05 0.0001"
                                                                 euler="0 0 0"
                                                         />
                                                         <site name="endeffector" pos=".015 -.01 0" size="0.008" rgba="0.0 0.0 0.0 0.0"  />
@@ -232,7 +228,7 @@
         </body>
 
     <body name="object" pos="0.4 0.1 .03">
-      <geom type="box" mass=".20" name="geom_object" size="0.02 0.02 0.02" rgba="0.5 0.6 0.8 1" user="1" contype="1" conaffinity="1"/>
+      <geom type="box" mass=".20" name="geom_object" size="0.02 0.02 0.02" rgba="0.5 0.6 0.8 1" user="1" contype="1" conaffinity="1" friction="1 0.05 0.0001"/>
       <joint name="fr" type="free" limited='false' damping="0" armature="0" user="010"/>
     </body>
 
@@ -259,6 +255,6 @@
         <motor joint="right_j4" ctrlrange="-100.0 100.0" ctrllimited="false"/>
         <motor joint="right_j5" ctrlrange="-100.0 100.0" ctrllimited="false"/>
         <motor joint="right_j6" ctrlrange="-100.0 100.0" ctrllimited="false"/>
-        <motor gear="100" joint="gripper_right"/>
+        <motor gear="75" joint="gripper_right"/>
     </actuator>
 </mujoco>
