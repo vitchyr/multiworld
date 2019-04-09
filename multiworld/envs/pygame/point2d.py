@@ -26,7 +26,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
             action_l2norm_penalty=0,  # disabled for now
             render_onscreen=False,
             render_size=84,
-            render_target=True,
             reward_type="dense",
             action_scale=1.0,
             target_radius=0.60,
@@ -51,14 +50,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.action_l2norm_penalty = action_l2norm_penalty
         self.render_onscreen = render_onscreen
         self.render_size = render_size
-        self.render_target = render_target
         self.reward_type = reward_type
         self.action_scale = action_scale
         self.target_radius = target_radius
         self.boundary_dist = boundary_dist
         self.ball_radius = ball_radius
         self.walls = walls
-        self.fixed_goal = fixed_goal
+        self.fixed_goal = np.array(fixed_goal)
         self.randomize_position_on_reset = randomize_position_on_reset
         if self.fixed_goal is not None:
             self.fixed_goal = np.array(self.fixed_goal)
@@ -85,6 +83,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         ])
 
         self.drawer = None
+        self.render_drawer = None
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -223,19 +222,17 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if width is not None:
+        if self.drawer is None:
             if width != height:
                 raise NotImplementedError()
-            if width != self.render_size:
-                self.drawer = PygameViewer(
-                    screen_width=width,
-                    screen_height=height,
-                    x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
-                    y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
-                    render_onscreen=self.render_onscreen,
-                )
-                self.render_size = width
-        self.render(tick=False)
+            self.drawer = PygameViewer(
+                screen_width=width,
+                screen_height=height,
+                x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                render_onscreen=self.render_onscreen,
+            )
+        self.draw(self.drawer, False)
         img = self.drawer.get_image()
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
@@ -258,57 +255,64 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = position
         self._target_position = goal
 
-    def render(self, close=False, tick=True):
-        if close:
-            self.drawer = None
-            return
-
-        if self.drawer is None or self.drawer.terminated:
-            self.drawer = PygameViewer(
-                self.render_size,
-                self.render_size,
-                x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
-                y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
-                render_onscreen=self.render_onscreen,
-            )
-        self.drawer.fill(Color('white'))
+    def draw(self, drawer, tick):
+        # if self.drawer is not None:
+        #     self.drawer.fill(Color('white'))
+        # if self.render_drawer is not None:
+        #     self.render_drawer.fill(Color('white'))
+        drawer.fill(Color('white'))
         if self.show_goal:
-            self.drawer.draw_solid_circle(
+            drawer.draw_solid_circle(
                 self._target_position,
                 self.target_radius,
                 Color('green'),
             )
-        self.drawer.draw_solid_circle(
+        drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
             Color('blue'),
         )
 
         for wall in self.walls:
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint1,
                 wall.endpoint2,
                 Color('black'),
             )
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint2,
                 wall.endpoint3,
                 Color('black'),
             )
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint3,
                 wall.endpoint4,
                 Color('black'),
             )
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint4,
                 wall.endpoint1,
                 Color('black'),
             )
 
-        self.drawer.render()
+        drawer.render()
         if tick:
-            self.drawer.tick(self.render_dt_msec)
+            drawer.tick(self.render_dt_msec)
+
+    def render(self, close=False):
+        if close:
+            self.render_drawer = None
+            return
+
+        if self.render_drawer is None or self.render_drawer.terminated:
+            self.render_drawer = PygameViewer(
+                self.render_size,
+                self.render_size,
+                x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                render_onscreen=True,
+            )
+        self.draw(self.render_drawer, True)
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
