@@ -8,7 +8,7 @@ from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
 
 
-class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
+class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
     """Implements a torque-controlled Sawyer environment"""
 
     def __init__(self,
@@ -28,8 +28,10 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.action_scale = action_scale
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
         bounds = self.model.actuator_ctrlrange.copy()
-        low = bounds[:, 0]
-        high = bounds[:, 1]
+        low = bounds[:7, 0]
+        high = bounds[:7, 1]
+        low = np.concatenate((low, [-1]))
+        high = np.concatenate((high, [1]))
         self.action_space = Box(low=low, high=high)
         if goal_low is None:
             goal_low = np.array([-0.1, 0.5, 0.02])
@@ -71,7 +73,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     @property
     def model_name(self):
-       return get_asset_full_path('dynamic_robotics/sawyer_reach_torque.xml')
+       return get_asset_full_path('sawyer_torque/sawyer_reach_torque_with_gripper.xml')
 
     def reset_to_prev_qpos(self):
         angles = self.data.qpos.copy()
@@ -109,6 +111,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def step(self, action):
         action = action * self.action_scale
+        action[:7] = action[:7] * self.action_scale
         self.do_simulation(action, self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
@@ -178,7 +181,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         return [
             1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
             1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
-            3.53404635e+00,
+            3.53404635e+00, 0
         ]
 
     @property

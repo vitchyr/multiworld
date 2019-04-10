@@ -4,16 +4,26 @@ For this script to work, you need to have the PyGame window in focus.
 
 See/modify `char_to_action` to set the key-to-action mapping.
 """
+import sys
+import gym
 
 import numpy as np
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
-from multiworld.envs.mujoco.dynamic_robotics.sawyer_reach_torque_env import SawyerReachTorqueEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
+    SawyerPickAndPlaceEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
+    SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks import (
+    SawyerPushAndReachXYDoublePuckEnv,
+    SawyerPushAndReachXYZDoublePuckEnv,
+)
 
 import pygame
 from pygame.locals import QUIT, KEYDOWN
 
-from multiworld.envs.mujoco.dynamic_robotics.sawyer_throwing_env import SawyerThrowingEnv
-from multiworld.envs.mujoco.dynamic_robotics.sawyer_torque_reacher_with_gripper import SawyerReachTorqueGripperEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
+    SawyerReachXYZEnv
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
@@ -37,6 +47,10 @@ char_to_action = {
     'p': 'put obj in hand',
 }
 
+
+import gym
+import multiworld
+import pygame
 # env = gym.make('SawyerPushAndReachEnvEasy-v0')
 # env = SawyerPushAndReachXYEnv(
 #     goal_low=(-0.15, 0.4, 0.02, -.1, .5),
@@ -50,15 +64,11 @@ char_to_action = {
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerThrowingEnv(action_scale=1, fix_goal=True)
-# env = SawyerReachTorqueEnv()
-# env = SawyerReachTorqueGripperEnv()
+env = SawyerReachXYEnv()
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
 action = np.zeros(10)
-env.reset()
-act = 1
 while True:
     done = False
     if not lock_action:
@@ -86,18 +96,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    action = env.action_space.sample()
-    # action = np.ones(8)
-    # action[-1] = -1*act
-    # act = -1*act
-    action[-1] = 1
-    reward = env.step(action[:8])[1]
-    # print(env.data.qpos[:8])
-    # env.reset()
-    # reward = env.compute_reward(action, env._get_obs())
-    # print(env._get_obs()['desired_goal'])
-    # print(reward)
+    env.step(action[:2])
     if done:
         obs = env.reset()
-    for i in range(int(1e2)):
-        env.render()
+    env.render()
