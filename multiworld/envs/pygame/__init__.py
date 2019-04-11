@@ -1,3 +1,4 @@
+import gym
 from gym.envs.registration import register
 import logging
 
@@ -92,6 +93,32 @@ def register_custom_envs():
             'render_target': True,
         },
     )
+
+    register(
+        id='Point2DEnv-ImageFixedGoal-v0',
+        entry_point=point2d_image_fixed_goal_v0,
+        tags={
+            'git-commit-hash': '2e92a51',
+            'author': 'vitchyr'
+        },
+    )
+
+
+def point2d_image_fixed_goal_v0(**kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.pygame.point2d import Point2DEnv
+    from multiworld.core.flat_goal_env import FlatGoalEnv
+    env = Point2DEnv(
+        fixed_goal=(0, 0),
+        images_are_rgb=True,
+        render_onscreen=False,
+        show_goal=True,
+        ball_radius=2,
+        render_size=8,
+    )
+    env = ImageEnv(env, imsize=env.render_size, transpose=True)
+    env = FlatGoalEnv(env)
+    return env
 
 
 register_custom_envs()
