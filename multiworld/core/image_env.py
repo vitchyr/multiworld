@@ -268,9 +268,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             ))
         return statistics
 
-def normalize_image(image):
+def normalize_image(image, dtype=np.float64):
     assert image.dtype == np.uint8
-    return np.float64(image) / 255.0
+    return dtype(image) / 255.0
 
 def unormalize_image(image):
     assert image.dtype != np.uint8
