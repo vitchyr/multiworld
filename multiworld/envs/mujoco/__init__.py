@@ -4,14 +4,8 @@ import logging
 
 LOGGER = logging.getLogger(__name__)
 
-_REGISTERED = False
 
-
-def register_custom_envs():
-    global _REGISTERED
-    if _REGISTERED:
-        return
-    _REGISTERED = True
+def register_mujoco_envs():
     LOGGER.info("Registering multiworld mujoco gym environments")
     from multiworld.envs.mujoco.cameras import (
         sawyer_init_camera_zoomed_in
@@ -673,6 +667,3 @@ def create_image_48_sawyer_pickup_easy_v0():
         normalize=True,
         presampled_goals=goals,
     )
-
-
-register_custom_envs()

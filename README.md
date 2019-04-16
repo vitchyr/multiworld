@@ -62,6 +62,18 @@ obs = env.reset()  # returns 'observation' concatenated to `desired_goal`
 action = policy_that_takes_in_vector(obs)
 ```
 
+## Registered environments
+This repository comes with a number of environments that are ready to be
+loaded via the `gym.make` interface. To do so, they must first be registered:
+
+```
+import multiworld
+import gym
+
+multiworld.register_all_envs()
+env = gym.make('SawyerPushNIPSEasy-v0')
+```
+
 ## Extending Obs/Goals - Debugging and Multi-Modality
 One nice thing about using Dict spaces + FlatGoalEnv is that it makes it really
 easy to extend and debug.

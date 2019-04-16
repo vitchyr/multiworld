@@ -1,18 +1,10 @@
-import gym
 from gym.envs.registration import register
 import logging
 
 LOGGER = logging.getLogger(__name__)
 
-_REGISTERED = False
 
-
-def register_custom_envs():
-    global _REGISTERED
-    if _REGISTERED:
-        return
-    _REGISTERED = True
-
+def register_pygame_envs():
     LOGGER.info("Registering multiworld pygame gym environments")
     register(
         id='Point2DLargeEnv-offscreen-v0',
@@ -119,6 +111,3 @@ def point2d_image_fixed_goal_v0(**kwargs):
     env = ImageEnv(env, imsize=env.render_size, transpose=True)
     env = FlatGoalEnv(env)
     return env
-
-
-register_custom_envs()
