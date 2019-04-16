@@ -42,6 +42,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             walls = []
         if walls is None:
             walls = []
+        if fixed_goal is not None:
+            fixed_goal = np.array(fixed_goal)
         if len(kwargs) > 0:
             LOGGER = logging.getLogger(__name__)
             LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
@@ -56,10 +58,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.boundary_dist = boundary_dist
         self.ball_radius = ball_radius
         self.walls = walls
-        self.fixed_goal = np.array(fixed_goal)
+        self.fixed_goal = fixed_goal
         self.randomize_position_on_reset = randomize_position_on_reset
-        if self.fixed_goal is not None:
-            self.fixed_goal = np.array(self.fixed_goal)
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
 
