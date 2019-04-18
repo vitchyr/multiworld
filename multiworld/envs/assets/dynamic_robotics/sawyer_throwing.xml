@@ -177,7 +177,7 @@
 <!--  ================= BEGIN GRIPPER ================= /-->
                                             <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
                                             <geom size="1e-08 5e-09" type="cylinder" />
-                                            <body name="right_gripper_base" pos="0 0 0">
+                                            <body name="right_gripper_base" pos="0 0 .025">
                                                 <inertial pos="0 0 0" quat="-0.5 0.5 0.5 0.5" mass="0.3" diaginertia="3e-08 2e-08 2e-08" />
                                                 <geom quat="0 0 0.707107 0.707107" type="mesh" contype="0" conaffinity="0" group="1" mesh="electric_gripper_base" />
                                                 <geom size="0.029 0.05" quat="0 0 0.707107 0.707107" type="cylinder" />
