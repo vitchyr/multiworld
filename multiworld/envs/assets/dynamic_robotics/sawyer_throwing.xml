@@ -31,6 +31,10 @@
         <mesh name="l4" file="l4.stl" />
         <mesh name="l5" file="l5.stl" />
         <mesh name="l6" file="l6.stl" />
+
+        <mesh name="electric_gripper_base" file="electric_gripper_base.STL" />
+        <mesh name="standard_narrow" file="standard_narrow.STL" />
+        <mesh name="half_round_tip" file="half_round_tip.STL" />
 		
 
 		<texture name="groundplane" type="2d" builtin="checker" rgb1=".25 .26 .25" 
