@@ -87,9 +87,9 @@ while True:
             else:
                 action = np.zeros(3)
     action = env.action_space.sample()
-    # action = np.ones(8)
-    # action[-1] = -1*act
-    # act = -1*act
+    action = np.ones(8)
+    action[-1] = act
+    act = -1*act
     action[-1] = 1
     reward = env.step(action[:8])[1]
     # print(env.data.qpos[:8])
@@ -99,5 +99,5 @@ while True:
     # print(reward)
     if done:
         obs = env.reset()
-    for i in range(int(1e2)):
+    for i in range(int(1e3)):
         env.render()

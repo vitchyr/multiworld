@@ -103,7 +103,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def step(self, action):
         action[:7] = action[:7] * self.action_scale
-        self.do_simulation(action, self.frame_skip)
+        self.do_simulation(np.concatenate((action, [action[-1]*-1])), self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
                 self.reset_to_prev_qpos()
@@ -167,8 +167,8 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         return [
             -0.25, -.3+-6.95207647e-01, 0,
             .5+1.76670458e+00, 0, 0.3, 0,
-            0.01,
-            0.44, 0.05, 0.105, 0., 0, 0, 0,
+            0, 0,
+            0.44, 0.05, 0.075, 0., 0, 0, 0,
             .25 , -.25
         ]
 
