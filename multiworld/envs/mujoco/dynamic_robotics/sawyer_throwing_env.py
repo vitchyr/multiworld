@@ -166,7 +166,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
     def init_angles(self):
         return [
             -0.25, -.3+-6.95207647e-01, 0,
-            .5+1.76670458e+00, 0, 0.3, 0,
+            .5+1.76670458e+00, 0, 0.3, 1.57,
             0, 0,
             0.44, 0.05, 0.04, 0., 0, 0, 0,
             .25 , -.25
