@@ -169,7 +169,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
             .5+1.76670458e+00, 0, 0.3, 1.57,
             0, 0,
             0.44, 0.05, 0.04, 0., 0, 0, 0,
-            .25 , -.25
+            .25 , -.3
         ]
 
     @property

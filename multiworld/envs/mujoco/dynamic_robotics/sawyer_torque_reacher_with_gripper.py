@@ -110,9 +110,8 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        action = action * self.action_scale
         action[:7] = action[:7] * self.action_scale
-        self.do_simulation(action, self.frame_skip)
+        self.do_simulation(np.concatenate((action, [action[-1] * -1])), self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
                 self.reset_to_prev_qpos()
@@ -181,7 +180,7 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
         return [
             1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
             1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
-            3.53404635e+00, 0
+            3.53404635e+00, 0, 0,
         ]
 
     @property
