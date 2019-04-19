@@ -55,7 +55,7 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.achieved_goal_space = Box(
             -np.inf * np.ones(3),
             np.inf * np.ones(3),
-            dtype=np.float32, 
+            dtype=np.float32,
         )
         self.observation_space = Dict([
             ('observation', self.obs_space),
