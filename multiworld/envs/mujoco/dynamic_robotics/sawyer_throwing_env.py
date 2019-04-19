@@ -33,11 +33,12 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         high = np.concatenate((high, [1]))
         self.action_space = Box(low=low, high=high)
         if goal_low is None:
-            goal_low = np.array([-0.1, 0.5, 0.]) #TODO: set reasonable defaults here
+            goal_low = np.array([1.2,  -0.25, 0.]) #in true position space
         else:
             goal_low = np.array(goal_low)
+
         if goal_high is None:
-            goal_high = np.array([0.1, 0.7, 0.]) #TODO: set reasonable defaults here
+            goal_high = np.array([1.2,  0.25, 0.]) #in true position
         else:
             goal_high = np.array(goal_low)
         self.safety_box = Box(
@@ -63,7 +64,8 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('state_achieved_goal', self.achieved_goal_space),
         ])
         self.fix_goal = fix_goal
-        self.fixed_goal = np.concatenate((np.array(self.init_angles[-2:]), [0]))
+        self.goal_box_true_position = np.array([1.5, -.2, 0])
+        self.fixed_goal = np.concatenate((np.array(self.init_angles[-2:]), [0]))+self.goal_box_true_position
         self.use_safety_box=use_safety_box
         self.prev_qpos = self.init_angles.copy()
         self.reward_type = reward_type
@@ -117,7 +119,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def _get_env_obs(self):
         return np.concatenate([
-            self.sim.data.qpos.flat,
+            self.sim.data.qpos.flat[:-2], #don't include the goal in the obs, assume higher level code appends goal when doing RL
             self.sim.data.qvel.flat,
             self.get_endeff_pos(),
         ])
@@ -125,7 +127,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
     def _get_obs(self):
         state_obs = self._get_env_obs()
 
-        obj_pos = state_obs[8:11]
+        obj_pos = state_obs[9:12]
         return dict(
             observation=state_obs,
             desired_goal=self._state_goal,
@@ -137,7 +139,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         )
 
     def _get_info(self):
-        obj_distance = np.linalg.norm(self._state_goal - self._get_env_obs()[8:11])
+        obj_distance = np.linalg.norm(self._state_goal - self._get_env_obs()[9:12])
         return dict(
             obj_distance=obj_distance,
             obj_success=float(obj_distance < self.indicator_threshold),
@@ -151,13 +153,15 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         velocities = self.data.qvel.copy()
         angles[:] = self.init_angles
         velocities[:] = 0
+        goal_box_pos = self._state_goal - self.goal_box_true_position
+        angles[-2:] = goal_box_pos[:2]
         self.set_state(angles.flatten(), velocities.flatten())
         self.sim.forward()
         self.prev_qpos=self.data.qpos.copy()
 
     def reset(self):
-        self.reset_model()
         self.set_goal(self.sample_goal())
+        self.reset_model()
         self.sim.forward()
         self.prev_qpos = self.data.qpos.copy()
         return self._get_obs()
@@ -169,7 +173,7 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
             .5+1.76670458e+00, 0, 0.3, 1.57,
             0, 0,
             0.44, 0.05, 0.04, 0., 0, 0, 0,
-            .25 , -.3
+            -.3, .25
         ]
 
     @property
@@ -208,6 +212,9 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
             'desired_goal': self._state_goal,
             'state_desired_goal': self._state_goal,
         }
+
+    def get_goal_box_pos(self):
+        return self.data.body_xpos[self.model.body_names.index('goal')].copy()
 
     def set_goal(self, goal):
         self._state_goal = goal['state_desired_goal']
@@ -255,77 +262,3 @@ class SawyerThrowingEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.sim.forward()
         self._state_goal = goal
 
-if __name__ == "__main__":
-    # import pygame
-    # from pygame.locals import QUIT, KEYDOWN
-    #
-    # pygame.init()
-    # screen = pygame.display.set_mode((400, 300))
-    # char_to_action = {
-    #     'w': np.array([0 , -1, 0 , 0]),
-    #     'a': np.array([1 , 0 , 0 , 0]),
-    #     's': np.array([0 , 1 , 0 , 0]),
-    #     'd': np.array([-1, 0 , 0 , 0]),
-    #     'q': np.array([1 , -1 , 0 , 0]),
-    #     'e': np.array([-1 , -1 , 0, 0]),
-    #     'z': np.array([1 , 1 , 0 , 0]),
-    #     'c': np.array([-1 , 1 , 0 , 0]),
-    #     # 'm': np.array([1 , 1 , 0 , 0]),
-    #     'j': np.array([0 , 0 , 1 , 0]),
-    #     'k': np.array([0 , 0 , -1 , 0]),
-    #     'x': 'toggle',
-    #     'r': 'reset',
-    # }
-
-    # ACTION_FROM = 'controller'
-    # H = 100000
-    ACTION_FROM = 'random'
-    H = 300
-    # ACTION_FROM = 'pd'
-    # H = 50
-
-    env = SawyerReachTorqueEnv(keep_vel_in_obs=False, use_safety_box=False)
-
-    # env.get_goal()
-    # # env = MultitaskToFlatEnv(env)
-    # lock_action = False
-    # while True:
-    #     obs = env.reset()
-    #     last_reward_t = 0
-    #     returns = 0
-    #     action = np.zeros_like(env.action_space.sample())
-    #     for t in range(H):
-    #         done = False
-    #         if ACTION_FROM == 'controller':
-    #             if not lock_action:
-    #                 action = np.array([0,0,0,0])
-    #             for event in pygame.event.get():
-    #                 event_happened = True
-    #                 if event.type == QUIT:
-    #                     sys.exit()
-    #                 if event.type == KEYDOWN:
-    #                     char = event.dict['key']
-    #                     new_action = char_to_action.get(chr(char), None)
-    #                     if new_action == 'toggle':
-    #                         lock_action = not lock_action
-    #                     elif new_action == 'reset':
-    #                         done = True
-    #                     elif new_action is not None:
-    #                         action = new_action
-    #                     else:
-    #                         action = np.array([0 , 0 , 0 , 0])
-    #                     print("got char:", char)
-    #                     print("action", action)
-    #                     print("angles", env.data.qpos.copy())
-    #         elif ACTION_FROM == 'random':
-    #             action = env.action_space.sample()
-    #         else:
-    #             delta = (env.get_block_pos() - env.get_endeff_pos())[:2]
-    #             action[:2] = delta * 100
-    #         # if t == 0:
-    #         #     print("goal is", env.get_goal_pos())
-    #         obs, reward, _, info = env.step(action)
-    #         env.render()
-    #         if done:
-    #             break
-    #     print("new episode")

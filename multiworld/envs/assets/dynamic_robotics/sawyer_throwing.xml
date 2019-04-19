@@ -257,8 +257,8 @@
       <geom rgba="1 1 1 1" type="capsule" fromto="0.073 -0.073 0.0075 0.073 -0.073 0.10" size="0.005" contype="1" conaffinity="0"/>
       <geom rgba="1 1 1 1" type="capsule" fromto="-0.073 0.073 0.0075 -0.073 0.073 0.10" size="0.005" contype="1" conaffinity="0"/>
       <geom rgba="1 1 1 1" type="capsule" fromto="-0.073 -0.073 0.0075 -0.073 -0.073 0.10" size="0.005" contype="1" conaffinity="0"/>
-      <joint name="goal_slidey" type="slide" pos="0 0 0" axis="0 1 0" range="-10.3213 10.3" damping="1.0"/>
       <joint name="goal_slidex" type="slide" pos="0 0 0" axis="1 0 0" range="-10.3213 10.3" damping="1.0"/>
+      <joint name="goal_slidey" type="slide" pos="0 0 0" axis="0 1 0" range="-10.3213 10.3" damping="1.0"/>
     </body>
     </worldbody>
 
