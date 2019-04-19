@@ -32,7 +32,7 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
         high = bounds[:7, 1]
         low = np.concatenate((low, [-1]))
         high = np.concatenate((high, [1]))
-        self.action_space = Box(low=low, high=high)
+        self.action_space = Box(low=low, high=high, dtype=np.float32)
         if goal_low is None:
             goal_low = np.array([-0.1, 0.5, 0.02])
         else:
@@ -43,17 +43,19 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
             goal_high = np.array(goal_low)
         self.safety_box = Box(
             goal_low,
-            goal_high
+            goal_high,
+            dtype=np.float32,
         )
         self.keep_vel_in_obs = keep_vel_in_obs
-        self.goal_space = Box(goal_low, goal_high)
+        self.goal_space = Box(goal_low, goal_high, dtype=np.float32)
         obs_size = self._get_env_obs().shape[0]
         high = np.inf * np.ones(obs_size)
         low = -high
-        self.obs_space = Box(low, high)
+        self.obs_space = Box(low, high, dtype=np.float32)
         self.achieved_goal_space = Box(
             -np.inf * np.ones(3),
-            np.inf * np.ones(3)
+            np.inf * np.ones(3),
+            dtype=np.float32, 
         )
         self.observation_space = Dict([
             ('observation', self.obs_space),
