@@ -13,7 +13,8 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def __init__(self,
                  frame_skip=30,
-                 action_scale=10,
+                 torque_action_scale=100,
+                 gripper_action_scale=1,
                  keep_vel_in_obs=True,
                  use_safety_box=False,
                  fix_goal=False,
@@ -25,7 +26,8 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
-        self.action_scale = action_scale
+        self.torque_action_scale = torque_action_scale
+        self.gripper_action_scale = gripper_action_scale
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
         bounds = self.model.actuator_ctrlrange.copy()
         low = bounds[:7, 0]
@@ -110,8 +112,9 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        action = action * self.action_scale
-        action[:7] = action[:7] * self.action_scale
+        gripper_action = action[-1] * self.gripper_action_scale
+        action = action * self.torque_action_scale
+        action[-1] = gripper_action
         self.do_simulation(action, self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
