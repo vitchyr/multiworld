@@ -61,20 +61,7 @@ def register_custom_envs():
 
     register(
         id='SawyerReachTorqueEnv-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_torque.sawyer_reach_torque_env:SawyerReachTorqueEnv',
-        tags={
-            'git-commit-hash': '27b2112',
-            'author': 'murtaza'
-        },
-        kwargs={
-            'keep_vel_in_obs': True,
-            'use_safety_box': False,
-        },
-    )
-
-    register(
-        id='SawyerReachTorqueGripperEnv-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_torque.sawyer_torque_reacher_with_gripper:SawyerReachTorqueGripperEnv',
+        entry_point='multiworld.envs.mujoco.sawyer_torque.sawyer_torque_reach:SawyerReachTorqueEnv',
         tags={
             'git-commit-hash': '27b2112',
             'author': 'murtaza'

@@ -8,7 +8,7 @@ from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict, get_asset_full_path
 
 
-class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
+class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
     """Implements a torque-controlled Sawyer environment"""
 
     def __init__(self,
@@ -73,7 +73,7 @@ class SawyerReachTorqueGripperEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     @property
     def model_name(self):
-       return get_asset_full_path('sawyer_torque/sawyer_reach_torque_with_gripper.xml')
+       return get_asset_full_path('sawyer_torque/sawyer_reach_torque.xml')
 
     def reset_to_prev_qpos(self):
         angles = self.data.qpos.copy()
