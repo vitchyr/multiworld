@@ -1,4 +1,5 @@
 import abc
+import copy
 import numpy as np
 from gym.spaces import Box, Dict
 
@@ -15,7 +16,7 @@ from multiworld.envs.env_util import (
 )
 
 
-class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
+class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv): #, metaclass=abc.ABCMeta):
     def __init__(
             self,
             reward_type='state_distance',
@@ -30,6 +31,8 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             goal_low=(-1.90, -1.90), #list([-1.60, -1.60]),
             goal_high=(1.90, 1.90), #list([1.60, 1.60]),
             model_path='wheeled_car.xml',
+            reset_low=None,
+            reset_high=None,
             *args,
             **kwargs):
         self.quick_init(locals())
@@ -66,10 +69,21 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
         self.car_low, self.car_high = np.array(car_low), np.array(car_high)
         self.goal_low, self.goal_high = np.array(goal_low), np.array(goal_high)
 
+        if reset_low is None:
+            self.reset_low = np.array(car_low)
+        else:
+            self.reset_low = np.array(reset_low)
+        if reset_high is None:
+            self.reset_high = np.array(car_high)
+        else:
+            self.reset_high = np.array(reset_high)
+
         self.car_low += self.car_radius
         self.car_high -= self.car_radius
         self.goal_low += self.car_radius
         self.goal_high -= self.car_radius
+        self.reset_low += self.car_radius
+        self.reset_high -= self.car_radius
 
         self.two_frames = two_frames
         self.vel_in_state = vel_in_state
@@ -155,11 +169,17 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             angle_state, angle_goal = np.arctan2(state[2], state[3]), np.arctan2(goal[2], goal[3])
             angle_diff = np.abs(np.arctan2(np.sin(angle_state - angle_goal), np.cos(angle_state - angle_goal)))
             pos_angle_diff = np.linalg.norm(state[:4] - goal[:4])
+
+        pos_success = float(pos_diff < 0.6),
+        angle_success = float(angle_diff < 0.30),
+
         info = {
             'state_diff': state_diff,
             'pos_diff': pos_diff,
             'angle_diff': angle_diff,
             'pos_angle_diff': pos_angle_diff,
+            'pos_success': pos_success,
+            'angle_success': angle_success,
         }
         if self.vel_in_state:
             if self.z_in_state:
@@ -268,6 +288,30 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
                 'state_desired_goal': goals,
             }
 
+    def generate_expert_subgoals(self, num_subgoals):
+        ob_and_goal = self._get_obs()
+        ob = ob_and_goal['state_observation']
+        goal = ob_and_goal['state_desired_goal']
+
+        subgoals = []
+
+        theta = np.pi / 2
+        s1 = np.array([1.3, -1.0, np.sin(theta), np.cos(theta)])
+        s2 = np.array([1.3, 1.0, np.sin(theta), np.cos(theta)])
+        s3 = np.array([0.0, 1.0, np.sin(theta), np.cos(theta)])
+        subgoals += [s1, s2, s3]
+        # subgoals += [s1, s1, s1, s1]
+
+        if self.two_frames:
+            for i in range(len(subgoals)):
+                subgoals[i] = np.tile(subgoals[i], 2)
+        subgoals.append(goal)
+
+        if len(subgoals) == 0:
+            subgoals = np.tile(goal, num_subgoals).reshape(-1, len(goal))
+
+        return np.array(subgoals)
+
     def _positions_inside_wall(self, positions):
         inside_wall = False
         for wall in self.walls:
@@ -331,9 +375,9 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def _reset_car(self):
         qpos = np.zeros(6)
         qvel = np.zeros(6)
-        pos_2d = np.random.uniform(self.car_low, self.car_high)
+        pos_2d = np.random.uniform(self.reset_low, self.reset_high)
         while self._position_inside_wall(pos_2d):
-            pos_2d = np.random.uniform(self.car_low, self.car_high)
+            pos_2d = np.random.uniform(self.reset_low, self.reset_high)
         qpos[0:2] = pos_2d
         qpos[3] = np.random.uniform(0, 2 * np.pi)
         self.set_state(qpos, qvel)
@@ -349,7 +393,8 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
         if self.two_frames:
-            state_goal = state_goal[:int(len(state_goal)/2)]
+            goal_dim = len(self.goal_space.low) // 2
+            state_goal = state_goal[:goal_dim]
         qpos, qvel = np.zeros(6), np.zeros(6)
         if self.z_in_state:
             qpos[0:3] = state_goal[0:3] #xyz pos
@@ -370,12 +415,13 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
 
     def get_env_state(self):
         joint_state = self.sim.get_state()
-        goal = self._state_goal.copy()
-        return joint_state, goal, self._cur_obs, self._prev_obs
+        state = joint_state, self._state_goal, self._cur_obs, self._prev_obs
+        return copy.deepcopy(state)
 
     def set_env_state(self, state):
         state, goal, cur_obs, prev_obs = state
         self.sim.set_state(state)
+        self.sim.forward()
         self._state_goal = goal
         self._cur_obs = cur_obs
         self._prev_obs = prev_obs
@@ -410,6 +456,8 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta
             'pos_diff',
             'angle_diff',
             'pos_angle_diff',
+            'pos_success',
+            'angle_success',
         ]
         if self.vel_in_state:
             list_of_stat_names.append('velocity_diff')
