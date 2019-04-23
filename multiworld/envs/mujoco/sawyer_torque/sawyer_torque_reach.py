@@ -13,7 +13,8 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def __init__(self,
                  frame_skip=30,
-                 action_scale=10,
+                 torque_action_scale=100,
+                 gripper_action_scale=1,
                  keep_vel_in_obs=True,
                  use_safety_box=False,
                  fix_goal=False,
@@ -25,11 +26,14 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
                  ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
-        self.action_scale = action_scale
+        self.torque_action_scale = torque_action_scale
+        self.gripper_action_scale = gripper_action_scale
         MujocoEnv.__init__(self, self.model_name, frame_skip=frame_skip)
         bounds = self.model.actuator_ctrlrange.copy()
-        low = bounds[:, 0]
-        high = bounds[:, 1]
+        low = bounds[:7, 0]
+        high = bounds[:7, 1]
+        low = np.concatenate((low, [-1]))
+        high = np.concatenate((high, [1]))
         self.action_space = Box(low=low, high=high)
         if goal_low is None:
             goal_low = np.array([-0.1, 0.5, 0.02])
@@ -71,7 +75,7 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     @property
     def model_name(self):
-       return get_asset_full_path('sawyer_xyz/sawyer_reach_torque.xml')
+       return get_asset_full_path('sawyer_torque/sawyer_reach_torque.xml')
 
     def reset_to_prev_qpos(self):
         angles = self.data.qpos.copy()
@@ -108,7 +112,9 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.trackbodyid = -1
 
     def step(self, action):
-        action = action * self.action_scale
+        gripper_action = action[-1] * self.gripper_action_scale
+        action = action * self.torque_action_scale
+        action[-1] = gripper_action
         self.do_simulation(action, self.frame_skip)
         if self.use_safety_box:
             if self.is_outside_box():
@@ -178,12 +184,12 @@ class SawyerReachTorqueEnv(MujocoEnv, Serializable, MultitaskEnv):
         return [
             1.02866769e+00, - 6.95207647e-01, 4.22932911e-01,
             1.76670458e+00, - 5.69637604e-01, 6.24117280e-01,
-            3.53404635e+00,
+            3.53404635e+00, 0
         ]
 
     @property
     def endeff_id(self):
-        return self.model.body_names.index('leftclaw')
+        return self.model.body_names.index('right_hand')
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
