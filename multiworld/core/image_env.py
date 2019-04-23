@@ -11,6 +11,9 @@ from multiworld.core.wrapper_env import ProxyEnv
 from multiworld.envs.env_util import concatenate_box_spaces
 from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
 
+from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
+
 class ImageEnv(ProxyEnv, MultitaskEnv):
     def __init__(
             self,
@@ -147,6 +150,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         image_success = (image_dist<self.threshold).astype(float)-1
         info['image_dist'] = image_dist
         info['image_success'] = image_success
+        # info['image_dist'] = 0
+        # info['image_success'] = 0
 
     def reset(self):
         obs = self.wrapped_env.reset()
@@ -226,26 +231,48 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return self.transform_image(image_obs)
 
     def state_to_image(self, state):
-        return self.states_to_images(state[None])[0]
+        images = self.states_to_images(state[None])
+        if images is not None:
+            return images[0]
+        else:
+            return None
 
     def states_to_images(self, states):
-        assert False
-        states = self._wrapped_env.valid_states(states)
-        pre_state = self.wrapped_env.get_env_state()
+        if isinstance(self._wrapped_env, WheeledCarEnv):
+            state_dim = len(self.observation_space.spaces['state_observation'].low)
+            if self.two_frames:
+                state_dim = state_dim // 2
+            orig_batch_size = states.shape[0]
+            states = states.reshape(-1, state_dim)
 
-        batch_size = states.shape[0]
-        imgs = np.zeros((batch_size, self.image_length))
-        for i in range(batch_size):
-            self.wrapped_env.set_to_goal({"state_desired_goal": states[i]})
-            imgs[i, :] = self._get_flat_img()
-            # if batch_size > 1:
-            #     img = imgs[i, :]
-            #     img = img.reshape(3, 84, 84).transpose((1, 2, 0))
-            #     img = img[::, :, ::-1]
-            #     cv2.imshow('img', img)
-            #     cv2.waitKey(1)
-        self.wrapped_env.set_env_state(pre_state)
-        return imgs
+            states = self._wrapped_env.valid_states(states)
+            pre_state = self.wrapped_env.get_env_state()
+
+            batch_size = states.shape[0]
+            image_dim = self.image_length
+            if self.two_frames:
+                image_dim = image_dim // 2
+            imgs = np.zeros((batch_size, image_dim))
+            for i in range(batch_size):
+                self.wrapped_env.set_to_goal({"state_desired_goal": states[i]})
+                imgs[i, :] = self._get_flat_img()
+                # if batch_size > 1:
+                #     img = imgs[i, :]
+                #     img = img.reshape(3, 84, 84).transpose((1, 2, 0))
+                #     img = img[::, :, ::-1]
+                #     cv2.imshow('img', img)
+                #     cv2.waitKey(1)
+            self.wrapped_env.set_env_state(pre_state)
+            imgs = imgs.reshape(orig_batch_size, -1)
+            return imgs
+        elif isinstance(self._wrapped_env, SawyerPushAndReachXYEnv):
+            batch_size = states.shape[0]
+            imgs = np.zeros((batch_size, self.image_length))
+            for i in range(batch_size):
+                imgs[i, :] = self.transform_image(self._wrapped_env.get_image_plt(state=states[i]))
+            return imgs
+
+        return None
 
     def transform_image(self, img):
         if img is None:

@@ -52,59 +52,18 @@ char_to_action = {
 import gym
 import multiworld
 import pygame
-# env = gym.make('SawyerPushAndReachEnvEasy-v0')
-# env = SawyerPushAndReachXYEnv(
-#     goal_low=(-0.15, 0.4, 0.02, -.1, .5),
-#     goal_high=(0.15, 0.75, 0.02, .1, .7),
-#     puck_low=(-.3, .25),
-#     puck_high=(.3, .9),
-#     hand_low=(-0.15, 0.4, 0.05),
-#     hand_high=(0.15, .75, 0.3),
-#     norm_order=2,
-#     xml_path='sawyer_xyz/sawyer_push_puck_small_arena.xml',
-#     reward_type='state_distance',
-#     reset_free=False,
-# )
-# env = SawyerReachXYEnv()
 env_kwargs = dict(
-    # hide_goal=True,
-    reward_type='vectorized_state_distance',
-    fix_reset=0.075, #0.06, 0.10, 0.15, 0.25
-    # fixed_reset=(-0.01997255, 0.50003716, 0, 0.6),
+    norm_order=2,
     sample_realistic_goals=True,
-
-    puck_low=(-0.40, 0.40),
-    puck_high=(0.40, 0.80),
-
-    hand_low=(-0.40, 0.40),
-    hand_high=(0.40, 0.80),
-
-    action_scale=0.01,
-
-    square_puck=True,
-    heavy_puck=True,
-
-    # puck_low=(-0.2, 0.50),
-    # puck_high=(0.2, 0.70),
-    #
-    # hand_low=(-0.2, 0.50),
-    # hand_high=(0.2, 0.70),
-
-    # hand_low=(-0.1, 0.55),
-    # hand_high=(-0.099, 0.65),
-
-    # hand_low=(0.099, 0.55),
-    # hand_high=(0.1, 0.65),
-
-    # hand_low=(-0.1, 0.64),
-    # hand_high=(0.1, 0.65),
-
-    # hand_low=(-0.1, 0.54),
-    # hand_high=(0.1, 0.55),
-
-
-    # fixed_reset=(0, 0.55, 0.0, 0.65),
-    fixed_reset=(-0.05, 0.6, 0.05, 0.6),
+    hand_low=(-0.20, 0.50),
+    hand_high=(0.20, 0.70),
+    puck_low=(-0.20, 0.50),
+    puck_high=(0.20, 0.70),
+    fix_reset=0.075,
+    square_puck=False,  # [True, False],
+    heavy_puck=False,  # [True, False],
+    num_mocap_calls_for_reset=250,  # [10, 250],
+    reward_type='vectorized_state_distance'
 )
 env = SawyerPushAndReachXYEnv(**env_kwargs)
 NDIM = env.action_space.low.size
