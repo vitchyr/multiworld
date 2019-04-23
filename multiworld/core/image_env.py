@@ -76,7 +76,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             # viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
             # init_camera(viewer.cam)
             # sim.add_render_context(viewer)
-        self._render_local = False
         img_space = Box(0, 1, (self.image_length,), dtype=np.float32)
         self._img_goal = img_space.sample() #has to be done for presampling
         spaces = self.wrapped_env.observation_space.spaces.copy()
@@ -112,6 +111,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.num_goals_presampled = 0
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
+        self._last_image = None
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
@@ -174,14 +174,11 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return obs
 
     def _get_flat_img(self):
-        # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image(
             width=self.imsize,
             height=self.imsize,
         )
-        if self._render_local:
-            cv2.imshow('env', image_obs)
-            cv2.waitKey(1)
+        self._last_image = image_obs
         if self.grayscale:
             image_obs = Image.fromarray(image_obs).convert('L')
             image_obs = np.array(image_obs)
@@ -189,13 +186,22 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             image_obs = image_obs / 255.0
         if self.transpose:
             image_obs = image_obs.transpose()
+        assert image_obs.shape[0] == self.channels
         return image_obs.flatten()
 
-    def render(self):
-        self.wrapped_env.render()
-
-    def enable_render(self):
-        self._render_local = True
+    def render(self, mode='wrapped'):
+        if mode == 'wrapped':
+            self.wrapped_env.render()
+        elif mode == 'cv2':
+            if self._last_image is None:
+                self._last_image = self._wrapped_env.get_image(
+                    width=self.imsize,
+                    height=self.imsize,
+                )
+            cv2.imshow('ImageEnv', self._last_image)
+            cv2.waitKey(1)
+        else:
+            raise ValueError("Invalid render mode: {}".format(mode))
 
     """
     Multitask functions
@@ -262,9 +268,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             ))
         return statistics
 
-def normalize_image(image):
+def normalize_image(image, dtype=np.float64):
     assert image.dtype == np.uint8
-    return np.float64(image) / 255.0
+    return dtype(image) / 255.0
 
 def unormalize_image(image):
     assert image.dtype != np.uint8
