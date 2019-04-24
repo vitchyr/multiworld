@@ -544,11 +544,56 @@ def create_image_48_sawyer_push_and_reach_arena_env_reset_free_v0():
 
 def register_soroush_envs():
     register(
-        id='SawyerPushAndReachTrainEnvHard-v0',
+        id='SawyerPushAndReachTrainEnvEasy-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '0f24d69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.10, 0.55),
+            hand_high=(0.10, 0.65),
+            puck_low=(-0.10, 0.55),
+            puck_high=(0.10, 0.65),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+        )
+    )
+    register(
+        id='SawyerPushAndReachTrainEnvEasyVectRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '0f24d69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.10, 0.55),
+            hand_high=(0.10, 0.65),
+            puck_low=(-0.10, 0.55),
+            puck_high=(0.10, 0.65),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='Image84SawyerPushAndReachTrainEnvEasy-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_easy_v0,
+        tags={
+            'git-commit-hash': '91f090c',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachTrainEnvHard-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': '91f090c',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -566,7 +611,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '0f24d69',
+            'git-commit-hash': '91f090c',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -585,7 +630,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '0f24d69',
+            'git-commit-hash': '91f090c',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -607,7 +652,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '0f24d69',
+            'git-commit-hash': '91f090c',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -629,7 +674,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTrainEnvHard-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_hard_v0,
         tags={
-            'git-commit-hash': '0f24d69',
+            'git-commit-hash': '91f090c',
             'author': 'Soroush'
         },
     )
@@ -637,11 +682,23 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTestEnvHard-v0',
         entry_point=create_image_84_sawyer_pnr_test_env_hard_v0,
         tags={
-            'git-commit-hash': '0f24d69',
+            'git-commit-hash': '91f090c',
             'author': 'Soroush'
         },
     )
 
+def create_image_84_sawyer_pnr_train_env_easy_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvEasy-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm,
+        transpose=True,
+        normalize=True,
+    )
 def create_image_84_sawyer_pnr_train_env_hard_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
