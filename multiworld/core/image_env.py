@@ -349,19 +349,24 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
-    def compute_rewards(self, actions, obs):
-        if self.reward_type=='wrapped_env':
-            return self.wrapped_env.compute_rewards(actions, obs)
+    def compute_rewards(self, actions, obs, reward_type=None):
+        if reward_type is None:
+            reward_type = self.reward_type
 
-        achieved_goals = obs['achieved_goal']
-        desired_goals = obs['desired_goal']
-        dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
-        if self.reward_type=='image_distance':
+        if reward_type=='wrapped_env':
+            return self.wrapped_env.compute_rewards(actions, obs)
+        elif reward_type=='image_distance':
+            achieved_goals = obs['achieved_goal']
+            desired_goals = obs['desired_goal']
+            dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -dist
-        elif self.reward_type=='image_sparse':
+        elif reward_type=='image_sparse':
+            achieved_goals = obs['achieved_goal']
+            desired_goals = obs['desired_goal']
+            dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -(dist > self.threshold).astype(float)
         else:
-            raise NotImplementedError()
+            return self.wrapped_env.compute_rewards(actions, obs, reward_type=reward_type)
 
     def get_diagnostics(self, paths, **kwargs):
         statistics = self.wrapped_env.get_diagnostics(paths, **kwargs)
