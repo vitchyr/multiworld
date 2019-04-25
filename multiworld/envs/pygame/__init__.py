@@ -2,9 +2,14 @@ from gym.envs.registration import register
 import logging
 
 LOGGER = logging.getLogger(__name__)
+REGISTERED = False
 
 
 def register_pygame_envs():
+    global REGISTERED
+    if REGISTERED:
+        return
+    REGISTERED = True
     LOGGER.info("Registering multiworld pygame gym environments")
     register(
         id='Point2DLargeEnv-offscreen-v0',

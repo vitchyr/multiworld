@@ -3,9 +3,14 @@ from gym.envs.registration import register
 import logging
 
 LOGGER = logging.getLogger(__name__)
+REGISTERED = False
 
 
 def register_mujoco_envs():
+    global REGISTERED
+    if REGISTERED:
+        return
+    REGISTERED = True
     LOGGER.info("Registering multiworld mujoco gym environments")
     from multiworld.envs.mujoco.cameras import (
         sawyer_init_camera_zoomed_in
