@@ -156,15 +156,20 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         # cam_dist = 1
         # cam_pos = np.array([0, 0.5, 0.2, cam_dist, -45, rotation_angle])
 
-        # 3rd person view
-        cam_dist = 0.3
-        rotation_angle = 270
-        cam_pos = np.array([0, 1.0, 0.5, cam_dist, -45, rotation_angle])
+        # # 3rd person view
+        # cam_dist = 0.3
+        # rotation_angle = 270
+        # cam_pos = np.array([0, 1.0, 0.5, cam_dist, -45, rotation_angle])
 
         # top down view
         # cam_dist = 0.2
         # rotation_angle = 0
         # cam_pos = np.array([0, 0, 1.5, cam_dist, -90, rotation_angle])
+
+        # TDM_v2
+        cam_dist = 0.3
+        rotation_angle = 270
+        cam_pos = np.array([0, 0.85, 0.30, cam_dist, -55, rotation_angle])
 
         for i in range(3):
             self.viewer.cam.lookat[i] = cam_pos[i]
@@ -258,7 +263,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             proprio_achieved_goal=flat_obs[:2],
         )
 
-    def compute_rewards(self, actions, obs, prev_obs=None):
+    def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
+        if reward_type is None:
+            reward_type = self.reward_type
+
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals[:, :2]
@@ -270,23 +278,25 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         puck_distances = np.linalg.norm(puck_goals - puck_pos, ord=self.norm_order, axis=1)
         touch_distances = np.linalg.norm(hand_pos - puck_pos, ord=self.norm_order, axis=1)
 
-        if self.reward_type == 'hand_distance':
+        if reward_type == 'hand_distance':
             r = -hand_distances
-        elif self.reward_type == 'hand_success':
+        elif reward_type == 'hand_success':
             r = -(hand_distances > self.indicator_threshold).astype(float)
-        elif self.reward_type == 'puck_distance':
+        elif reward_type == 'puck_distance':
             r = -puck_distances
-        elif self.reward_type == 'puck_success':
+        elif reward_type == 'puck_success':
             r = -(puck_distances > self.indicator_threshold).astype(float)
-        elif self.reward_type == 'state_distance':
+        elif reward_type == 'vectorized_puck_distance':
+            r = -np.abs(puck_goals - puck_pos)
+        elif reward_type == 'state_distance':
             r = -np.linalg.norm(
                 achieved_goals - desired_goals,
                 ord=self.norm_order,
                 axis=1
             )
-        elif self.reward_type == 'vectorized_state_distance':
+        elif reward_type == 'vectorized_state_distance':
             r = -np.abs(achieved_goals - desired_goals)
-        elif self.reward_type == 'telescoping_state_distance':
+        elif reward_type == 'telescoping_state_distance':
             """DONT JUST USE THIS REWARD, IT ISNT SCALED BY DISCOUNT FACTOR (THAT'S DONE IN RPLY BFR)"""
             if prev_obs is None:
                 return np.zeros((len(obs)))
@@ -296,9 +306,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             new_dist = np.linalg.norm(desired_goals - achieved_goals, ord=self.norm_order, axis=1)
             prev_dist = np.linalg.norm(prev_desired_goals - prev_achieved_goals, ord=self.norm_order, axis=1)
             return -1 * (new_dist - prev_dist)
-        elif self.reward_type == 'touch_distance':
+        elif reward_type == 'touch_distance':
             r = -touch_distances
-        elif self.reward_type == 'touch_success':
+        elif reward_type == 'touch_success':
             r = -(touch_distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
@@ -584,13 +594,15 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def update_subgoals(self, subgoals):
         self.subgoals = subgoals
 
-    def get_image_rew(self, obs):
-        return self.get_image_plt(draw_state=True, draw_goal=True, draw_subgoals=True)
+    # def get_image(self):
+    #     return self.get_image_plt(draw_state=True, draw_goal=True, draw_subgoals=True)
 
     def get_image_plt(self,
+                      vals=None,
                       extent=None,
                       imsize=84,
-                      draw_state=True, draw_goal=False, draw_subgoals=False):
+                      draw_state=True, draw_goal=False, draw_subgoals=False,
+                      state=None, goal=None, subgoals=None):
         if extent is None:
             x_bounds = np.array([self.hand_space.low[0] - 0.03, self.hand_space.high[0] + 0.03])
             y_bounds = np.array([self.hand_space.low[1] - 0.03, self.hand_space.high[1] + 0.03])
@@ -621,9 +633,15 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         ax.hlines(y=puck_high[1], xmin=puck_low[0], xmax=puck_high[0], linestyles='dotted', color='black')
 
         if draw_state:
-            hand = plt.Circle(self.get_endeff_pos()[:2], 0.025 * marker_factor, color='green')
+            if state is not None:
+                hand_pos = state[:2]
+                puck_pos = state[2:]
+            else:
+                hand_pos = self.get_endeff_pos()[:2]
+                puck_pos = self.get_puck_pos()[:2]
+            hand = plt.Circle(hand_pos, 0.025 * marker_factor, color='green')
             ax.add_artist(hand)
-            puck = plt.Circle(self.get_puck_pos()[:2], 0.025 * marker_factor, color='blue')
+            puck = plt.Circle(puck_pos, 0.025 * marker_factor, color='blue')
             ax.add_artist(puck)
         if draw_goal:
             hand = plt.Circle(self._state_goal[:2], 0.03 * marker_factor, color='#00ff99')

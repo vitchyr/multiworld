@@ -245,3 +245,12 @@ def sawyer_pusher_camera_tdm_v3(camera):
     camera.elevation = -55
     camera.azimuth = 270
     camera.trackbodyid = -1
+
+def sawyer_pusher_camera_tdm_v4(camera):
+    camera.distance = .26
+    camera.lookat[0] = 0
+    camera.lookat[1] = 0.88
+    camera.lookat[2] = 0.30
+    camera.elevation = -55
+    camera.azimuth = 270
+    camera.trackbodyid = -1
