@@ -349,12 +349,12 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         goals['image_desired_goal'] = img_goals
         return goals
 
-    def compute_rewards(self, actions, obs, reward_type=None):
+    def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
         if reward_type is None:
             reward_type = self.reward_type
 
         if reward_type=='wrapped_env':
-            return self.wrapped_env.compute_rewards(actions, obs)
+            return self.wrapped_env.compute_rewards(actions, obs, prev_obs=prev_obs)
         elif reward_type=='image_distance':
             achieved_goals = obs['achieved_goal']
             desired_goals = obs['desired_goal']
@@ -366,7 +366,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -(dist > self.threshold).astype(float)
         else:
-            return self.wrapped_env.compute_rewards(actions, obs, reward_type=reward_type)
+            return self.wrapped_env.compute_rewards(actions, obs, prev_obs=prev_obs,
+                                                    reward_type=reward_type)
 
     def get_diagnostics(self, paths, **kwargs):
         statistics = self.wrapped_env.get_diagnostics(paths, **kwargs)
