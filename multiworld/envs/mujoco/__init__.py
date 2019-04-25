@@ -380,6 +380,27 @@ def register_custom_envs():
     )
 
     """
+    Pick and Place
+    """
+    register(
+        id='SawyerPickupEnvYZ-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=30,
+        )
+    )
+
+
+    """
     Wheeled Car
     """
     register(
