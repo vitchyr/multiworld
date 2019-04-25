@@ -43,6 +43,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             fixed_hand_goal=(-0.05, 0.6),
             # multi-object
             num_objects=1,
+
             filename='sawyer_multiobj.xml',
             object_mass=1,
             # object_meshes=['Bowl', 'GlassBowl', 'LotusBowl01', 'ElephantBowl', 'RuggedBowl'],
@@ -62,6 +63,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             action_repeat=1,
             fixed_start=True,
             goal_moves_one_object=False,
+
+            num_scene_objects=None, # list of number of objects that can appear per scene
+            object_height=0.02,
     ):
         self.quick_init(locals())
         self.reward_info = reward_info
@@ -85,8 +89,11 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.goal_moves_one_object = goal_moves_one_object
 
         self.num_objects = num_objects
+        self.num_scene_objects = num_scene_objects
+        self.object_height = object_height
         self.fixed_start = fixed_start
         self.maxlen = maxlen
+        self.cur_objects = [0] * num_objects
 
         # Generate XML
         base_filename = asset_base_path + filename
@@ -121,6 +128,11 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             goal_low,
             goal_high,
         )
+        self.total_objects = self.num_objects + 1
+        self.objects_box = Box(
+            np.zeros((self.total_objects, )),
+            np.ones((self.total_objects, )),
+        )
         self.observation_space = Dict([
             ('observation', self.obs_box),
             ('state_observation', self.obs_box),
@@ -128,6 +140,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('state_desired_goal', self.goal_box),
             ('achieved_goal', self.goal_box),
             ('state_achieved_goal', self.goal_box),
+            ('objects', self.objects_box),
         ])
         # hack for state-based experiments for other envs
         # self.observation_space = Box(
@@ -184,9 +197,12 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             np.array([mocap_delta_z])
         ))
         u = np.zeros(7)
-        for _ in range(self.action_repeat):
-            self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
-            self.do_simulation(u, self.frame_skip)
+        try:
+            for _ in range(self.action_repeat):
+                self.mocap_set_action(new_mocap_action[:3] * self._pos_action_scale)
+                self.do_simulation(u, self.frame_skip)
+        except mujoco_py.builder.MujocoException:
+            pass
 
         # self.render()
 
@@ -197,11 +213,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             y = 10 + i * 7
             qpos[x:y] = np.clip(qpos[x:y], self.object_low, self.object_high)
         self.set_state(qpos, qvel)
-
-        obs = self._get_obs()
-        # reward = self.compute_reward(obs, u, obs, self._goal_xyxy)
-        reward = self.compute_reward(a, obs)
-        done = False
 
         endeff_pos = self.get_endeff_pos()
         hand_distance = np.linalg.norm(
@@ -220,12 +231,28 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                 endeff_pos - self.get_object_pos(i)
             )
             touch_distances[touch_name] = touch_distance
+        objects = {}
+
+        # b = np.zeros((self.num_objects + 1))
+        # b[0] = 1 # the arm
+        # for i in self.cur_objects:
+        #     b[i+1] = 1
+        # for i in range(self.num_objects):
+        #     objects["object%d" % i] = b[i+1]
         info = dict(
-            hand_distance=hand_distance,
-            success=float(hand_distance + sum(object_distances.values()) < 0.06),
-            **object_distances,
-            **touch_distances,
+            # hand_distance=hand_distance,
+            # success=float(hand_distance + sum(object_distances.values()) < 0.06),
+            # **object_distances,
+            # **touch_distances,
+            # **objects,
+            # objects_present=b,
         )
+
+        obs = self._get_obs()
+        # reward = self.compute_reward(obs, u, obs, self._goal_xyxy)
+        reward = self.compute_reward(a, obs, info)
+        done = False
+
         return obs, reward, done, info
 
     def mocap_set_action(self, action):
@@ -249,6 +276,11 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         x = np.concatenate((e, b))
         g = self.state_goal
 
+        o = np.zeros((self.total_objects))
+        o[0] = 1 # the hand
+        for i in self.cur_objects:
+            o[i+1] = 1
+
         new_obs = dict(
             observation=x,
             state_observation=x,
@@ -256,6 +288,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             state_desired_goal=g,
             achieved_goal=x,
             state_achieved_goal=x,
+            objects=o,
         )
 
         return new_obs
@@ -285,11 +318,25 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         x = 7 + i * 7
         y = 10 + i * 7
         z = 14 + i * 7
-        qpos[x:y] = np.hstack((pos.copy(), np.array([0.02])))
+        qpos[x:y] = np.hstack((pos.copy(), np.array([self.object_height])))
         qpos[y:z] = np.array([1, 0, 0, 0])
         x = 7 + i * 6
         y = 13 + i * 6
         qvel[x:y] = 0
+        self.set_state(qpos, qvel)
+
+    def set_object_xys(self, positions):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        for i, pos in enumerate(positions):
+            x = 7 + i * 7
+            y = 10 + i * 7
+            z = 14 + i * 7
+            qpos[x:y] = np.hstack((pos.copy(), np.array([self.object_height])))
+            qpos[y:z] = np.array([1, 0, 0, 0])
+            x = 7 + i * 6
+            y = 13 + i * 6
+            qvel[x:y] = 0
         self.set_state(qpos, qvel)
 
     def reset_mocap_welds(self):
@@ -314,25 +361,32 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         )
 
     def set_initial_object_positions(self):
-        if self.fixed_start: # set object to middle of workspace always
-            for i in range(self.num_objects):
-                self.set_object_xy(i, np.array([0, 0.6]))
-        else: # set object to middle of workspace always
-            while True:
-                pos = [self.INIT_HAND_POS[:2], ]
-                for i in range(self.num_objects):
+        n_o = np.random.choice(self.num_scene_objects)
+        self.cur_objects = np.random.choice(self.num_objects, n_o, replace=False)
+        while True:
+            pos = [self.INIT_HAND_POS[:2], ]
+            for i in range(n_o):
+                if self.fixed_start:
+                    r = np.array([0, 0.6])
+                else:
                     r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
-                    pos.append(r)
-                touching = []
-                for i in range(self.num_objects + 1):
-                    for j in range(i):
-                        t = np.linalg.norm(pos[i] - pos[j]) <= self.maxlen
-                        touching.append(t)
-                if not any(touching):
-                    break
-            pos.reverse()
-            for i in range(self.num_objects):
-                self.set_object_xy(i, pos[i])
+                pos.append(r)
+            touching = []
+            for i in range(n_o + 1):
+                for j in range(i):
+                    t = np.linalg.norm(pos[i] - pos[j]) <= self.maxlen
+                    touching.append(t)
+            if not any(touching):
+                break
+        pos.reverse()
+        positions = []
+        for i in range(self.num_objects):
+            z = 10 + 10 * i
+            positions.append(np.array([z, z]))
+        for i in range(n_o):
+            j = self.cur_objects[i]
+            positions[j] = pos[i]
+        self.set_object_xys(positions)
 
     def reset(self):
         velocities = self.data.qvel.copy()
@@ -350,12 +404,21 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         return self._get_obs()
 
     def compute_rewards(self, action, obs, info=None):
-        r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'], axis=1)
+        bz = len(obs['state_achieved_goal'])
+        ag = obs['state_achieved_goal'].reshape((bz, 9, 2))
+        dg = obs['state_desired_goal'].reshape((bz, 9, 2))
+        os = obs['objects']
+
+        dists = np.linalg.norm(ag[:, :, :] - dg[:, :, :], axis=2)
+        # dists[:, 1:] * info
+        r = -np.sum(dists * os, axis=1)
+
+        # r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'], axis=1)
         return r
 
-    def compute_reward(self, action, obs, info=None):
-        r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'])
-        return r
+    # def compute_reward(self, action, obs, info=None):
+    #     r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'])
+    #     return r
 
     def compute_her_reward_np(self, ob, action, next_ob, goal, env_info=None):
         return self.compute_reward(ob, action, next_ob, goal, env_info=env_info)
@@ -378,26 +441,28 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             return
 
         statistics = OrderedDict()
-        for stat_name in [
-            'hand_distance',
-            'success',
-        ] + [
-            "object%d_distance" % i for i in range(self.num_objects)
-        ] + [
-            "touch%d_distance" % i for i in range(self.num_objects)
-        ]:
-            stat_name = stat_name
-            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-            statistics.update(create_stats_ordered_dict(
-                '%s %s' % (prefix, stat_name),
-                stat,
-                always_show_all_stats=True,
-            ))
-            statistics.update(create_stats_ordered_dict(
-                'Final %s %s' % (prefix, stat_name),
-                [s[-1] for s in stat],
-                always_show_all_stats=True,
-            ))
+        # for stat_name in [
+        #     'hand_distance',
+        #     'success',
+        # ] + [
+        #     "object%d_distance" % i for i in range(self.num_objects)
+        # ] + [
+        #     "touch%d_distance" % i for i in range(self.num_objects)
+        # ] + [
+        #     "object%d" % i for i in range(self.num_objects)
+        # ]:
+        #     stat_name = stat_name
+        #     stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+        #     statistics.update(create_stats_ordered_dict(
+        #         '%s %s' % (prefix, stat_name),
+        #         stat,
+        #         always_show_all_stats=True,
+        #     ))
+        #     statistics.update(create_stats_ordered_dict(
+        #         'Final %s %s' % (prefix, stat_name),
+        #         [s[-1] for s in stat],
+        #         always_show_all_stats=True,
+        #     ))
 
         for key, value in statistics.items():
             logger.record_tabular(key, value)
@@ -422,6 +487,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         }
 
     def sample_goal_for_rollout(self):
+        n = len(self.cur_objects)
         if self.randomize_goals:
             if self.goal_moves_one_object:
                 hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
@@ -430,24 +496,25 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                     b = self.get_object_pos(i)[:2]
                     bs.append(b)
 
-                r = np.random.randint(self.num_objects) # object to move
-                pos = bs + [self.INIT_HAND_POS[:2], ]
-                while True:
-                    bs[r] = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
-                    touching = []
-                    for i in range(self.num_objects + 1):
-                        if i != r:
-                            t = np.linalg.norm(pos[i] - bs[r]) <= self.maxlen
-                            touching.append(t)
-                    if not any(touching):
-                        break
+                if n:
+                    r = np.random.choice(self.cur_objects) # object to move
+                    pos = bs + [self.INIT_HAND_POS[:2], ]
+                    while True:
+                        bs[r] = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+                        touching = []
+                        for i in range(n + 1):
+                            if i != r:
+                                t = np.linalg.norm(pos[i] - bs[r]) <= self.maxlen
+                                touching.append(t)
+                        if not any(touching):
+                            break
 
                 puck = np.concatenate(bs)
 
 
             else:
                 hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
-                puck = np.concatenate([np.random.uniform(self.puck_goal_low, self.puck_goal_high) for i in range(self.num_objects)])
+                puck = np.concatenate([np.random.uniform(self.puck_goal_low, self.puck_goal_high) for i in range(n)])
         else:
             hand = self.fixed_hand_goal.copy()
             puck = self.fixed_puck_goal.copy()
