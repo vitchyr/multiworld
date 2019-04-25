@@ -1,3 +1,4 @@
+import gym
 from gym.envs.registration import register
 import logging
 
@@ -43,54 +44,13 @@ def register_custom_envs():
     )
 
     register(
-        id='Point2DWallEnv-easy-u-v0',
+        id='PointmassUWallTrainEnv-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': '352248b',
             'author': 'Soroush'
         },
-        kwargs={
-            'action_scale': 0.25,
-            'wall_shape': 'easy-u',
-            'wall_thickness': 0.50,
-            'render_size': 200,
-            'images_are_rgb': True,
-            'sample_realistic_goals': True,
-            'norm_order': 2,
-            'reward_type': 'vectorized_dense',
-        },
-    )
-
-    register(
-        id='Point2DWallEnvBox-v0',
-        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
-        tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
-        },
-        kwargs={
-            'action_scale': 0.25,
-            'wall_shape': 'box',
-            'wall_thickness': 2.0,
-            'render_size': 48,
-            'images_are_rgb': True,
-            'sample_realistic_goals': True,
-            'render_target': False,
-            'norm_order': 2,
-            'reward_type': 'dense',
-            'ball_low': (-4, 3.90),
-            'ball_high': (-3.90, 4),
-        },
-    )
-
-    register(
-        id='Point2DWallEnvEasyU-v0',
-        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
-        tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
-        },
-        kwargs={
+        kwargs = {
             'action_scale': 0.25,
             'wall_shape': 'easy-u',
             'wall_thickness': 0.50,
@@ -102,21 +62,20 @@ def register_custom_envs():
             'reward_type': 'vectorized_dense',
         }
     )
-
     register(
-        id='Image84Point2DWallEnvEasyU-v0',
-        entry_point=create_image_84_point2d_wall_easy_u_v0,
+        id='Image84PointmassUWallTrainEnv-v0',
+        entry_point=create_image_84_pointmass_uwall_train_env_v0,
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': '352248b',
             'author': 'Soroush'
         },
     )
 
     register(
-        id='Point2DWallEnvEasyU-v1',
+        id='PointmassUWallTestEnv-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': '352248b',
             'author': 'Soroush'
         },
         kwargs={
@@ -135,12 +94,11 @@ def register_custom_envs():
             'goal_high': (4, 4),
         }
     )
-
     register(
-        id='Image84Point2DWallEnvEasyU-v1',
-        entry_point=create_image_84_point2d_wall_easy_u_v1,
+        id='Image84PointmassUWallTestEnv-v0',
+        entry_point=create_image_84_pointmass_uwall_test_env_v0,
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': '352248b',
             'author': 'Soroush'
         },
     )
@@ -307,6 +265,33 @@ def create_image_84_point2d_wall_easy_u_v0():
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
     )
+
+def create_image_84_pointmass_uwall_train_env_v0():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTrainEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+
+def create_image_84_pointmass_uwall_test_env_v0():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTestEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+
 
 def create_image_84_point2d_wall_easy_u_v1():
     from multiworld.core.image_env import ImageEnv
