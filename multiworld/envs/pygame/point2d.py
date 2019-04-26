@@ -211,15 +211,17 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_achieved_goal=self._position.copy(),
         )
 
-    def compute_rewards(self, actions, obs):
+    def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
+        if reward_type is None:
+            reward_type = self.reward_type
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=-1)
-        if self.reward_type == "sparse":
+        if reward_type == "sparse":
             return -(d > self.target_radius).astype(np.float32)
-        elif self.reward_type == "dense":
+        elif reward_type == "dense":
             return -d
-        elif self.reward_type == 'vectorized_dense':
+        elif reward_type == 'vectorized_dense':
             return -np.abs(achieved_goals - desired_goals)
 
     def get_diagnostics(self, paths, prefix=''):
@@ -247,6 +249,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'desired_goal': self._target_position.copy(),
             'state_desired_goal': self._target_position.copy(),
         }
+
+    def set_goal(self, goal):
+        self._target_position = goal['state_desired_goal']
 
     def sample_goal_for_rollout(self):
         if not self.fixed_goal is None:

@@ -371,10 +371,12 @@ def register_custom_envs():
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
+            obj_low=(-0.1, 0.55, 0.00),
             hand_high=(0.0, 0.65, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
             num_goals_presampled=1000,
+            reward_type='vectorized_state_distance',
         )
 
     )
@@ -392,10 +394,12 @@ def register_custom_envs():
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
+            obj_low=(-0.1, 0.55, 0.00),
             hand_high=(0.0, 0.65, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
-            num_goals_presampled=30,
+            num_goals_presampled=1000,
+            # reward_type='vectorized_state_distance',
         )
     )
 

@@ -120,7 +120,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 spaces['image_achieved_goal'],
                 spaces['proprio_achieved_goal']
             )
-
         self.observation_space = Dict(spaces)
         self.action_space = self.wrapped_env.action_space
         self.reward_type = reward_type
@@ -152,6 +151,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         info['image_success'] = image_success
         # info['image_dist'] = 0
         # info['image_success'] = 0
+
+    def set_presampled_goals(self, goals, num_goals):
+        self.num_goals_presampled = num_goals
+        self._presampled_goals = goals
 
     def reset(self):
         obs = self.wrapped_env.reset()
@@ -356,15 +359,20 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if reward_type=='wrapped_env':
             return self.wrapped_env.compute_rewards(actions, obs, prev_obs=prev_obs)
         elif reward_type=='image_distance':
-            achieved_goals = obs['achieved_goal']
-            desired_goals = obs['desired_goal']
+            achieved_goals = obs['image_achieved_goal']
+            desired_goals = obs['image_desired_goal']
             dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -dist
         elif reward_type=='image_sparse':
-            achieved_goals = obs['achieved_goal']
-            desired_goals = obs['desired_goal']
+            achieved_goals = obs['image_achieved_goal']
+            desired_goals = obs['image_desired_goal']
             dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -(dist > self.threshold).astype(float)
+        elif reward_type == 'image_distance_vectorized':
+            achieved_goals = obs['image_achieved_goal']
+            desired_goals = obs['image_desired_goal']
+            dist = np.abs(achieved_goals - desired_goals)
+            return -dist
         else:
             return self.wrapped_env.compute_rewards(actions, obs, prev_obs=prev_obs,
                                                     reward_type=reward_type)

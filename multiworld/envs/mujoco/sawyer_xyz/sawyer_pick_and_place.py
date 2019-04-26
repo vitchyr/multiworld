@@ -89,7 +89,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         )
         self.gripper_and_hand_and_obj_space = Box(
             np.hstack((self.hand_low, obj_low, [0.0])),
-            np.hstack((self.hand_high, obj_high, [0.04])),
+            np.hstack((self.hand_high, obj_high, [0.05])),
             dtype=np.float32
         )
 
@@ -319,7 +319,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         return sampled_goals
 
 
-    def compute_rewards(self, actions, obs, prev_obs=None):
+    def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
+        if reward_type is None:
+            reward_type = self.reward_type
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals[:, :3]
@@ -333,25 +335,27 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         touch_distances = np.linalg.norm(hand_pos - obj_pos, ord=self.norm_order, axis=1)
         touch_and_obj_distances = touch_distances + obj_distances
 
-        if self.reward_type == 'hand_distance':
+        if reward_type == 'hand_distance':
             r = -hand_distances
-        elif self.reward_type == 'hand_success':
+        elif reward_type == 'vectorized_state_distance':
+            r = -np.abs(achieved_goals - desired_goals)
+        elif reward_type == 'hand_success':
             r = -(hand_distances > self.indicator_threshold).astype(float)
-        elif self.reward_type == 'obj_distance':
+        elif reward_type == 'obj_distance':
             r = -obj_distances
-        elif self.reward_type == 'obj_success':
+        elif reward_type == 'obj_success':
             r = -(obj_distances > self.indicator_threshold).astype(float)
-        elif self.reward_type == 'hand_and_obj_distance':
+        elif reward_type == 'hand_and_obj_distance':
             r = -hand_and_obj_distances
-        elif self.reward_type == 'touch_and_obj_distance':
+        elif reward_type == 'touch_and_obj_distance':
             r = -touch_and_obj_distances
-        elif self.reward_type == 'hand_and_obj_success':
+        elif reward_type == 'hand_and_obj_success':
             r = -(
                 hand_and_obj_distances < self.indicator_threshold
             ).astype(float)
-        elif self.reward_type == 'touch_distance':
+        elif reward_type == 'touch_distance':
             r = -touch_distances
-        elif self.reward_type == 'touch_success':
+        elif reward_type == 'touch_success':
             r = -(touch_distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
@@ -433,6 +437,103 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 'proprio_desired_goal': goals[:, :3]
             }
 
+    def update_subgoals(self, subgoals):
+        self.subgoals = subgoals
+
+    def get_image_plt(self,
+                      vals=None,
+                      extent=None,
+                      imsize=84,
+                      draw_state=True, draw_goal=False, draw_subgoals=False,
+                      state=None, goal=None, subgoals=None):
+        import matplotlib
+        matplotlib.use('agg')
+        import matplotlib.pyplot as plt
+
+        if extent is None:
+            x_bounds = np.array([self.hand_space.low[1] - 0.03, self.hand_space.high[1] + 0.03])
+            y_bounds = np.array([self.hand_space.low[2] - 0.03, self.hand_space.high[2] + 0.03])
+            self.vis_bounds = np.concatenate((x_bounds, y_bounds))
+            extent = self.vis_bounds
+
+        fig, ax = plt.subplots()
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
+        ax.set_ylim(ax.get_ylim()[::-1])
+        ax.set_xlim(ax.get_xlim()[::-1])
+        DPI = fig.get_dpi()
+        fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
+
+        marker_factor = 0.50
+
+        hand_low, hand_high = self.hand_space.low, self.hand_space.high
+        ax.vlines(x=hand_low[1], ymin=hand_low[2], ymax=hand_high[2], linestyles='dotted', color='black')
+        ax.hlines(y=hand_low[2], xmin=hand_low[1], xmax=hand_high[1], linestyles='dotted', color='black')
+        ax.vlines(x=hand_high[1], ymin=hand_low[2], ymax=hand_high[2], linestyles='dotted', color='black')
+        ax.hlines(y=hand_high[2], xmin=hand_low[1], xmax=hand_high[1], linestyles='dotted', color='black')
+
+        # puck_low, puck_high = self.puck_space.low, self.puck_space.high
+        puck_low, puck_high = hand_low, hand_high
+        # TODO
+        ax.vlines(x=puck_low[1], ymin=puck_low[2], ymax=puck_high[2], linestyles='dotted', color='black')
+        ax.hlines(y=puck_low[2], xmin=puck_low[1], xmax=puck_high[1], linestyles='dotted', color='black')
+        ax.vlines(x=puck_high[1], ymin=puck_low[2], ymax=puck_high[2], linestyles='dotted', color='black')
+        ax.hlines(y=puck_high[2], xmin=puck_low[1], xmax=puck_high[1], linestyles='dotted', color='black')
+
+        if draw_state:
+            if state is not None:
+                hand_pos = state[1:3]
+                puck_pos = state[4:6]
+            else:
+                hand_pos = self.get_endeff_pos()[1:3]
+                puck_pos = self.get_obj_pos()[1:3]
+            hand = plt.Circle(hand_pos, 0.025 * marker_factor, color='green')
+            ax.add_artist(hand)
+            puck = plt.Circle(puck_pos, 0.025 * marker_factor, color='blue')
+            ax.add_artist(puck)
+        if draw_goal:
+            hand = plt.Circle(self._state_goal[1:3], 0.03 * marker_factor, color='#00ff99')
+            ax.add_artist(hand)
+            puck = plt.Circle(self._state_goal[4:6], 0.03 * marker_factor, color='cyan')
+            ax.add_artist(puck)
+        if draw_subgoals:
+            if self.subgoals is not None:
+                subgoals = self.subgoals.reshape((-1, 7))
+                for subgoal in subgoals[:1]:
+                    hand = plt.Circle(subgoal[1:3], 0.015 * marker_factor, color='green')
+                    ax.add_artist(hand)
+                    puck = plt.Circle(subgoal[4:6], 0.015 * marker_factor, color='blue')
+                    ax.add_artist(puck)
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+
+        # ax.imshow(
+        #     vals,
+        #     extent=extent,
+        #     cmap=plt.get_cmap('plasma'),
+        #     interpolation='nearest',
+        #     vmax=vmax,
+        #     vmin=vmin,
+        #     origin='bottom',  # <-- Important! By default top left is (0, 0)
+        # )
+
+        return self.plt_to_numpy(fig)
+
+    def plt_to_numpy(self, fig):
+        import matplotlib
+        matplotlib.use('agg')
+        import matplotlib.pyplot as plt
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        # data = data.reshape(fig.canvas.get_width_height() + (3,))
+        plt.close()
+        return data
+
 class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
 
     def __init__(
@@ -510,7 +611,7 @@ def corrected_image_env_goals(image_env, pickup_env_goals):
     This isn't as easy as setting to the corrected since mocap will fail to
     move to the exact position, and the object will fail to stay in the hand.
     """
-
+    pickup_env = image_env.wrapped_env
     image_env.wrapped_env._state_goal = np.zeros(
         pickup_env.observation_space.spaces['state_desired_goal'].low.size
     )

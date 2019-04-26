@@ -306,6 +306,7 @@ def create_image_84_point2d_wall_easy_u_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 def create_image_84_point2d_wall_easy_u_v1():
@@ -335,6 +336,7 @@ def create_image_84_point2d_wall_easy_u_v1():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 def create_image_84_point2d_wall_v0():
@@ -358,6 +360,7 @@ def create_image_84_point2d_wall_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 
