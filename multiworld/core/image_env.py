@@ -13,6 +13,7 @@ from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dic
 
 from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
 
 class ImageEnv(ProxyEnv, MultitaskEnv):
     def __init__(
@@ -107,7 +108,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         self.return_image_proprio = False
         if 'proprio_observation' in spaces.keys():
-            self.return_image_proprio = True
+            self.return_image_proprio = False
             spaces['image_proprio_observation'] = concatenate_box_spaces(
                 spaces['image_observation'],
                 spaces['proprio_observation']
@@ -132,6 +133,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         self._cur_obs = None
         self._prev_obs = None
+        self.dummy = False
 
     def step(self, action):
         self._prev_obs = self._cur_obs
@@ -226,6 +228,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return frame
 
     def _get_flat_img(self):
+        if self.dummy:
+            return np.zeros(1)
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image(
             width=self.imsize,
@@ -268,6 +272,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.wrapped_env.set_env_state(pre_state)
             imgs = imgs.reshape(orig_batch_size, -1)
             return imgs
+        elif isinstance(self._wrapped_env, SawyerPickAndPlaceEnvYZ):
+            return self.wrapped_env.states_to_images(states)
+
         elif isinstance(self._wrapped_env, SawyerPushAndReachXYEnv):
             batch_size = states.shape[0]
             imgs = np.zeros((batch_size, self.image_length))
