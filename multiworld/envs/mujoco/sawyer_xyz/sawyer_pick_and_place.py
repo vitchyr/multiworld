@@ -64,6 +64,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.obj_init_positions = np.array(obj_init_positions)
         self.last_obj_pos = self.obj_init_positions[0]
 
+        self.subgoals = None
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
@@ -113,6 +114,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
             self.num_goals_presampled = num_goals_presampled
+        self.num_goals_presampled = 10
         self.picked_up_object = False
         self.train_pickups = 0
         self.eval_pickups = 0
@@ -440,6 +442,14 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def update_subgoals(self, subgoals):
         self.subgoals = subgoals
 
+    def states_to_images(self, states):
+        images = []
+        for state in states:
+            image = self.get_image_plt(draw_state=True, state=state)
+            image = image.transpose()
+            images.append(image)
+        return np.array(images)
+
     def get_image_plt(self,
                       vals=None,
                       extent=None,
@@ -449,7 +459,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         import matplotlib
         matplotlib.use('agg')
         import matplotlib.pyplot as plt
-
         if extent is None:
             x_bounds = np.array([self.hand_space.low[1] - 0.03, self.hand_space.high[1] + 0.03])
             y_bounds = np.array([self.hand_space.low[2] - 0.03, self.hand_space.high[2] + 0.03])
@@ -587,6 +596,61 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         obj_pos[0] = self.x_axis
         self._set_obj_xyz(obj_pos)
 
+    def reset(self):
+        super().reset()
+        self._state_goal[0] = 0.0
+        self._state_goal[3] = 0.0
+        return self._get_obs()
+
+    def _get_obs(self):
+        e = self.get_endeff_pos()
+        b = self.get_obj_pos()
+        e[0] = 0.0
+        b[0] = 0.0
+        gripper = self.get_gripper_pos()
+        flat_obs = np.concatenate((e, b))
+        flat_obs_with_gripper = np.concatenate((e, b, gripper))
+        hand_goal = self._state_goal[:3]
+
+        return dict(
+            observation=flat_obs_with_gripper,
+            desired_goal=self._state_goal,
+            achieved_goal=flat_obs_with_gripper,
+            state_observation=flat_obs_with_gripper,
+            state_desired_goal=self._state_goal,
+            state_achieved_goal=flat_obs_with_gripper,
+            proprio_observation=e,
+            proprio_achieved_goal=e,
+            proprio_desired_goal=hand_goal,
+        )
+
+    def _get_info(self):
+        e = self.get_endeff_pos()
+        b = self.get_obj_pos()
+        e[0] = 0.0
+        b[0] = 0.0
+        hand_goal = self._state_goal[:3]
+        obj_goal = self._state_goal[3:6]
+        hand_distance = np.linalg.norm(hand_goal - e,  ord=self.norm_order)
+        obj_distance = np.linalg.norm(obj_goal - b, ord=self.norm_order)
+        touch_distance = np.linalg.norm(
+            e - b,  ord=self.norm_order,
+        )
+        return dict(
+            hand_distance=hand_distance,
+            obj_distance=obj_distance,
+            hand_and_obj_distance=hand_distance+obj_distance,
+            touch_distance=touch_distance,
+            hand_success=float(hand_distance < self.indicator_threshold),
+            obj_success=float(obj_distance < self.indicator_threshold),
+            hand_and_obj_success=float(
+                hand_distance+obj_distance < self.indicator_threshold
+            ),
+            total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
+            touch_success=float(touch_distance < self.indicator_threshold),
+        )
+
+
 
 def corrected_state_goals(pickup_env, pickup_env_goals):
     pickup_env._state_goal = np.zeros(
@@ -595,6 +659,8 @@ def corrected_state_goals(pickup_env, pickup_env_goals):
     goals = pickup_env_goals.copy()
     num_goals = len(list(goals.values())[0])
     for idx in range(num_goals):
+        if idx % 100 == 0:
+            print(idx)
         pickup_env.set_to_goal(
             {'state_desired_goal': goals['state_desired_goal'][idx]}
         )
