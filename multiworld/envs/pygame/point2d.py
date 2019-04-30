@@ -361,7 +361,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             Color('blue'),
         )
 
-        if self.subgoals is not None:
+        if self.subgoals is not None and self.observation_space.spaces['state_observation'].low.size == self.subgoals[0].size:
             for goal in self.subgoals:
                 self.drawer.draw_solid_circle(
                     goal,
