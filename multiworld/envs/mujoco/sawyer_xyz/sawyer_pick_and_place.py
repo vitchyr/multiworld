@@ -460,8 +460,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         matplotlib.use('agg')
         import matplotlib.pyplot as plt
         if extent is None:
-            x_bounds = np.array([self.hand_space.low[1] - 0.03, self.hand_space.high[1] + 0.03])
-            y_bounds = np.array([self.hand_space.low[2] - 0.03, self.hand_space.high[2] + 0.03])
+            x_bounds = np.array([self.hand_space.low[1] - 0.05, self.hand_space.high[1] + 0.05])
+            y_bounds = np.array([self.hand_space.low[2] - 0.05, self.hand_space.high[2] + 0.05])
             self.vis_bounds = np.concatenate((x_bounds, y_bounds))
             extent = self.vis_bounds
 
