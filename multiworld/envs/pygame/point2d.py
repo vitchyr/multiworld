@@ -271,12 +271,16 @@ class Point2DEnv(MultitaskEnv, Serializable):
         #     self.obs_range.high,
         #     size=(batch_size, self.obs_range.low.size),
         # )
-        goals = np.array(
-            [
-                self._sample_position(self.obs_range.low, self.obs_range.high, realistic=self.sample_realistic_goals)
-                for _ in range(batch_size)
-            ]
-        )
+        if not self.fixed_goal is None:
+            goal = np.copy(self.fixed_goal)
+            goals = np.tile(goal, (batch_size, 1))
+        else:
+            goals = np.array(
+                [
+                    self._sample_position(self.obs_range.low, self.obs_range.high, realistic=self.sample_realistic_goals)
+                    for _ in range(batch_size)
+                ]
+            )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
