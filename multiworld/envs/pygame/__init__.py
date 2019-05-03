@@ -304,6 +304,7 @@ def create_image_84_pointmass_uwall_train_env_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 def create_image_84_pointmass_uwall_test_env_v0():
