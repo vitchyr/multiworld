@@ -111,6 +111,32 @@ def register_custom_envs():
             'author': 'Soroush'
         },
     )
+    register(
+        id='Image84Point2DFixedGoal-v0',
+        entry_point=point2d_image_fixed_goal_v0,
+        tags={
+            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'author': 'steven'
+        },
+    )
+    register(
+        id='Image84Point2DRandomGoal-v0',
+        entry_point=point2d_image_random_goal_v0,
+        tags={
+            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'author': 'steven'
+        },
+    )
+
+    register(
+        id='Image8Point2DFixedGoal-v0',
+        entry_point=point2d_image_fixed_goal_8_v0,
+        tags={
+            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'author': 'steven'
+        },
+    )
+
 
     register(
         id='Point2DWallEnvFlappyBird-v0',
@@ -292,6 +318,74 @@ def create_image_84_pointmass_uwall_test_env_v0():
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
     )
+
+def point2d_image_fixed_goal_v0(**kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.pygame.point2d import Point2DEnv
+    env = Point2DEnv(
+        fixed_goal=(0, 0),
+        images_are_rgb=True,
+        # ball_radius=2,
+        render_onscreen=False,
+        render_target=False,
+        action_scale=.25,
+        norm_order=2,
+    )
+    env = ImageEnv(
+        env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
+    )
+    return env
+
+def point2d_image_random_goal_v0(**kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.pygame.point2d import Point2DEnv
+    env = Point2DEnv(
+        images_are_rgb=True,
+        ball_radius=1,
+        render_onscreen=False,
+        render_target=False,
+        action_scale=.25,
+        norm_order=2,
+    )
+    env = ImageEnv(
+        env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
+    )
+    return env
+
+def point2d_image_fixed_goal_8_v0(**kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.pygame.point2d import Point2DEnv
+    env = Point2DEnv(
+        fixed_goal=(0, 0),
+        images_are_rgb=True,
+        ball_radius=3,
+        render_onscreen=False,
+        render_target=False,
+        action_scale=.25,
+    )
+    env = ImageEnv(
+        env,
+        8,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+        # reward_type='vectorized_dense',
+        reward_type='dense',
+    )
+    return env
 
 
 def create_image_84_point2d_wall_easy_u_v1():
