@@ -349,10 +349,10 @@ def point2d_image_fixed_goal_v0(**kwargs):
     env = Point2DEnv(
         fixed_goal=(0, 0),
         images_are_rgb=True,
-        # ball_radius=2,
+        ball_radius=2,
         render_onscreen=False,
         render_target=False,
-        action_scale=.25,
+        # action_scale=.25,
         norm_order=2,
     )
     env = ImageEnv(
@@ -362,9 +362,10 @@ def point2d_image_fixed_goal_v0(**kwargs):
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
-        reward_type='vectorized_dense',
+        reward_type='dense',
     )
-    return env
+    from multiworld.core.flat_goal_env import FlatGoalEnv
+    return FlatGoalEnv(env)
 
 def point2d_image_random_goal_v0(**kwargs):
     from multiworld.core.image_env import ImageEnv
