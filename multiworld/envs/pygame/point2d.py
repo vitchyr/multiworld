@@ -131,6 +131,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
             self.sweep_goal_imgs.append(img)
         self.sweep_goal_imgs = np.vstack(self.sweep_goal_imgs)
+        print(self.sweep_goal_imgs.shape)
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -757,12 +758,15 @@ class Point2DWallEnv(Point2DEnv):
 
         self.sweep_goal_imgs = []
         for goal in sweep_goal:
+            if not self.realistic_state_np(goal):
+                continue
             self.set_to_goal({
                 'state_desired_goal': goal,
             })
             img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
             self.sweep_goal_imgs.append(img)
         self.sweep_goal_imgs = np.vstack(self.sweep_goal_imgs)
+        print(self.sweep_goal_imgs.shape)
 
 
     def generate_expert_subgoals(self, num_subgoals):
