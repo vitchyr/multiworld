@@ -70,6 +70,14 @@ def register_custom_envs():
             'author': 'Soroush'
         },
     )
+    register(
+        id='Image84PointmassUWallTrainEnvImageReward-v0',
+        entry_point=create_image_84_pointmass_uwall_train_env_image_reward_v0,
+        tags={
+            'git-commit-hash': '352248b',
+            'author': 'Soroush'
+        },
+    )
 
     register(
         id='PointmassUWallTestEnv-v0',
@@ -306,6 +314,21 @@ def create_image_84_pointmass_uwall_train_env_v0():
         non_presampled_goal_img_is_garbage=False,
         reward_type='vectorized_dense',
     )
+
+def create_image_84_pointmass_uwall_train_env_image_reward_v0():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTrainEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+        reward_type='image_distance_vectorized',
+    )
+
 
 def create_image_84_pointmass_uwall_test_env_v0():
     from multiworld.core.image_env import ImageEnv
