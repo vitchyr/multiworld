@@ -613,6 +613,24 @@ def register_soroush_envs():
             'author': 'Soroush'
         },
     )
+    register(
+        id='Image84SawyerPushAndReachTrainEnvSmallVect-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_small_vect_v0,
+        tags={
+            'git-commit-hash': '352248b',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='Image84SawyerPushAndReachTrainEnvBigVect-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_big_vect_v0,
+        tags={
+            'git-commit-hash': '352248b',
+            'author': 'Soroush'
+        },
+    )
+
 
     register(
         id='SawyerPushAndReachTrainEnvBig-v0',
@@ -725,6 +743,7 @@ def create_image_84_sawyer_pnr_train_env_small_v0():
         transpose=True,
         normalize=True,
     )
+
 def create_image_84_sawyer_pnr_train_env_big_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
@@ -733,9 +752,37 @@ def create_image_84_sawyer_pnr_train_env_big_v0():
     return ImageEnv(
         wrapped_env,
         84,
+        init_camera=sawyer_pusher_camera_tdm,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_train_env_big_vect_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvBigVectRew-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+
+def create_image_84_sawyer_pnr_train_env_small_vect_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvSmallVectRew-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
     )
 def create_image_84_sawyer_pnr_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv

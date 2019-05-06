@@ -117,7 +117,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.subgoals = None
-        nx, ny = (50, 50)
+        nx, ny = (20, 20)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
@@ -132,6 +132,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             self.sweep_goal_imgs.append(img)
         self.sweep_goal_imgs = np.vstack(self.sweep_goal_imgs)
         print(self.sweep_goal_imgs.shape)
+        self.i = 0
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -518,7 +519,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         pass
 
     def get_image_v(self, agent, qf, vf, obs, tau):
-        nx, ny = (50, 50)
+        nx, ny = (20, 20)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
@@ -766,6 +767,23 @@ class Point2DWallEnv(Point2DEnv):
             img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
             self.sweep_goal_imgs.append(img)
         self.sweep_goal_imgs = np.vstack(self.sweep_goal_imgs)
+
+        nx, ny = (20, 20)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+
+        self.sweep_goal_imgs_for_video = []
+        for goal in sweep_goal:
+            # if not self.realistic_state_np(goal):
+                # continue
+            self.set_to_goal({
+                'state_desired_goal': goal,
+            })
+            img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
+            self.sweep_goal_imgs_for_video.append(img)
+        self.sweep_goal_imgs_for_video = np.vstack(self.sweep_goal_imgs_for_video)
         print(self.sweep_goal_imgs.shape)
 
 
@@ -802,13 +820,13 @@ class Point2DWallEnv(Point2DEnv):
         return np.array(subgoals)
 
     def get_image_v(self, agent, qf, vf, obs, tau):
-        nx, ny = (50, 50)
+        nx, ny = (20, 20)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
 
         sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
-        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        sweep_goal = self.sweep_goal_imgs_for_video
         sweep_tau = np.tile(tau, (nx * ny, 1))
         if vf is not None:
             v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
@@ -818,8 +836,26 @@ class Point2DWallEnv(Point2DEnv):
         v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
         return self.get_image_plt(v_vals)
 
+    def get_image_v_subgoal(self, agent, qf, vf, obs, tau):
+        nx, ny = (20, 20)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_goal = np.tile(self.subgoals[0].reshape((1, -1)), (nx * ny, 1))
+        sweep_obs = self.sweep_goal_imgs_for_video
+        sweep_tau = np.tile(tau, (nx * ny, 1))
+        if vf is not None:
+            v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
+        else:
+            sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+            v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
+        return self.get_image_plt(v_vals)
+
+
     def get_image_rew(self, obs):
-        nx, ny = (50, 50)
+        nx, ny = (20, 20)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
@@ -830,7 +866,7 @@ class Point2DWallEnv(Point2DEnv):
         return self.get_image_plt(rew_vals)
 
     def get_image_realistic_rew(self):
-        nx, ny = (50, 50)
+        nx, ny = (20, 20)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
