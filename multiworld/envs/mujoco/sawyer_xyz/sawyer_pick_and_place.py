@@ -125,12 +125,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def model_name(self):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
-    def mode(self, name):
-        if 'train' not in name:
-            self.oracle_reset_prob = 0.0
-            self.cur_mode = 'train'
-        else:
-            self.cur_mode = 'eval'
+    def train(self):
+        self.cur_mode = 'train'
+
+    def eval(self):
+        # self.oracle_reset_prob = 0.0
+        self.cur_mode = 'eval'
 
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
@@ -255,7 +255,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self._set_obj_xyz(self.obj_init_positions[obj_idx])
 
         if self.oracle_reset_prob > np.random.random():
-            self.set_to_goal(self.sample_goal())
+            uncorrected_goal = self.generate_uncorrected_env_goals(1)['state_desired_goal'][0]
+            self.set_to_goal(
+                {'state_desired_goal': uncorrected_goal}
+            )
 
         self.set_goal(self.sample_goal())
         self._set_goal_marker(self._state_goal)
