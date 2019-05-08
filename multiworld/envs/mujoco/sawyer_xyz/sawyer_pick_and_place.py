@@ -18,7 +18,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             reward_type='hand_and_obj_distance',
             indicator_threshold=0.06,
 
-            obj_init_positions=((0, 0.6, 0.02),),
+            obj_init_positions=((0, 0.5, 2),),
             random_init=False,
 
             fix_goal=False,
@@ -265,7 +265,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def _reset_hand(self):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_reset_pos)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             print(self.frame_skip)
             self.do_simulation(None, self.frame_skip)
 
@@ -278,7 +278,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         hand_goal = state_goal[:3]
         for _ in range(30):
             self.data.set_mocap_pos('mocap', hand_goal)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             self.do_simulation(np.array([-1]))
         error = self.data.get_site_xpos('endeffector') - hand_goal
         corrected_obj_pos = state_goal[3:6] + error

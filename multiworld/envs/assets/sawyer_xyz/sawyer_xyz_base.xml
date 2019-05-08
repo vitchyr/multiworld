@@ -128,7 +128,7 @@ Usage:
 
                                                     <geom name="rightclaw_it" condim="4" margin="0.001" type="box" user="0" pos="0 0 0" size="0.045 0.005 0.015"  rgba="1 1 1 1.0" />
                                                    <!--  <joint name="r_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true" solimplimit="0.99 0.999 0.01" solreflimit="0.01 1" type="slide"/> -->
-                                                    <joint name="rc_close" pos="0 0 0" axis="0 1 0" range= "0 0.03" armature="100" damping="1000" limited="true"  type="slide"/> 
+                                                    <joint name="rc_close" pos="0 0 0" axis="0 1 0" range= "-.03 0.06" armature="100" damping="1000" limited="true"  type="slide"/> 
 
                                                     <site name="rightEndEffector" pos="0.03 0.005 0" size="0.014 0.008 0.012" type='box'  rgba="0 0 0 0"/>
                                                 </body>
