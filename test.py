@@ -23,7 +23,6 @@ while True:
     for _ in range(10):
         # action = np.array([0, 0, 1])
         action = env.action_space.sample()
-        print(action)
         for _ in range(10):
             obs, _, _, _ = env.step(action)
             env.render()

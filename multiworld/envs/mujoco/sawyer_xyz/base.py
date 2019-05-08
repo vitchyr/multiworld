@@ -13,10 +13,10 @@ class SawyerMocapBase(MujocoEnv, Serializable, metaclass=abc.ABCMeta):
     Provides some commonly-shared functions for Sawyer Mujoco envs that use
     mocap for XYZ control.
     """
-    mocap_low = np.array([-0.2, 0.5, 0.06])
-    mocap_high = np.array([0.2, 0.7, 0.6])
+    mocap_low = np.array([-1, 0, 0])
+    mocap_high = np.array([1, 1, 1])
 
-    def __init__(self, model_name, frame_skip=50):
+    def __init__(self, model_name, frame_skip=5):
         MujocoEnv.__init__(self, model_name, frame_skip=frame_skip)
         self.reset_mocap_welds()
 
@@ -63,11 +63,11 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
     def __init__(
             self,
             *args,
-            hand_low=(-0.2, 0.55, 0.05),
+            hand_low=(-0.5, 0.25, 0.05),
             hand_high=(0.2, 0.75, 0.3),
             mocap_low=None,
             mocap_high=None,
-            action_scale=2./100,
+            action_scale=1./100,
             **kwargs
     ):
         super().__init__(*args, **kwargs)
@@ -91,7 +91,8 @@ class SawyerXYZEnv(SawyerMocapBase, metaclass=abc.ABCMeta):
             self.mocap_high,
         )
         self.data.set_mocap_pos('mocap', new_mocap_pos)
-        self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+        # self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+        self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
 
     def set_xy_action(self, xy_action, fixed_z):
         delta_z = fixed_z - self.data.mocap_pos[0, 2]
