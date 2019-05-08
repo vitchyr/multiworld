@@ -18,7 +18,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             reward_type='hand_and_obj_distance',
             indicator_threshold=0.06,
 
-            obj_init_positions=((0, 0.5, 2),),
+            obj_init_positions=((0, 0.6, 0),),
             random_init=False,
 
             fix_goal=False,
