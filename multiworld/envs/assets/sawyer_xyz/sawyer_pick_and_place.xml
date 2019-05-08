@@ -3,10 +3,10 @@
     <include file="shared_config.xml"></include>
     <worldbody>
         <include file="sawyer_xyz_base_russell.xml"></include>
-        <body name="door" pos="0 0.6 0.03">
-                <geom type="box" pos="0 0 0" size="0.2 0.04 0.03"
-                      rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
-        </body>
+        <!--<body name="wall" pos="0 0.6 0.03">-->
+                <!--<geom type="box" pos="0 0 0" size="0.2 0.04 0.03"-->
+                      <!--rgba=".6 .6 .5 1" contype="15" conaffinity="15" />-->
+        <!--</body>-->
         <body name="obj" pos="0 0 0.1">
             <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
