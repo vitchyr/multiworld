@@ -69,7 +69,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
         self.reset_free = reset_free
-        self.oracle_reset_prob = oracle_reset_prob
+        self.train_oracle_reset_prob = oracle_reset_prob
+        self.oracle_reset_prob = self.train_oracle_reset_prob
 
         self.hide_goal_markers = hide_goal_markers
 
@@ -126,10 +127,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def train(self):
+        self.oracle_reset_prob = self.train_oracle_reset_prob
         self.cur_mode = 'train'
 
     def eval(self):
-        # self.oracle_reset_prob = 0.0
+        self.oracle_reset_prob = 0.0
         self.cur_mode = 'eval'
 
     def viewer_setup(self):
