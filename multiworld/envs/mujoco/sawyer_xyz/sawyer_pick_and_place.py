@@ -266,7 +266,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(10):
             self.data.set_mocap_pos('mocap', self.hand_reset_pos)
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
-            print(self.frame_skip)
             self.do_simulation(None, self.frame_skip)
 
     def set_to_goal(self, goal):
@@ -280,8 +279,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_pos('mocap', hand_goal)
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             self.do_simulation(np.array([-1]))
-        error = self.data.get_site_xpos('endeffector') - hand_goal
-        corrected_obj_pos = state_goal[3:6] + error
+        # error = self.data.get_site_xpos('endeffector') - hand_goal
+        corrected_obj_pos = state_goal[3:6] #+ error
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
         if corrected_obj_pos[2] > .03:
