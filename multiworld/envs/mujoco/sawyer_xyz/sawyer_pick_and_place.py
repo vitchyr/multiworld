@@ -243,12 +243,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return self._get_obs()
 
         if self.random_init:
-            goal = np.random.uniform(
-                self.hand_and_obj_space.low[3:],
-                self.hand_and_obj_space.high[3:],
-                size=(1, self.hand_and_obj_space.low.size - 3),
-            )
-            goal[:, 2] = self.obj_init_z
+            goal = self.generate_uncorrected_env_goals(
+                1, p_obj_in_hand=0
+            )['state_desired_goal'][0][3:6]
             self._set_obj_xyz(goal)
         else:
             obj_idx = np.random.choice(len(self.obj_init_positions))
@@ -404,7 +401,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = goal
         self._set_goal_marker(goal)
 
-    def generate_uncorrected_env_goals(self, num_goals):
+    def generate_uncorrected_env_goals(self, num_goals, p_obj_in_hand=None):
         """
         Due to small errors in mocap, moving to a specified hand position may be
         slightly off. This is an issue when the object must be placed into a given
@@ -417,6 +414,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         The return of this function should be passed into
         corrected_image_env_goals or corrected_state_env_goals
         """
+        if p_obj_in_hand is None:
+            p_obj_in_hand = self.p_obj_in_hand
         if self.fix_goal:
             goals = np.repeat(self.fixed_goal.copy()[None], num_goals, 0)
         else:
@@ -425,9 +424,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 self.gripper_and_hand_and_obj_space.high,
                 size=(num_goals, self.gripper_and_hand_and_obj_space.low.size),
             )
-            num_objs_in_hand = int(num_goals * self.p_obj_in_hand)
+            num_objs_in_hand = int(num_goals * p_obj_in_hand)
             if num_goals == 1:
-                num_objs_in_hand = int(np.random.random() < self.p_obj_in_hand)
+                num_objs_in_hand = int(np.random.random() < p_obj_in_hand)
 
             # Put object in hand
             goals[:num_objs_in_hand, 3:6] = goals[:num_objs_in_hand, :3].copy()
@@ -436,6 +435,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
             # Put object one the table (not floating)
             goals[num_objs_in_hand:, 5] = self.obj_init_z
+
+            for goal in goals:
+                if goal[4] > 0.55 and goal[4] < 0.65:
+                    goal[5] = 0.05
+                if goal[1] > 0.55 and goal[1] < 0.65 and goal[2] < 0.03:
+                    goal[1] = 0.05
             return {
                 'desired_goal': goals,
                 'state_desired_goal': goals,
