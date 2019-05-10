@@ -452,13 +452,14 @@ def register_custom_envs():
             'author': 'steven',
         },
         kwargs=dict(
-            hand_low=(-0.1, 0.45, 0.02),
-            hand_high=(0.0, 0.75, 0.2),
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
-            num_goals_presampled=500,
+            num_goals_presampled=2000,
             oracle_reset_prob=.4,
             p_obj_in_hand=0.5,
+            random_init=True,
             reward_type='vectorized_state_distance',
         )
     )
@@ -471,13 +472,14 @@ def register_custom_envs():
             'author': 'steven',
         },
         kwargs=dict(
-            hand_low=(-0.1, 0.45, 0.02),
-            hand_high=(0.0, 0.75, 0.2),
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
-            num_goals_presampled=500,
-            oracle_reset_prob=.75,
+            num_goals_presampled=1000,
+            oracle_reset_prob=.8,
             p_obj_in_hand=0.5,
+            random_init=True,
             reward_type='vectorized_state_distance',
         )
     )
@@ -490,17 +492,61 @@ def register_custom_envs():
             'author': 'steven',
         },
         kwargs=dict(
-            hand_low=(-0.1, 0.45, 0.02),
-            hand_high=(0.0, 0.75, 0.2),
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
-            num_goals_presampled=500,
-            oracle_reset_prob=.5,
+            num_goals_presampled=1000,
+            oracle_reset_prob=1.0,
             p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggestHard-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+            oracle_reset_prob=1.0,
+            p_obj_in_hand=0.5,
+            hard_goals=True,
+            random_init=True,
             reward_type='vectorized_state_distance',
         )
     )
 
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggestNoWall-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=2000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            structure='none',
+            reward_type='vectorized_state_distance',
+        )
+    )
 
 
 
