@@ -26,6 +26,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_low=None,
             goal_high=None,
             reset_free=False,
+            hard_goals=False,
 
             hide_goal_markers=False,
             oracle_reset_prob=0.0,
@@ -33,10 +34,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             num_goals_presampled=1000,
             norm_order=2,
             p_obj_in_hand=.75,
+            structure='wall',
 
             **kwargs
     ):
         self.quick_init(locals())
+        self.structure = structure
+        self.hard_goals = hard_goals
         MultitaskEnv.__init__(self)
         SawyerXYZEnv.__init__(
             self,
@@ -115,7 +119,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
             self.num_goals_presampled = num_goals_presampled
-        self.num_goals_presampled = 10
         self.picked_up_object = False
         self.train_pickups = 0
         self.eval_pickups = 0
@@ -124,7 +127,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def model_name(self):
-        return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
+        if self.structure == 'wall':
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_wall.xml')
+        else:
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
 
     def train(self):
         self.oracle_reset_prob = self.train_oracle_reset_prob
@@ -133,6 +139,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def eval(self):
         self.oracle_reset_prob = 0.0
         self.cur_mode = 'eval'
+
+    def mode(self, mode):
+        if 'train' in mode:
+            self.train()
+        else:
+            self.eval()
 
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
@@ -245,25 +257,28 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return self._get_obs()
 
         if self.random_init:
-            goal = np.random.uniform(
-                self.hand_and_obj_space.low[3:],
-                self.hand_and_obj_space.high[3:],
-                size=(1, self.hand_and_obj_space.low.size - 3),
-            )
-            goal[:, 2] = self.obj_init_z
+            goal = self.generate_uncorrected_env_goals(
+                1, p_obj_in_hand=0
+            )['state_desired_goal'][0][3:6]
             self._set_obj_xyz(goal)
         else:
             obj_idx = np.random.choice(len(self.obj_init_positions))
             self._set_obj_xyz(self.obj_init_positions[obj_idx])
 
         if self.oracle_reset_prob > np.random.random():
-            uncorrected_goal = self.generate_uncorrected_env_goals(1)['state_desired_goal'][0]
+            uncorrected_goal = self.generate_uncorrected_env_goals(1)
             self.set_to_goal(
-                {'state_desired_goal': uncorrected_goal}
+                {'state_desired_goal': uncorrected_goal['state_desired_goal'][0]},
+                is_obj_in_hand=bool(uncorrected_goal['is_obj_in_hand'][0][0])
             )
 
         self.set_goal(self.sample_goal())
         self._set_goal_marker(self._state_goal)
+        if self.hard_goals:
+            reset_pos_dict, goal_dict = self.generate_opposing_positions()
+            self.set_to_goal(reset_pos_dict)
+            self.set_goal(goal_dict)
+
         self.picked_up_object = False
         return self._get_obs()
 
@@ -273,7 +288,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
 
-    def set_to_goal(self, goal):
+    def set_to_goal(self, goal, is_obj_in_hand=False):
         """
         This function can fail due to mocap imprecision or impossible object
         positions.
@@ -288,7 +303,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         corrected_obj_pos = state_goal[3:6] #+ error
         corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
         self._set_obj_xyz(corrected_obj_pos)
-        if corrected_obj_pos[2] > .03:
+        if is_obj_in_hand:
             action = np.array(1)
         else:
             action = np.array(1 - 2 * np.random.choice(2))
@@ -406,7 +421,52 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = goal
         self._set_goal_marker(goal)
 
-    def generate_uncorrected_env_goals(self, num_goals):
+    def generate_opposing_positions(self):
+        left_side_low = self.gripper_and_hand_and_obj_space.low.copy()
+        left_side_high = self.gripper_and_hand_and_obj_space.high.copy()
+        # object on left side of wall
+        left_side_high[4] = .51
+        # hand on right side of wall
+        left_side_low[1] = .66
+        left_side_high[5] = 0.0
+
+        right_side_low = self.gripper_and_hand_and_obj_space.low.copy()
+        right_side_high = self.gripper_and_hand_and_obj_space.high.copy()
+        # object on left side of wall
+        right_side_low[4] = .69
+        # hand on right side of wall
+        right_side_high[1] = .54
+        right_side_high[5] = 0.0
+        left_goals = np.random.uniform(
+            left_side_low,
+            left_side_high,
+            size=(1, self.gripper_and_hand_and_obj_space.low.size),
+        )
+        right_goals = np.random.uniform(
+            right_side_low,
+            right_side_high,
+            size=(1, self.gripper_and_hand_and_obj_space.low.size),
+        )
+        left_goal_dict = {
+                'desired_goal': left_goals[0],
+                'state_desired_goal': left_goals[0],
+                'proprio_desired_goal': left_goals[:, :3][0],
+                'is_obj_in_hand': False
+        }
+        right_goal_dict = {
+                'desired_goal': right_goals[0],
+                'state_desired_goal': right_goals[0],
+                'proprio_desired_goal': right_goals[:, :3][0],
+                'is_obj_in_hand': False
+        }
+
+        if np.random.random() > 0.5:
+            return left_goal_dict, right_goal_dict
+        else:
+            return right_goal_dict, left_goal_dict
+
+
+    def generate_uncorrected_env_goals(self, num_goals, p_obj_in_hand=None):
         """
         Due to small errors in mocap, moving to a specified hand position may be
         slightly off. This is an issue when the object must be placed into a given
@@ -419,6 +479,41 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         The return of this function should be passed into
         corrected_image_env_goals or corrected_state_env_goals
         """
+        if self.hard_goals:
+            left_side_low = self.gripper_and_hand_and_obj_space.low.copy()
+            left_side_high = self.gripper_and_hand_and_obj_space.high.copy()
+            # object on left side of wall
+            left_side_high[4] = .53
+            # hand on right side of wall
+            left_side_low[1] = .65
+
+            right_side_low = self.gripper_and_hand_and_obj_space.low.copy()
+            right_side_high = self.gripper_and_hand_and_obj_space.high.copy()
+            # object on left side of wall
+            right_side_low[4] = .67
+            # hand on right side of wall
+            right_side_high[1] = .55
+            left_goals = np.random.uniform(
+                left_side_low,
+                left_side_high,
+                size=(num_goals // 2, self.gripper_and_hand_and_obj_space.low.size),
+            )
+            right_goals = np.random.uniform(
+                right_side_low,
+                right_side_high,
+                size=(num_goals - num_goals // 2, self.gripper_and_hand_and_obj_space.low.size),
+            )
+            goals = np.r_[left_goals, right_goals]
+            return {
+                'desired_goal': goals,
+                'state_desired_goal': goals,
+                'proprio_desired_goal': goals[:, :3],
+                'is_obj_in_hand': np.zeros((num_goals, 1))
+            }
+
+        if p_obj_in_hand is None:
+            p_obj_in_hand = self.p_obj_in_hand
+        is_obj_in_hand = np.zeros((num_goals, 1))
         if self.fix_goal:
             goals = np.repeat(self.fixed_goal.copy()[None], num_goals, 0)
         else:
@@ -427,21 +522,29 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 self.gripper_and_hand_and_obj_space.high,
                 size=(num_goals, self.gripper_and_hand_and_obj_space.low.size),
             )
-            num_objs_in_hand = int(num_goals * self.p_obj_in_hand)
+            num_objs_in_hand = int(num_goals * p_obj_in_hand)
             if num_goals == 1:
-                num_objs_in_hand = int(np.random.random() < self.p_obj_in_hand)
+                num_objs_in_hand = int(np.random.random() < p_obj_in_hand)
 
             # Put object in hand
             goals[:num_objs_in_hand, 3:6] = goals[:num_objs_in_hand, :3].copy()
             goals[:num_objs_in_hand, 4] -= 0.01
             goals[:num_objs_in_hand, 5] += 0.01
+            is_obj_in_hand[:num_objs_in_hand] = 1
 
             # Put object one the table (not floating)
             goals[num_objs_in_hand:, 5] = self.obj_init_z
+            if self.structure == 'wall':
+                for goal in goals:
+                    if goal[4] > 0.55 and goal[4] < 0.65:
+                        goal[5] = 0.05
+                    if goal[1] > 0.55 and goal[1] < 0.65 and goal[2] < 0.03:
+                        goal[2] = 0.05
             return {
                 'desired_goal': goals,
                 'state_desired_goal': goals,
-                'proprio_desired_goal': goals[:, :3]
+                'proprio_desired_goal': goals[:, :3],
+                'is_obj_in_hand': is_obj_in_hand
             }
 
     def update_subgoals(self, subgoals):
@@ -595,8 +698,8 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         action = self.convert_2d_action(action)
         return super().step(action)
 
-    def set_to_goal(self, goal):
-        super().set_to_goal(goal)
+    def set_to_goal(self, goal, **kwargs):
+        super().set_to_goal(goal, **kwargs)
         obj_pos = self.get_obj_pos()
         obj_pos[0] = self.x_axis
         self._set_obj_xyz(obj_pos)
@@ -667,7 +770,8 @@ def corrected_state_goals(pickup_env, pickup_env_goals):
         if idx % 100 == 0:
             print(idx)
         pickup_env.set_to_goal(
-            {'state_desired_goal': goals['state_desired_goal'][idx]}
+            {'state_desired_goal': goals['state_desired_goal'][idx]},
+            is_obj_in_hand=bool(pickup_env_goals['is_obj_in_hand'][idx][0])
         )
         corrected_state_goal = pickup_env._get_obs()['achieved_goal']
         corrected_proprio_goal = pickup_env._get_obs()['proprio_achieved_goal']
@@ -704,6 +808,7 @@ def corrected_image_env_goals(image_env, pickup_env_goals):
             print(idx)
         image_env.set_to_goal(
             {'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]}
+            # is_obj_in_hand=pickup_env_goals['is_obj_in_hand'][idx]
         )
         corrected_state_goal = image_env._get_obs()['state_achieved_goal']
         corrected_proprio_goal = image_env._get_obs()['proprio_achieved_goal']
