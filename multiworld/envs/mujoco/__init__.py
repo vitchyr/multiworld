@@ -474,7 +474,7 @@ def register_custom_envs():
         kwargs=dict(
             hand_low=(-0.1, 0.43, 0.02),
             hand_high=(0.0, 0.77, 0.2),
-            action_scale=0.02,
+            action_scale=0.01,
             hide_goal_markers=True,
             num_goals_presampled=1000,
             oracle_reset_prob=.8,
@@ -483,6 +483,15 @@ def register_custom_envs():
             reward_type='vectorized_state_distance',
         )
     )
+    register(
+        id='Image84SawyerPickupEnvYZOracleBiggest-v1',
+        entry_point=create_image_84_sawyer_pickup_big_v0,
+        tags={
+            'git-commit-hash': 'f773062',
+            'author': 'steven'
+        },
+    )
+
     register(
         id='SawyerPickupEnvYZOracleBiggest-v2',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
@@ -497,12 +506,13 @@ def register_custom_envs():
             action_scale=0.02,
             hide_goal_markers=True,
             num_goals_presampled=1000,
-            oracle_reset_prob=1.0,
+            oracle_reset_prob=0.5,
             p_obj_in_hand=0.5,
             random_init=True,
             reward_type='vectorized_state_distance',
         )
     )
+
     register(
         id='SawyerPickupEnvYZOracleBiggestHard-v2',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
@@ -547,9 +557,25 @@ def register_custom_envs():
             reward_type='vectorized_state_distance',
         )
     )
-
-
-
+    register(
+        id='SawyerPushOneD-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPushOneD',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.5, 0.02),
+            hand_high=(0.0, 0.7, 0.15),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+            oracle_reset_prob=.8,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
 
     """
     Wheeled Car
@@ -902,6 +928,21 @@ def create_image_84_sawyer_pnr_train_env_big_v0():
         transpose=True,
         normalize=True,
     )
+
+def create_image_84_sawyer_pickup_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
+
+    wrapped_env = gym.make('SawyerPickupEnvYZOracleBiggest-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pick_and_place_camera,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+
 
 def create_image_84_sawyer_pnr_train_env_big_vect_v0():
     from multiworld.core.image_env import ImageEnv

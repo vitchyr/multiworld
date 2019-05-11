@@ -154,13 +154,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.do_simulation(action[3:])
         new_obj_pos = self.get_obj_pos()
         # if the object is out of bounds and not in the air, move it back
-        if new_obj_pos[2] < .05:
-            new_obj_pos[0:2] = np.clip(
-                new_obj_pos[0:2],
-                self.obj_low[0:2],
-                self.obj_high[0:2]
-            )
-        elif new_obj_pos[2] > .05:
+        new_obj_pos[0:2] = np.clip(
+            new_obj_pos[0:2],
+            self.obj_low[0:2],
+            self.obj_high[0:2]
+        )
+        if new_obj_pos[2] > .07:
             if not self.picked_up_object:
                 if self.cur_mode == 'train':
                     self.train_pickups += 1
@@ -361,6 +360,18 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             r = -hand_distances
         elif reward_type == 'vectorized_state_distance':
             r = -np.abs(achieved_goals - desired_goals)
+        elif reward_type == 'telescoping_vectorized_state_distance':
+            if prev_obs is none:
+                return np.zeros((achieved_goals.shape))
+            prev_achieved_goals = prev_obs['state_achieved_goal']
+            prev_desired_goals = prev_obs['state_desired_goal']
+            assert (desired_goals == prev_desired_goals).all()
+            current_r = -np.abs(achieved_goals - desired_goals)
+            old_r = -np.abs(prev_achieved_goals - prev_desired_goals)
+            r = current_r - old_r
+
+        elif reward_type == 'state_distance':
+            r = -np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=1)
         elif reward_type == 'hand_success':
             r = -(hand_distances > self.indicator_threshold).astype(float)
         elif reward_type == 'obj_distance':
@@ -758,7 +769,22 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             touch_success=float(touch_distance < self.indicator_threshold),
         )
 
+class SawyerPushOneD(SawyerPickAndPlaceEnvYZ):
+    def __init__(
+        self,
+        *args,
+        **kwargs
+    ):
+        super().__init__(
+            p_obj_in_hand=0.0,
+            structure='none',
+            *args,
+            **kwargs
+        )
 
+    def step(self, action):
+        action[2] = 1
+        super().step(action)
 
 def corrected_state_goals(pickup_env, pickup_env_goals):
     pickup_env._state_goal = np.zeros(
