@@ -664,16 +664,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
 
-        if vals is not None:
-            ax.imshow(
-                vals,
-                extent=extent,
-                cmap=plt.get_cmap('plasma'),
-                interpolation='nearest',
-                vmax=None,
-                vmin=None,
-                origin='bottom',  # <-- Important! By default top left is (0, 0)
-            )
+        # if vals is not None:
+        #     ax.imshow(
+        #         vals,
+        #         extent=extent,
+        #         cmap=plt.get_cmap('plasma'),
+        #         interpolation='nearest',
+        #         vmax=None,
+        #         vmin=None,
+        #         origin='bottom',  # <-- Important! By default top left is (0, 0)
+        #     )
 
         return self.plt_to_numpy(fig)
 
