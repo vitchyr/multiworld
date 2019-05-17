@@ -474,13 +474,33 @@ def register_custom_envs():
         kwargs=dict(
             hand_low=(-0.1, 0.43, 0.02),
             hand_high=(0.0, 0.77, 0.2),
-            action_scale=0.01,
+            action_scale=0.02,
             hide_goal_markers=True,
-            num_goals_presampled=1000,
+            num_goals_presampled=3000,
             oracle_reset_prob=.8,
             p_obj_in_hand=0.5,
             random_init=True,
             reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggestTelescope-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=3000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='telescoping_vectorized_state_distance',
         )
     )
     register(
