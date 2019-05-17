@@ -50,6 +50,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.norm_order = norm_order
         if obj_low is None:
             obj_low = self.hand_low
+            obj_low[2] = 0.0
         if obj_high is None:
             obj_high = self.hand_high
         self.obj_low = obj_low
@@ -150,14 +151,15 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         sawyer_pick_and_place_camera(self.viewer.cam)
 
     def step(self, action):
+        prev_ob = self._get_obs()
         self.set_xyz_action(action[:3])
         self.do_simulation(action[3:])
         new_obj_pos = self.get_obj_pos()
         # if the object is out of bounds and not in the air, move it back
-        new_obj_pos[0:2] = np.clip(
-            new_obj_pos[0:2],
-            self.obj_low[0:2],
-            self.obj_high[0:2]
+        new_obj_pos = np.clip(
+            new_obj_pos,
+            self.obj_low,
+            self.obj_high
         )
         if new_obj_pos[2] > .07:
             if not self.picked_up_object:
@@ -171,7 +173,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
-        reward = self.compute_reward(action, ob)
+        reward = self.compute_reward(action, ob, prev_obs=prev_ob)
         info = self._get_info()
         done = False
         return ob, reward, done, info
@@ -179,11 +181,20 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def _get_obs(self):
         e = self.get_endeff_pos()
         b = self.get_obj_pos()
+        # e = np.clip(
+            # e,
+            # self.hand_low,
+            # self.hand_high
+        # )
+        # b = np.clip(
+            # b,
+            # self.obj_low,
+            # self.obj_high
+        # )
         gripper = self.get_gripper_pos()
         flat_obs = np.concatenate((e, b))
         flat_obs_with_gripper = np.concatenate((e, b, gripper))
         hand_goal = self._state_goal[:3]
-
         return dict(
             observation=flat_obs_with_gripper,
             desired_goal=self._state_goal,
@@ -310,6 +321,15 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(10):
             self.do_simulation(action)
         self.sim.forward()
+        new_obj_pos = self.get_obj_pos()
+        # if the object is out of bounds and not in the air, move it back
+        new_obj_pos = np.clip(
+            new_obj_pos,
+            self.obj_low,
+            self.obj_high
+        )
+        self._set_obj_xyz(new_obj_pos)
+
 
     """
     Multitask functions
@@ -361,7 +381,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         elif reward_type == 'vectorized_state_distance':
             r = -np.abs(achieved_goals - desired_goals)
         elif reward_type == 'telescoping_vectorized_state_distance':
-            if prev_obs is none:
+            if prev_obs is None:
                 return np.zeros((achieved_goals.shape))
             prev_achieved_goals = prev_obs['state_achieved_goal']
             prev_desired_goals = prev_obs['state_desired_goal']
