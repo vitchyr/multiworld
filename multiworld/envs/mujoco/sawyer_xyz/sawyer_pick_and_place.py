@@ -490,11 +490,14 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 'proprio_desired_goal': right_goals[:, :3][0],
                 'is_obj_in_hand': False
         }
-
+        # make hand goal the start
         if np.random.random() > 0.5:
             return left_goal_dict, right_goal_dict
         else:
             return right_goal_dict, left_goal_dict
+
+
+
 
 
     def generate_uncorrected_env_goals(self, num_goals, p_obj_in_hand=None):
@@ -853,8 +856,8 @@ def corrected_image_env_goals(image_env, pickup_env_goals):
         if idx % 100 == 0:
             print(idx)
         image_env.set_to_goal(
-            {'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]}
-            # is_obj_in_hand=pickup_env_goals['is_obj_in_hand'][idx]
+            {'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]},
+            is_obj_in_hand=bool(pickup_env_goals['is_obj_in_hand'][idx][0])
         )
         corrected_state_goal = image_env._get_obs()['state_achieved_goal']
         corrected_proprio_goal = image_env._get_obs()['proprio_achieved_goal']

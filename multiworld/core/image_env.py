@@ -13,7 +13,10 @@ from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dic
 
 from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
+    SawyerPickAndPlaceEnvYZ,
+    SawyerPickAndPlaceEnv,
+)
 
 class ImageEnv(ProxyEnv, MultitaskEnv):
     def __init__(
@@ -126,14 +129,26 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.reward_type = reward_type
         self.threshold = threshold
         self._presampled_goals = presampled_goals
+        self.dummy = False
         if self._presampled_goals is None:
             self.num_goals_presampled = 0
+            if (
+                isinstance(self.wrapped_env, SawyerPickAndPlaceEnv) and
+                not self.wrapped_env.hard_goals
+            ):
+                from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
+                    get_image_presampled_goals
+                )
+                print('Setting image presampled goals for pickup')
+                num_goals_to_presample = 2000
+                self.set_presampled_goals(
+                    get_image_presampled_goals(self, num_goals_to_presample),
+                    num_goals_to_presample)
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
         self._cur_obs = None
         self._prev_obs = None
-        self.dummy = False
 
     def step(self, action):
         self._prev_obs = self._cur_obs
