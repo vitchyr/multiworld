@@ -544,14 +544,14 @@ def register_custom_envs():
         kwargs=dict(
             hand_low=(-0.1, 0.43, 0.02),
             hand_high=(0.0, 0.77, 0.2),
-            action_scale=0.02,
+            action_scale=0.01,
             hide_goal_markers=True,
-            num_goals_presampled=1000,
+            num_goals_presampled=200,
             oracle_reset_prob=1.0,
             p_obj_in_hand=0.5,
             hard_goals=True,
             random_init=True,
-            reward_type='vectorized_state_distance',
+            # reward_type='vectorized_state_distance',
         )
     )
 
