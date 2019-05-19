@@ -9,9 +9,9 @@ import numpy as np
 env = SawyerPickAndPlaceEnvYZ(
     hand_low=(-0.1, 0.45, 0.05),
     hand_high=(0.0, 0.75, 0.15),
-    action_scale=0.03,
+    action_scale=0.02,
     hide_goal_markers=True,
-    num_goals_presampled=50,
+    num_goals_presampled=10,
     oracle_reset_prob=1.0,
     random_init=True,
 )
@@ -41,8 +41,7 @@ while True:
     action = env.action_space.sample()
     for _ in range(20):
         obs, _, _, _ = env.step(action)
-        # print(env.get_obj_pos())
         env.render()
-        print(env.get_obj_pos())
+        print(env.get_obj_pos(0), env.get_obj_pos(1))
     # obs, _, _, _ = image_env.step(np.zeros(3))
     # render_cv2(obs)

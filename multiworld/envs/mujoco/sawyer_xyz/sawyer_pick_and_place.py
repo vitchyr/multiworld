@@ -39,6 +39,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             **kwargs
     ):
         self.quick_init(locals())
+        # self.obj_id[0] for first object, self.obj_id[1] for second object.
+        self.obj_id = {
+            0: '',
+            1: '2',
+        }
+
         self.structure = structure
         self.hard_goals = hard_goals
         MultitaskEnv.__init__(self)
@@ -85,8 +91,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             dtype=np.float32
         )
         self.hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low)),
-            np.hstack((self.hand_high, obj_high)),
+            np.hstack((self.hand_low, obj_low, obj_low)),
+            np.hstack((self.hand_high, obj_high, obj_high)),
             dtype=np.float32
         )
         self.hand_space = Box(
@@ -95,8 +101,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             dtype=np.float32
         )
         self.gripper_and_hand_and_obj_space = Box(
-            np.hstack((self.hand_low, obj_low, [0.0])),
-            np.hstack((self.hand_high, obj_high, [0.05])),
+            np.hstack((self.hand_low, obj_low, obj_low, [0.0])),
+            np.hstack((self.hand_high, obj_high, obj_high, [0.05])),
             dtype=np.float32
         )
 
@@ -150,26 +156,32 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
 
-    def step(self, action):
-        prev_ob = self._get_obs()
-        self.set_xyz_action(action[:3])
-        self.do_simulation(action[3:])
-        new_obj_pos = self.get_obj_pos()
+    def _handle_out_of_bounds(self, obj_id):
+        new_obj_pos = self.get_obj_pos(obj_id)
         # if the object is out of bounds and not in the air, move it back
         new_obj_pos = np.clip(
             new_obj_pos,
             self.obj_low,
             self.obj_high
         )
-        if new_obj_pos[2] > .07:
+        self._set_obj_xyz(new_obj_pos, obj_id)
+
+    def step(self, action):
+        prev_ob = self._get_obs()
+        self.set_xyz_action(action[:3])
+        self.do_simulation(action[3:])
+        self._handle_out_of_bounds(obj_id=0)
+        self._handle_out_of_bounds(obj_id=1)
+        if (
+            self.get_obj_pos(obj_id=0)[2] > .07 or
+            self.get_obj_pos(obj_id=1)[2] > .07
+        ):
             if not self.picked_up_object:
                 if self.cur_mode == 'train':
                     self.train_pickups += 1
                 else:
                     self.eval_pickups += 1
                 self.picked_up_object = True
-        self._set_obj_xyz(new_obj_pos)
-        self.last_obj_pos = new_obj_pos.copy()
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
@@ -180,20 +192,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _get_obs(self):
         e = self.get_endeff_pos()
-        b = self.get_obj_pos()
-        # e = np.clip(
-            # e,
-            # self.hand_low,
-            # self.hand_high
-        # )
-        # b = np.clip(
-            # b,
-            # self.obj_low,
-            # self.obj_high
-        # )
+        b0 = self.get_obj_pos(obj_id=0)
+        b1 = self.get_obj_pos(obj_id=1)
         gripper = self.get_gripper_pos()
-        flat_obs = np.concatenate((e, b))
-        flat_obs_with_gripper = np.concatenate((e, b, gripper))
+        flat_obs = np.concatenate((e, b0, b1))
+        flat_obs_with_gripper = np.concatenate((e, b0, b1, gripper))
         hand_goal = self._state_goal[:3]
         return dict(
             observation=flat_obs_with_gripper,
@@ -209,28 +212,27 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _get_info(self):
         hand_goal = self._state_goal[:3]
-        obj_goal = self._state_goal[3:6]
-        hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos(),  ord=self.norm_order,)
-        obj_distance = np.linalg.norm(obj_goal - self.get_obj_pos(), ord=self.norm_order,)
-        touch_distance = np.linalg.norm(
-            self.get_endeff_pos() - self.get_obj_pos(),  ord=self.norm_order,
-        )
+        obj_goal0 = self._state_goal[3:6]
+        obj_goal1 = self._state_goal[6:9]
+        hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos(), ord=self.norm_order,)
+        obj_distance0 = np.linalg.norm(obj_goal0 - self.get_obj_pos(obj_id=0), ord=self.norm_order,)
+        obj_distance1 = np.linalg.norm(obj_goal1 - self.get_obj_pos(obj_id=1), ord=self.norm_order,)
+        obj_distance = obj_distance0 + obj_distance1
         return dict(
             hand_distance=hand_distance,
-            obj_distance=obj_distance,
+            obj_distance0=obj_distance0,
+            obj_distance1=obj_distance1,
             hand_and_obj_distance=hand_distance+obj_distance,
-            touch_distance=touch_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
             obj_success=float(obj_distance < self.indicator_threshold),
             hand_and_obj_success=float(
                 hand_distance+obj_distance < self.indicator_threshold
             ),
             total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
-            touch_success=float(touch_distance < self.indicator_threshold),
         )
 
-    def get_obj_pos(self):
-        return self.data.get_body_xpos('obj').copy()
+    def get_obj_pos(self, obj_id):
+        return self.data.get_body_xpos('obj' + self.obj_id[obj_id]).copy()
 
     def _set_goal_marker(self, goal):
         """
@@ -251,32 +253,33 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 -1000
             )
 
-    def _set_obj_xyz(self, pos):
+    def _set_obj_xyz(self, pos, obj_id):
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        qpos[8:11] = pos.copy()
-        qvel[8:15] = 0
+        obj_name = 'objjoint' + self.obj_id[obj_id]
+        qpos_obj_start, qpos_obj_end = self.sim.model.get_joint_qpos_addr(obj_name)
+        qvel_obj_start, qvel_obj_end = self.sim.model.get_joint_qvel_addr(obj_name)
+        # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+        qpos[qpos_obj_start:qpos_obj_start + 3] = pos.copy()
+        qvel[qvel_obj_start:qvel_obj_end] = 0
         self.set_state(qpos, qvel)
+
 
     def reset_model(self):
         self._reset_hand()
-        if self.reset_free:
-            self._set_obj_xyz(self.last_obj_pos)
-            self.set_goal(self.sample_goal())
-            self._set_goal_marker(self._state_goal)
-            return self._get_obs()
 
         if self.random_init:
-            goal = self.generate_uncorrected_env_goals(
+            obj_goals = self.generate_uncorrected_env_goals(
                 1, p_obj_in_hand=0
-            )['state_desired_goal'][0][3:6]
-            self._set_obj_xyz(goal)
+            )['state_desired_goal'][0][3:9]
+            self._set_obj_xyz(obj_goals[0:3], obj_id=0)
+            self._set_obj_xyz(obj_goals[3:6], obj_id=1)
         else:
-            obj_idx = np.random.choice(len(self.obj_init_positions))
-            self._set_obj_xyz(self.obj_init_positions[obj_idx])
+            raise NotImplementedError
 
         if self.oracle_reset_prob > np.random.random():
             uncorrected_goal = self.generate_uncorrected_env_goals(1)
+            #TODO
             self.set_to_goal(
                 {'state_desired_goal': uncorrected_goal['state_desired_goal'][0]},
                 is_obj_in_hand=bool(uncorrected_goal['is_obj_in_hand'][0][0])
@@ -310,9 +313,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             self.do_simulation(np.array([-1]))
         # error = self.data.get_site_xpos('endeffector') - hand_goal
-        corrected_obj_pos = state_goal[3:6] #+ error
-        corrected_obj_pos[2] = max(corrected_obj_pos[2], self.obj_init_z)
-        self._set_obj_xyz(corrected_obj_pos)
+        corrected_obj_pos0 = state_goal[3:6] #+ error
+        corrected_obj_pos0[2] = max(corrected_obj_pos0[2], self.obj_init_z)
+        self._set_obj_xyz(corrected_obj_pos0, obj_id=0)
+        corrected_obj_pos1 = state_goal[6:9] #+ error
+        corrected_obj_pos1[2] = max(corrected_obj_pos1[2], self.obj_init_z)
+        self._set_obj_xyz(corrected_obj_pos1, obj_id=1)
+
         if is_obj_in_hand:
             action = np.array(1)
         else:
@@ -321,14 +328,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(10):
             self.do_simulation(action)
         self.sim.forward()
-        new_obj_pos = self.get_obj_pos()
-        # if the object is out of bounds and not in the air, move it back
-        new_obj_pos = np.clip(
-            new_obj_pos,
-            self.obj_low,
-            self.obj_high
-        )
-        self._set_obj_xyz(new_obj_pos)
+        self._handle_out_of_bounds(obj_id=0)
+        self._handle_out_of_bounds(obj_id=1)
 
 
     """
@@ -366,15 +367,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         hand_pos = achieved_goals[:, :3]
-        obj_pos = achieved_goals[:, 3:6]
+        obj_pos = achieved_goals[:, 3:9]
         hand_goals = desired_goals[:, :3]
-        obj_goals = desired_goals[:, 3:6]
+        obj_goals = desired_goals[:, 3:9]
 
         hand_distances = np.linalg.norm(hand_goals - hand_pos, ord=self.norm_order, axis=1)
         obj_distances = np.linalg.norm(obj_goals - obj_pos,  ord=self.norm_order,axis=1)
         hand_and_obj_distances = hand_distances + obj_distances
-        touch_distances = np.linalg.norm(hand_pos - obj_pos, ord=self.norm_order, axis=1)
-        touch_and_obj_distances = touch_distances + obj_distances
 
         if reward_type == 'hand_distance':
             r = -hand_distances
@@ -400,16 +399,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             r = -(obj_distances > self.indicator_threshold).astype(float)
         elif reward_type == 'hand_and_obj_distance':
             r = -hand_and_obj_distances
-        elif reward_type == 'touch_and_obj_distance':
-            r = -touch_and_obj_distances
         elif reward_type == 'hand_and_obj_success':
             r = -(
                 hand_and_obj_distances < self.indicator_threshold
             ).astype(float)
-        elif reward_type == 'touch_distance':
-            r = -touch_distances
-        elif reward_type == 'touch_success':
-            r = -(touch_distances > self.indicator_threshold).astype(float)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
@@ -417,13 +410,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'touch_distance',
             'hand_success',
             'obj_success',
             'hand_and_obj_success',
-            'touch_success',
             'hand_distance',
             'obj_distance',
+            'obj_distance0',
+            'obj_distance1',
             'hand_and_obj_distance',
             'total_pickups',
         ]:
@@ -453,6 +446,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(goal)
 
     def generate_opposing_positions(self):
+        raise NotImplementedError
         left_side_low = self.gripper_and_hand_and_obj_space.low.copy()
         left_side_high = self.gripper_and_hand_and_obj_space.high.copy()
         # object on left side of wall
@@ -513,38 +507,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         The return of this function should be passed into
         corrected_image_env_goals or corrected_state_env_goals
         """
-        if self.hard_goals:
-            left_side_low = self.gripper_and_hand_and_obj_space.low.copy()
-            left_side_high = self.gripper_and_hand_and_obj_space.high.copy()
-            # object on left side of wall
-            left_side_high[4] = .53
-            # hand on right side of wall
-            left_side_low[1] = .65
-
-            right_side_low = self.gripper_and_hand_and_obj_space.low.copy()
-            right_side_high = self.gripper_and_hand_and_obj_space.high.copy()
-            # object on left side of wall
-            right_side_low[4] = .67
-            # hand on right side of wall
-            right_side_high[1] = .55
-            left_goals = np.random.uniform(
-                left_side_low,
-                left_side_high,
-                size=(num_goals // 2, self.gripper_and_hand_and_obj_space.low.size),
-            )
-            right_goals = np.random.uniform(
-                right_side_low,
-                right_side_high,
-                size=(num_goals - num_goals // 2, self.gripper_and_hand_and_obj_space.low.size),
-            )
-            goals = np.r_[left_goals, right_goals]
-            return {
-                'desired_goal': goals,
-                'state_desired_goal': goals,
-                'proprio_desired_goal': goals[:, :3],
-                'is_obj_in_hand': np.zeros((num_goals, 1))
-            }
-
         if p_obj_in_hand is None:
             p_obj_in_hand = self.p_obj_in_hand
         is_obj_in_hand = np.zeros((num_goals, 1))
@@ -561,17 +523,23 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 num_objs_in_hand = int(np.random.random() < p_obj_in_hand)
 
             # Put object in hand
-            goals[:num_objs_in_hand, 3:6] = goals[:num_objs_in_hand, :3].copy()
-            goals[:num_objs_in_hand, 4] -= 0.01
-            goals[:num_objs_in_hand, 5] += 0.01
-            is_obj_in_hand[:num_objs_in_hand] = 1
+            for idx in range(num_objs_in_hand):
+                obj_start_idx = 3 + 3 * np.random.choice(2)
+                goals[idx, obj_start_idx:obj_start_idx + 3] = goals[idx, :3].copy()
+                # center the object inside the gripper
+                goals[idx, obj_start_idx + 1] -= 0.01
+                goals[idx, obj_start_idx + 2] += 0.01
+                is_obj_in_hand[idx] = 1
 
             # Put object one the table (not floating)
             goals[num_objs_in_hand:, 5] = self.obj_init_z
+            goals[num_objs_in_hand:, 8] = self.obj_init_z
             if self.structure == 'wall':
                 for goal in goals:
                     if goal[4] > 0.55 and goal[4] < 0.65:
                         goal[5] = 0.05
+                    if goal[7] > 0.55 and goal[7] < 0.65:
+                        goal[8] = 0.05
                     if goal[1] > 0.55 and goal[1] < 0.65 and goal[2] < 0.03:
                         goal[2] = 0.05
             return {
@@ -725,33 +693,40 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         adjust_x = self.x_axis - cur_x_pos
         return np.r_[adjust_x, action]
 
+    def _snap_obj_to_axis(self):
+        new_obj_pos0 = self.get_obj_pos(obj_id=0)
+        new_obj_pos0[0] = self.x_axis
+        self._set_obj_xyz(new_obj_pos0, obj_id=0)
+        new_obj_pos1 = self.get_obj_pos(obj_id=1)
+        new_obj_pos1[0] = self.x_axis
+        self._set_obj_xyz(new_obj_pos1, obj_id=1)
+
     def step(self, action):
-        new_obj_pos = self.data.get_site_xpos('obj')
-        new_obj_pos[0] = self.x_axis
-        self._set_obj_xyz(new_obj_pos)
+        self._snap_obj_to_axis()
         action = self.convert_2d_action(action)
         return super().step(action)
 
     def set_to_goal(self, goal, **kwargs):
         super().set_to_goal(goal, **kwargs)
-        obj_pos = self.get_obj_pos()
-        obj_pos[0] = self.x_axis
-        self._set_obj_xyz(obj_pos)
+        self._snap_obj_to_axis()
 
     def reset(self):
         super().reset()
         self._state_goal[0] = 0.0
         self._state_goal[3] = 0.0
+        self._state_goal[6] = 0.0
         return self._get_obs()
 
     def _get_obs(self):
         e = self.get_endeff_pos()
-        b = self.get_obj_pos()
+        b0 = self.get_obj_pos(obj_id=0)
+        b1 = self.get_obj_pos(obj_id=1)
         e[0] = 0.0
-        b[0] = 0.0
+        b0[0] = 0.0
+        b1[0] = 0.0
         gripper = self.get_gripper_pos()
-        flat_obs = np.concatenate((e, b))
-        flat_obs_with_gripper = np.concatenate((e, b, gripper))
+        flat_obs = np.concatenate((e, b0, b1))
+        flat_obs_with_gripper = np.concatenate((e, b0, b1, gripper))
         hand_goal = self._state_goal[:3]
 
         return dict(
@@ -768,28 +743,30 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
 
     def _get_info(self):
         e = self.get_endeff_pos()
-        b = self.get_obj_pos()
+        b0 = self.get_obj_pos(obj_id=0)
+        b1 = self.get_obj_pos(obj_id=1)
         e[0] = 0.0
-        b[0] = 0.0
+        b0[0] = 0.0
+        b1[0] = 0.0
         hand_goal = self._state_goal[:3]
-        obj_goal = self._state_goal[3:6]
+        obj_goal0 = self._state_goal[3:6]
+        obj_goal1 = self._state_goal[6:9]
         hand_distance = np.linalg.norm(hand_goal - e,  ord=self.norm_order)
-        obj_distance = np.linalg.norm(obj_goal - b, ord=self.norm_order)
-        touch_distance = np.linalg.norm(
-            e - b,  ord=self.norm_order,
-        )
+        obj_distance0 = np.linalg.norm(obj_goal0 - b0, ord=self.norm_order)
+        obj_distance1 = np.linalg.norm(obj_goal1 - b1, ord=self.norm_order)
+        obj_distance = obj_distance0 + obj_distance1
         return dict(
             hand_distance=hand_distance,
             obj_distance=obj_distance,
+            obj_distance0=obj_distance0,
+            obj_distance1=obj_distance1,
             hand_and_obj_distance=hand_distance+obj_distance,
-            touch_distance=touch_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
             obj_success=float(obj_distance < self.indicator_threshold),
             hand_and_obj_success=float(
                 hand_distance+obj_distance < self.indicator_threshold
             ),
             total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
-            touch_success=float(touch_distance < self.indicator_threshold),
         )
 
 class SawyerPushOneD(SawyerPickAndPlaceEnvYZ):
