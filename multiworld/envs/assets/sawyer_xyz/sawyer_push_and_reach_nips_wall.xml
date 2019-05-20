@@ -51,6 +51,18 @@
 
         <geom name="tableTop" type="plane" pos="0 0.6 0" size="0.4 0.2 0.5"
               rgba=".6 .6 .5 1" contype="15" conaffinity="15" />
+
+        <body name="arena" pos="0 .6 0">
+            <geom name="arena side 1" type="box" pos="-.24 0.0 0.0" size="0.2 0.5 0.01"
+          rgba=".6 .6 .5 0" contype="2" conaffinity="2"  euler="0 1.2 0" friction="0.1 .005 .0001"/>
+            <geom name="arena side 2" type="box" pos=".24 0.0 0.0" size="0.2 0.5 0.01"
+          rgba=".6 .6 .5 0" contype="2" conaffinity="2"  euler="0 -1.2 0" friction="0.1 .005 .0001"/>
+            <geom name="arena side 3" type="box" pos=".0 0.14 0.0" size="0.5 0.2 0.01"
+          rgba=".6 .6 .5 0" contype="2" conaffinity="2"  euler="1.2 0 0" friction="0.1 .005 .0001"/>
+            <geom name="arena side 4" type="box" pos=".0 -0.14 0.0" size="0.5 0.2 0.01"
+          rgba=".6 .6 .5 0" contype="2" conaffinity="2"  euler="-1.2 0 0" friction="0.1 .005 .0001"/>
+        </body>
+
         <!--<geom name="plane"-->
               <!--type="plane"-->
               <!--pos="0 0.6 0"-->
@@ -225,9 +237,10 @@
                    <!--axis="0 0 1"-->
             <!--/>-->
 
-            <!--<inertial pos="0 0 0" mass="500.1" diaginertia="100000 100000 100000"/>-->
+            <!--<inertial pos="0 0 0" mass=".1" diaginertia="100000 100000 100000"/>-->
             <inertial pos="0 0 0" mass="100.1" diaginertia="10000000 10000000 10000000"/>
 
+            <!--<inertial pos="0 0 0" mass="500.1" diaginertia="0.01 0.01 0.01"/>-->
             <!--type="box"-->
             <!--size="0.02 0.02 0.02"-->
             <geom name="puckbox"

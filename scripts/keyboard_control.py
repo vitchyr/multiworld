@@ -52,20 +52,20 @@ char_to_action = {
 import gym
 import multiworld
 import pygame
-env_kwargs = dict(
-    norm_order=2,
-    sample_realistic_goals=True,
-    hand_low=(-0.20, 0.50),
-    hand_high=(0.20, 0.70),
-    puck_low=(-0.20, 0.50),
-    puck_high=(0.20, 0.70),
-    fix_reset=0.075,
-    square_puck=False,  # [True, False],
-    heavy_puck=False,  # [True, False],
-    num_mocap_calls_for_reset=250,  # [10, 250],
-    reward_type='vectorized_state_distance'
-)
-env = SawyerPushAndReachXYEnv(**env_kwargs)
+# env_kwargs = dict(
+#     sample_realistic_goals=True,
+#     hand_low=(-0.20, 0.50),
+#     hand_high=(0.20, 0.70),
+#     puck_low=(-0.20, 0.50),
+#     puck_high=(0.20, 0.70),
+#     fix_reset=0.075,
+#     heavy_puck=False,  # [True, False],
+#     wall=True,
+#     action_scale=0.02,
+#     reward_type='vectorized_state_distance'
+# )
+# env = SawyerPushAndReachXYEnv(**env_kwargs)
+env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
