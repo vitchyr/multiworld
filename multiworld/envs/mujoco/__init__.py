@@ -499,7 +499,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -517,7 +517,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -535,7 +535,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -557,7 +557,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTrainEnvSmall-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_small_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -565,7 +565,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTestEnvSmall-v0',
         entry_point=create_image_84_sawyer_pnr_test_env_small_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -575,7 +575,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -593,7 +593,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -611,7 +611,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -630,7 +630,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -652,7 +652,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -674,7 +674,7 @@ def register_soroush_envs():
         id='Image48SawyerPushAndReachTrainEnvBig-v0',
         entry_point=create_image_48_sawyer_pnr_train_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -682,7 +682,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTrainEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -690,7 +690,7 @@ def register_soroush_envs():
         id='Image48SawyerPushAndReachTestEnvBig-v0',
         entry_point=create_image_48_sawyer_pnr_test_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -698,7 +698,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTestEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_test_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -708,7 +708,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -727,7 +727,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -746,7 +746,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -766,7 +766,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -789,7 +789,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -812,7 +812,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachArenaTrainEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -820,7 +820,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachArenaTestEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -830,7 +830,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -850,7 +850,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -870,7 +870,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -891,7 +891,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -915,7 +915,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -939,7 +939,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachArenaTrainEnvBig-v1',
         entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v1,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
@@ -947,7 +947,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachArenaTestEnvBig-v1',
         entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v1,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': '352786d',
             'author': 'Soroush'
         },
     )
