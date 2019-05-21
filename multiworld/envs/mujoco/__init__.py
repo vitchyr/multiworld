@@ -577,79 +577,6 @@ def register_custom_envs():
             reward_type='vectorized_state_distance',
         )
     )
-    register(
-        id='SawyerPushOneD-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz'
-                    '.sawyer_pick_and_place:SawyerPushOneD',
-        tags={
-            'git-commit-hash': '30f23f7',
-            'author': 'steven',
-        },
-        kwargs=dict(
-            hand_low=(-0.1, 0.5, 0.02),
-            hand_high=(0.0, 0.7, 0.15),
-            action_scale=0.02,
-            hide_goal_markers=True,
-            num_goals_presampled=1000,
-            oracle_reset_prob=.8,
-            random_init=True,
-            reward_type='vectorized_state_distance',
-        )
-    )
-
-    """
-    Wheeled Car
-    """
-    register(
-        id='WheeledCarEnv-v0',
-        entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
-        tags={
-            'git-commit-hash': 'f773062',
-            'author': 'Soroush'
-        },
-        kwargs={
-            'reward_type': 'vectorized_dense',
-            'norm_order': 2,
-            'car_low':(-1.60, -1.60),
-            'car_high':(1.60, 1.60),
-            'goal_low':(-1.60, -1.60),
-            'goal_high':(1.60, 1.60),
-        }
-    )
-    register(
-        id='Image84WheeledCarEnv-v0',
-        entry_point=create_image_84_wheeled_car_env_v0,
-        tags={
-            'git-commit-hash': 'f773062',
-            'author': 'Soroush'
-        },
-    )
-
-    register(
-        id='WheeledCarEnv-v1',
-        entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
-        tags={
-            'git-commit-hash': 'f773062',
-            'author': 'Soroush'
-        },
-        kwargs={
-            'reward_type': 'vectorized_dense',
-            'norm_order': 2,
-            'car_low':(-1.35, -1.35),
-            'car_high':(1.35, 1.35),
-            'goal_low':(-1.35, -1.35),
-            'goal_high':(1.35, 1.35),
-        }
-    )
-    register(
-        id='Image84WheeledCarEnv-v1',
-        entry_point=create_image_84_wheeled_car_env_v1,
-        tags={
-            'git-commit-hash': 'f773062',
-            'author': 'Soroush'
-        },
-    )
-
     register_soroush_envs()
 
 def create_image_84_wheeled_car_env_v0():
@@ -761,12 +688,16 @@ def create_image_48_sawyer_push_and_reach_arena_env_reset_free_v0():
     )
 
 def register_soroush_envs():
+    """
+    Push And Reach
+    """
+
     register(
         id='SawyerPushAndReachTrainEnvSmall-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -784,7 +715,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -798,10 +729,41 @@ def register_soroush_envs():
         )
     )
     register(
+        id='SawyerPushAndReachTestEnvSmall-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.10, 0.55),
+            hand_high=(0.10, 0.65),
+            puck_low=(-0.10, 0.55),
+            puck_high=(0.10, 0.65),
+            reset_low=(0.05, 0.60, -0.05, 0.55),
+            reset_high=(0.10, 0.65, 0.00, 0.60),
+            goal_low=(-0.10, 0.55, 0.05, 0.60),
+            goal_high=(-0.05, 0.60, 0.10, 0.65),
+
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+        )
+    )
+    register(
         id='Image84SawyerPushAndReachTrainEnvSmall-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_small_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachTestEnvSmall-v0',
+        entry_point=create_image_84_sawyer_pnr_test_env_small_v0,
+        tags={
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush'
         },
     )
@@ -829,7 +791,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -847,7 +809,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -860,13 +822,31 @@ def register_soroush_envs():
             reward_type='vectorized_state_distance',
         )
     )
+    register(
+        id='SawyerPushAndReachTrainEnvBigVectPuckRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_puck_distance',
+        )
+    )
 
     register(
         id='SawyerPushAndReachTestEnvBig-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -888,7 +868,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -907,10 +887,26 @@ def register_soroush_envs():
     )
 
     register(
+        id='Image48SawyerPushAndReachTrainEnvBig-v0',
+        entry_point=create_image_48_sawyer_pnr_train_env_big_v0,
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+    register(
         id='Image84SawyerPushAndReachTrainEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image48SawyerPushAndReachTestEnvBig-v0',
+        entry_point=create_image_48_sawyer_pnr_test_env_big_v0,
+        tags={
+            'git-commit-hash': 'bfb83ad',
             'author': 'Soroush'
         },
     )
@@ -918,7 +914,325 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTestEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_test_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectPuckRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_puck_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTestEnvBig-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTestEnvBigVectRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v0',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v0,
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTestEnvBig-v0',
+        entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v0,
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectRew-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectPuckRew-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_puck_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTestEnvBig-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTestEnvBigVectRew-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v1',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v1,
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTestEnvBig-v1',
+        entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v1,
+        tags={
+            'git-commit-hash': 'bfb83ad',
+            'author': 'Soroush'
+        },
+    )
+
+    """
+    Wheeled Car
+    """
+    register(
+        id='WheeledCarUWallTrainEnv-v0',
+        entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
+        tags={
+            'git-commit-hash': '911e0e7',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'model_path': 'wheeled_car_u_wall.xml',
+            'action_scale': 150,
+            'two_frames': True,
+            'vel_in_state': False,
+            'z_in_state': False,
+            'reward_type': 'state_distance',
+        }
+    )
+    register(
+        id='WheeledCarUWallTrainEnvVectRew-v0',
+        entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
+        tags={
+            'git-commit-hash': '911e0e7',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'model_path': 'wheeled_car_u_wall.xml',
+            'action_scale': 150,
+            'two_frames': True,
+            'vel_in_state': False,
+            'z_in_state': False,
+            'reward_type': 'vectorized_state_distance',
+        }
+    )
+    register(
+        id='Image84WheeledCarEnv-v0',
+        entry_point=create_image_84_wheeled_car_uwall_train_env_v0,
+        tags={
+            'git-commit-hash': '911e0e7',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='WheeledCarEnv-v1',
+        entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
+        tags={
+            'git-commit-hash': 'f773062',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'reward_type': 'vectorized_dense',
+            'norm_order': 2,
+            'car_low':(-1.35, -1.35),
+            'car_high':(1.35, 1.35),
+            'goal_low':(-1.35, -1.35),
+            'goal_high':(1.35, 1.35),
+        }
+    )
+    register(
+        id='Image84WheeledCarEnv-v1',
+        entry_point=create_image_84_wheeled_car_env_v1,
+        tags={
+            'git-commit-hash': 'f773062',
             'author': 'Soroush'
         },
     )
@@ -936,6 +1250,30 @@ def create_image_84_sawyer_pnr_train_env_small_v0():
         normalize=True,
     )
 
+def create_image_84_sawyer_pnr_test_env_small_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm
+
+    wrapped_env = gym.make('SawyerPushAndReachTestEnvSmall-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm,
+        transpose=True,
+        normalize=True,
+    )
+def create_image_48_sawyer_pnr_train_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
 def create_image_84_sawyer_pnr_train_env_big_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
@@ -991,6 +1329,18 @@ def create_image_84_sawyer_pnr_train_env_small_vect_v0():
         normalize=True,
         reward_type='vectorized_state_distance',
     )
+def create_image_48_sawyer_pnr_test_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTestEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
 def create_image_84_sawyer_pnr_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
@@ -1000,6 +1350,69 @@ def create_image_84_sawyer_pnr_test_env_big_v0():
         wrapped_env,
         84,
         init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+def create_image_84_sawyer_pnr_arena_test_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTestEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+def create_image_84_sawyer_pnr_arena_test_env_big_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTestEnvBig-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_wheeled_car_uwall_train_env_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import wheeled_car_camera_v0
+
+    wrapped_env = gym.make('WheeledCarUWallTrainEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=wheeled_car_camera_v0,
         transpose=True,
         normalize=True,
     )

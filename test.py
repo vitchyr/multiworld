@@ -12,7 +12,7 @@ env = SawyerPickAndPlaceEnvYZ(
     action_scale=0.02,
     hide_goal_markers=True,
     num_goals_presampled=10,
-    oracle_reset_prob=1.0,
+    oracle_reset_prob=0.0,
     random_init=True,
 )
 
