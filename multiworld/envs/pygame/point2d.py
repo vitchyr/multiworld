@@ -731,7 +731,8 @@ class Point2DWallEnv(Point2DEnv):
                       vmin=None, vmax=None,
                       extent=[-4, 4, -4, 4],
                       small_markers=False,
-                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False):
+                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
+                      imsize=84):
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
