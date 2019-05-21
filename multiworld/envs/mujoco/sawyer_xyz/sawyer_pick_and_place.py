@@ -194,6 +194,17 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         e = self.get_endeff_pos()
         b0 = self.get_obj_pos(obj_id=0)
         b1 = self.get_obj_pos(obj_id=1)
+        b0 = np.clip(
+            b0,
+            self.obj_low,
+            self.obj_high
+        )
+        b1 = np.clip(
+            b1,
+            self.obj_low,
+            self.obj_high
+        )
+
         gripper = self.get_gripper_pos()
         flat_obs = np.concatenate((e, b0, b1))
         flat_obs_with_gripper = np.concatenate((e, b0, b1, gripper))
@@ -274,18 +285,23 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             )['state_desired_goal'][0][3:9]
             self._set_obj_xyz(obj_goals[0:3], obj_id=0)
             self._set_obj_xyz(obj_goals[3:6], obj_id=1)
+            self.set_to_goal(
+                {'state_desired_goal': self.expert_start()}
+            )
+
         else:
             raise NotImplementedError
 
         if self.oracle_reset_prob > np.random.random():
             uncorrected_goal = self.generate_uncorrected_env_goals(1)
-            #TODO
             self.set_to_goal(
                 {'state_desired_goal': uncorrected_goal['state_desired_goal'][0]},
                 is_obj_in_hand=bool(uncorrected_goal['is_obj_in_hand'][0][0])
             )
 
         self.set_goal(self.sample_goal())
+        self.set_goal({'state_desired_goal': self.expert_goal()})
+
         self._set_goal_marker(self._state_goal)
         if self.hard_goals:
             reset_pos_dict, goal_dict = self.generate_opposing_positions()
@@ -330,6 +346,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.sim.forward()
         self._handle_out_of_bounds(obj_id=0)
         self._handle_out_of_bounds(obj_id=1)
+        for _ in range(10):
+            self.do_simulation(action)
+        self.sim.forward()
 
 
     """
@@ -603,26 +622,35 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             if state is not None:
                 hand_pos = state[1:3]
                 puck_pos = state[4:6]
+                puck2_pos = state[7:9]
             else:
                 hand_pos = self.get_endeff_pos()[1:3]
-                puck_pos = self.get_obj_pos()[1:3]
-            hand = plt.Circle(hand_pos, 0.025 * marker_factor, color='green')
+                puck_pos = self.get_obj_pos(obj_id=0)[1:3]
+                puck2_pos = self.get_obj_pos(obj_id=1)[1:3]
+            hand = plt.Circle(hand_pos, 0.025 * marker_factor, color='red')
             ax.add_artist(hand)
             puck = plt.Circle(puck_pos, 0.025 * marker_factor, color='blue')
             ax.add_artist(puck)
+            puck2 = plt.Circle(puck2_pos, 0.025 * marker_factor, color='green')
+            ax.add_artist(puck2)
         if draw_goal:
-            hand = plt.Circle(self._state_goal[1:3], 0.03 * marker_factor, color='#00ff99')
+            hand = plt.Circle(self._state_goal[1:3], 0.03 * marker_factor, color='orange')
             ax.add_artist(hand)
             puck = plt.Circle(self._state_goal[4:6], 0.03 * marker_factor, color='cyan')
             ax.add_artist(puck)
+            puck2 = plt.Circle(self._state_goal[7:9], 0.03 * marker_factor, color='yellowgreen')
+            ax.add_artist(puck2)
         if draw_subgoals:
             if self.subgoals is not None:
-                subgoals = self.subgoals.reshape((-1, 7))
+                subgoals = self.subgoals.reshape((-1, self.observation_space.spaces['state_observation'].low.size))
+                print(subgoals)
                 for subgoal in subgoals[:1]:
-                    hand = plt.Circle(subgoal[1:3], 0.015 * marker_factor, color='green')
+                    hand = plt.Circle(subgoal[1:3], 0.015 * marker_factor, color='orange')
                     ax.add_artist(hand)
-                    puck = plt.Circle(subgoal[4:6], 0.015 * marker_factor, color='blue')
+                    puck = plt.Circle(subgoal[4:6], 0.015 * marker_factor, color='cyan')
                     ax.add_artist(puck)
+                    puck2 = plt.Circle(subgoal[7:9], 0.015 * marker_factor, color='yellowgreen')
+                    ax.add_artist(puck2)
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         fig.subplots_adjust(bottom=0)
@@ -721,6 +749,17 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         e = self.get_endeff_pos()
         b0 = self.get_obj_pos(obj_id=0)
         b1 = self.get_obj_pos(obj_id=1)
+        b0 = np.clip(
+            b0,
+            self.obj_low,
+            self.obj_high
+        )
+        b1 = np.clip(
+            b1,
+            self.obj_low,
+            self.obj_high
+        )
+
         e[0] = 0.0
         b0[0] = 0.0
         b1[0] = 0.0
@@ -745,6 +784,17 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         e = self.get_endeff_pos()
         b0 = self.get_obj_pos(obj_id=0)
         b1 = self.get_obj_pos(obj_id=1)
+        b0 = np.clip(
+            b0,
+            self.obj_low,
+            self.obj_high
+        )
+        b1 = np.clip(
+            b1,
+            self.obj_low,
+            self.obj_high
+        )
+
         e[0] = 0.0
         b0[0] = 0.0
         b1[0] = 0.0
@@ -768,6 +818,51 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             ),
             total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
         )
+
+    def expert_start(self):
+        return np.array([
+            0, .45, .15,
+            0, .49, .02,
+            0, .74, .02,
+            0
+        ])
+
+    def expert_goal(self):
+        return np.array([
+            0, .70, .15,
+            0, .71, .02,
+            0, .51, .02,
+            0
+        ])
+
+    def generate_expert_subgoals(self, num_subgoals):
+        ob_and_goal = self._get_obs()
+        ob = ob_and_goal['state_observation']
+        goal = ob_and_goal['state_desired_goal']
+
+        subgoals = []
+        subgoals += [
+            [
+                0, .49, .10,
+                0, .49, .09,
+                0, .74, .02,
+                0.05
+            ],
+            [
+                0, .74, .1,
+                0, .71, .02,
+                0, .74, .02,
+                0.00
+            ],
+            [
+                0, .74, .1,
+                0, .51, .08,
+                0, .51, .02,
+                0.00
+            ],
+            goal
+        ]
+        return np.array(subgoals)
 
 class SawyerPushOneD(SawyerPickAndPlaceEnvYZ):
     def __init__(
