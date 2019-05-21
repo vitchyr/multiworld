@@ -51,7 +51,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvSmall-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs = {
@@ -70,7 +70,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvSmallVectRew-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs = {
@@ -89,7 +89,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTrainEnvSmall-v0',
         entry_point=create_image_84_pointmass_uwall_train_env_small_v0,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -97,7 +97,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvSmall-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -120,7 +120,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvSmallVectRew-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -143,7 +143,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTestEnvSmall-v0',
         entry_point=create_image_84_pointmass_uwall_test_env_small_v0,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -152,7 +152,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvBig-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -171,7 +171,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvBigVectRew-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs = {
@@ -190,7 +190,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTrainEnvBig-v0',
         entry_point=create_image_84_pointmass_uwall_train_env_big_v0,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -198,7 +198,7 @@ def register_soroush_u_wall_envs():
         id='Image48PointmassUWallTrainEnvBig-v0',
         entry_point=create_image_48_pointmass_uwall_train_env_big_v0,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -206,7 +206,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvBig-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -229,7 +229,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvBigVectRew-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -252,7 +252,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTestEnvBig-v0',
         entry_point=create_image_84_pointmass_uwall_test_env_big_v0,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -260,7 +260,7 @@ def register_soroush_u_wall_envs():
         id='Image48PointmassUWallTestEnvBig-v0',
         entry_point=create_image_48_pointmass_uwall_test_env_big_v0,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -269,7 +269,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvBig-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -288,7 +288,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvBigVectRew-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -307,7 +307,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTrainEnvBig-v1',
         entry_point=create_image_84_pointmass_uwall_train_env_big_v1,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -315,7 +315,7 @@ def register_soroush_u_wall_envs():
         id='Image48PointmassUWallTrainEnvBig-v1',
         entry_point=create_image_48_pointmass_uwall_train_env_big_v1,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -323,7 +323,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvBig-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -346,7 +346,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvBigVectRew-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -369,7 +369,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTestEnvBig-v1',
         entry_point=create_image_84_pointmass_uwall_test_env_big_v1,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -377,7 +377,7 @@ def register_soroush_u_wall_envs():
         id='Image48PointmassUWallTestEnvBig-v1',
         entry_point=create_image_48_pointmass_uwall_test_env_big_v1,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -386,7 +386,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvBig-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -405,7 +405,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTrainEnvBigVectRew-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -424,7 +424,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTrainEnvBig-v2',
         entry_point=create_image_84_pointmass_uwall_train_env_big_v2,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -432,7 +432,7 @@ def register_soroush_u_wall_envs():
         id='Image48PointmassUWallTrainEnvBig-v2',
         entry_point=create_image_48_pointmass_uwall_train_env_big_v2,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -440,7 +440,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvBig-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -463,7 +463,7 @@ def register_soroush_u_wall_envs():
         id='PointmassUWallTestEnvBigVectRew-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
         kwargs={
@@ -486,7 +486,7 @@ def register_soroush_u_wall_envs():
         id='Image84PointmassUWallTestEnvBig-v2',
         entry_point=create_image_84_pointmass_uwall_test_env_big_v2,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
@@ -494,7 +494,7 @@ def register_soroush_u_wall_envs():
         id='Image48PointmassUWallTestEnvBig-v2',
         entry_point=create_image_48_pointmass_uwall_test_env_big_v2,
         tags={
-            'git-commit-hash': 'bfb83ad',
+            'git-commit-hash': '923907a',
             'author': 'Soroush'
         },
     )
