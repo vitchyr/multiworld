@@ -264,32 +264,6 @@ def register_soroush_u_wall_envs():
             'author': 'Soroush'
         },
     )
-    register(
-        id='Image84Point2DFixedGoal-v0',
-        entry_point=point2d_image_fixed_goal_v0,
-        tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'steven'
-        },
-    )
-    register(
-        id='Image84Point2DRandomGoal-v0',
-        entry_point=point2d_image_random_goal_v0,
-        tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'steven'
-        },
-    )
-
-    register(
-        id='Image8Point2DFixedGoal-v0',
-        entry_point=point2d_image_fixed_goal_8_v0,
-        tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'steven'
-        },
-    )
-
 
     register(
         id='PointmassUWallTrainEnvBig-v1',
@@ -679,6 +653,7 @@ def create_image_84_pointmass_uwall_test_env_small_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 def create_image_84_pointmass_uwall_train_env_big_v0():
@@ -719,6 +694,7 @@ def create_image_48_pointmass_uwall_train_env_big_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 def create_image_84_pointmass_uwall_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv
@@ -731,6 +707,7 @@ def create_image_84_pointmass_uwall_test_env_big_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 def create_image_48_pointmass_uwall_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv
@@ -743,6 +720,7 @@ def create_image_48_pointmass_uwall_test_env_big_v0():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 def create_image_84_pointmass_uwall_train_env_big_v1():
@@ -769,6 +747,7 @@ def create_image_48_pointmass_uwall_train_env_big_v1():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 def create_image_84_pointmass_uwall_test_env_big_v1():
     from multiworld.core.image_env import ImageEnv
@@ -781,6 +760,7 @@ def create_image_84_pointmass_uwall_test_env_big_v1():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 def create_image_48_pointmass_uwall_test_env_big_v1():
     from multiworld.core.image_env import ImageEnv
@@ -793,6 +773,7 @@ def create_image_48_pointmass_uwall_test_env_big_v1():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 def create_image_84_pointmass_uwall_train_env_big_v2():
@@ -819,6 +800,7 @@ def create_image_48_pointmass_uwall_train_env_big_v2():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 def create_image_84_pointmass_uwall_test_env_big_v2():
     from multiworld.core.image_env import ImageEnv
@@ -831,6 +813,7 @@ def create_image_84_pointmass_uwall_test_env_big_v2():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 def create_image_48_pointmass_uwall_test_env_big_v2():
     from multiworld.core.image_env import ImageEnv
@@ -843,6 +826,7 @@ def create_image_48_pointmass_uwall_test_env_big_v2():
         transpose=True,
         normalize=True,
         non_presampled_goal_img_is_garbage=False,
+        reward_type='vectorized_dense',
     )
 
 register_custom_envs()

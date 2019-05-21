@@ -1352,6 +1352,7 @@ def create_image_84_sawyer_pnr_test_env_big_v0():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 
 def create_image_84_sawyer_pnr_arena_train_env_big_v0():
@@ -1365,6 +1366,7 @@ def create_image_84_sawyer_pnr_arena_train_env_big_v0():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 def create_image_84_sawyer_pnr_arena_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv
@@ -1390,6 +1392,7 @@ def create_image_84_sawyer_pnr_arena_train_env_big_v1():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 def create_image_84_sawyer_pnr_arena_test_env_big_v1():
     from multiworld.core.image_env import ImageEnv
@@ -1402,6 +1405,7 @@ def create_image_84_sawyer_pnr_arena_test_env_big_v1():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 
 def create_image_84_wheeled_car_uwall_train_env_v0():
