@@ -54,13 +54,19 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             square_puck=False,
             heavy_puck=False,
+            invisible_boundary_wall=False,
+
+            indicator_threshold_2=0.08,
     ):
         self.quick_init(locals())
 
         self.square_puck = square_puck
         self.heavy_puck = heavy_puck
+        self.invisible_boundary_wall = invisible_boundary_wall
 
-        if self.square_puck and self.heavy_puck:
+        if self.invisible_boundary_wall:
+            model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_wall.xml')
+        elif self.square_puck and self.heavy_puck:
             model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_square_heavy.xml')
         elif self.square_puck and not self.heavy_puck:
             model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_square.xml')
@@ -139,6 +145,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.reward_type = reward_type
         self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
+        self.indicator_threshold_2 = indicator_threshold_2
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self._action_scale = action_scale
@@ -244,6 +251,13 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             ),
             touch_success=float(touch_distance < self.indicator_threshold),
             state_success=float(state_distance < self.indicator_threshold),
+            hand_success_2=float(hand_distance < self.indicator_threshold_2),
+            puck_success_2=float(puck_distance < self.indicator_threshold_2),
+            hand_and_puck_success_2=float(
+                hand_distance + puck_distance < self.indicator_threshold_2
+            ),
+            touch_success_2=float(touch_distance < self.indicator_threshold_2),
+            state_success_2=float(state_distance < self.indicator_threshold_2),
         )
 
     def _get_obs(self):
@@ -321,11 +335,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             'puck_distance', 'puck_distance_l2',
             'state_distance', 'state_distance_l2',
             'touch_distance', 'touch_distance_l2',
-            'hand_success',
-            'puck_success',
-            'hand_and_puck_success',
-            'state_success',
-            'touch_success',
+            'hand_success', 'hand_success_2',
+            'puck_success', 'puck_success_2',
+            'hand_and_puck_success', 'hand_and_puck_success_2',
+            'state_success', 'state_success_2',
+            'touch_success', 'touch_success_2',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -664,15 +678,16 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
 
-        # ax.imshow(
-        #     vals,
-        #     extent=extent,
-        #     cmap=plt.get_cmap('plasma'),
-        #     interpolation='nearest',
-        #     vmax=vmax,
-        #     vmin=vmin,
-        #     origin='bottom',  # <-- Important! By default top left is (0, 0)
-        # )
+        # if vals is not None:
+        #     ax.imshow(
+        #         vals,
+        #         extent=extent,
+        #         cmap=plt.get_cmap('plasma'),
+        #         interpolation='nearest',
+        #         vmax=None,
+        #         vmin=None,
+        #         origin='bottom',  # <-- Important! By default top left is (0, 0)
+        #     )
 
         return self.plt_to_numpy(fig)
 

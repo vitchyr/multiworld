@@ -819,21 +819,30 @@ class Point2DWallEnv(Point2DEnv):
 
         return np.array(subgoals)
 
-    def get_image_v(self, agent, qf, vf, obs, tau):
-        nx, ny = (20, 20)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
-        sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
+    def get_image_v(self, agent, qf, vf, obs, tau=None):
+        nx, ny = (50, 50)
         sweep_goal = self.sweep_goal_imgs_for_video
         sweep_tau = np.tile(tau, (nx * ny, 1))
+        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        if tau is not None:
+            sweep_tau = np.tile(tau, (nx * ny, 1))
         if vf is not None:
-            v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
+            if tau is not None:
+                v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
+            else:
+                sweep_obs_goal = np.hstack((sweep_obs, sweep_goal))
+                v_vals = vf.eval_np(sweep_obs_goal)
         else:
-            sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-            v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
-        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
+            if tau is not None:
+                sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+                v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+            else:
+                sweep_obs_goal = np.hstack((sweep_obs, sweep_goal))
+                sweep_actions = agent.eval_np(sweep_obs_goal)
+                v_vals = qf.eval_np(sweep_obs_goal, sweep_actions)
+        if tau is not None:
+            v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
+        v_vals = v_vals.reshape((nx, ny))
         return self.get_image_plt(v_vals)
 
     def get_image_v_subgoal(self, agent, qf, vf, obs, tau):
@@ -880,7 +889,8 @@ class Point2DWallEnv(Point2DEnv):
                       vmin=None, vmax=None,
                       extent=[-4, 4, -4, 4],
                       small_markers=False,
-                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False):
+                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
+                      imsize=84):
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
