@@ -29,18 +29,18 @@
             <joint name="objjoint2" type="free" limited='false' damping="0" armature="0" />
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objbox2" type="box" pos="0 0 0"
-                size=".025 .015 .015" rgba="0.0 0.0 1.0 1"
+                size=".025 .015 .015" rgba="0.0 1.0 0.0 1"
                 contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3" 
 
                   />
             <body name="obj_T2" pos="0 0 0.01">
                 <geom name="obj_T_geom2" type="box" pos="0 0 0"
-                    size=".025 .017 .005" rgba="0.0 0.0 1.0 1"
+                    size=".025 .017 .005" rgba="0.0 1.0 0.0 1"
                     contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3" 
                 />
             </body>
 
-            <site name="obj2" pos="0 .0 0" size="0.0035" rgba="0.0 0.0 1.0 1"/>
+            <site name="obj2" pos="0 .0 0" size="0.0035" rgba="0.0 1.0 0.0 1"/>
         </body>
 
 
