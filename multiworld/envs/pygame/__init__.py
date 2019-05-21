@@ -382,6 +382,123 @@ def register_soroush_u_wall_envs():
         },
     )
 
+    register(
+        id='PointmassUWallTrainEnvBig-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.075,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        }
+    )
+    register(
+        id='PointmassUWallTrainEnvBigVectRew-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.075,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'vectorized_dense',
+        }
+    )
+    register(
+        id='Image84PointmassUWallTrainEnvBig-v2',
+        entry_point=create_image_84_pointmass_uwall_train_env_big_v2,
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image48PointmassUWallTrainEnvBig-v2',
+        entry_point=create_image_48_pointmass_uwall_train_env_big_v2,
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='PointmassUWallTestEnvBig-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.075,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-2, -0.5),
+            'ball_high': (2, 1),
+            'goal_low': (-4, 2),
+            'goal_high': (4, 4),
+        }
+    )
+    register(
+        id='PointmassUWallTestEnvBigVectRew-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.075,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'vectorized_dense',
+            'ball_low': (-2, -0.5),
+            'ball_high': (2, 1),
+            'goal_low': (-4, 2),
+            'goal_high': (4, 4),
+        }
+    )
+    register(
+        id='Image84PointmassUWallTestEnvBig-v2',
+        entry_point=create_image_84_pointmass_uwall_test_env_big_v2,
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image48PointmassUWallTestEnvBig-v2',
+        entry_point=create_image_48_pointmass_uwall_test_env_big_v2,
+        tags={
+            'git-commit-hash': '8bec83d',
+            'author': 'Soroush'
+        },
+    )
+
 def register_soroush_flappy_bird_envs():
     register(
         id='Point2DWallEnvFlappyBird-v0',
@@ -626,6 +743,55 @@ def create_image_48_pointmass_uwall_test_env_big_v1():
     from multiworld.core.image_env import ImageEnv
 
     wrapped_env = gym.make('PointmassUWallTestEnvBig-v1')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+
+def create_image_84_pointmass_uwall_train_env_big_v2():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTrainEnvBig-v2')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+def create_image_48_pointmass_uwall_train_env_big_v2():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTrainEnvBig-v2')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+def create_image_84_pointmass_uwall_test_env_big_v2():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTestEnvBig-v2')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+def create_image_48_pointmass_uwall_test_env_big_v2():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassUWallTestEnvBig-v2')
     return ImageEnv(
         wrapped_env,
         48,
