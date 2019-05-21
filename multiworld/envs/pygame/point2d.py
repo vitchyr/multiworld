@@ -152,6 +152,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             self._position - self._target_position
         )
         is_success = distance_to_target < 1.0
+        is_success_2 = distance_to_target < 1.5
 
         ob = self._get_obs()
         reward = self.compute_reward(velocities, ob)
@@ -162,6 +163,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'velocity': velocities,
             'speed': np.linalg.norm(velocities),
             'is_success': is_success,
+            'is_success_2': is_success_2,
         }
         done = False
         return ob, reward, done, info
@@ -245,6 +247,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         for stat_name in [
             'distance_to_target',
             'is_success',
+            'is_success_2',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
