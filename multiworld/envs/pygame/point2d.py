@@ -135,7 +135,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.i = 0
 
     def step(self, velocities):
-        assert self.action_scale <= 1.0
+        # assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
         for wall in self.walls:

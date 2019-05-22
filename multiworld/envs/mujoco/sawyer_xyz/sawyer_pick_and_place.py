@@ -125,7 +125,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         else:
             # presampled_goals will be created when sample_goal is first called
             self._presampled_goals = None
-            self.num_goals_presampled = num_goals_presampled
+            self.num_goals_presampled = 1000#num_goals_presampled
         self.picked_up_object = False
         self.train_pickups = 0
         self.eval_pickups = 0
@@ -285,9 +285,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             )['state_desired_goal'][0][3:9]
             self._set_obj_xyz(obj_goals[0:3], obj_id=0)
             self._set_obj_xyz(obj_goals[3:6], obj_id=1)
-            self.set_to_goal(
-                {'state_desired_goal': self.expert_start()}
-            )
+            # self.set_to_goal(
+                # {'state_desired_goal': self.expert_start()}
+            # )
 
         else:
             raise NotImplementedError
@@ -300,7 +300,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             )
 
         self.set_goal(self.sample_goal())
-        self.set_goal({'state_desired_goal': self.expert_goal()})
+        # self.set_goal({'state_desired_goal': self.expert_goal()})
 
         self._set_goal_marker(self._state_goal)
         if self.hard_goals:
@@ -643,7 +643,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if draw_subgoals:
             if self.subgoals is not None:
                 subgoals = self.subgoals.reshape((-1, self.observation_space.spaces['state_observation'].low.size))
-                print(subgoals)
                 for subgoal in subgoals[:1]:
                     hand = plt.Circle(subgoal[1:3], 0.015 * marker_factor, color='orange')
                     ax.add_artist(hand)
