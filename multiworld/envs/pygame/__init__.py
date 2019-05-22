@@ -285,6 +285,158 @@ def register_soroush_u_wall_envs():
         }
     )
     register(
+        id='PointmassUWallTrainEnvBig5-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        }
+    )
+
+    register(
+        id='PointmassUWallTrainEnvBig10-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3/2,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        }
+    )
+    register(
+        id='PointmassUWallTrainEnvBig25-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3/25,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        }
+    )
+    register(
+        id='PointmassUWallTrainEnvBig50-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3/50,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        }
+    )
+
+    register(
+        id='PointmassUWallTestEnvBig5-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-2, -0.5),
+            'ball_high': (2, 1),
+            'goal_low': (-4, 2),
+            'goal_high': (4, 4),
+        }
+    )
+
+
+    register(
+        id='PointmassUWallTestEnvBig10-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3/2,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-2, -0.5),
+            'ball_high': (2, 1),
+            'goal_low': (-4, 2),
+            'goal_high': (4, 4),
+        }
+    )
+
+
+    register(
+        id='PointmassUWallTestEnvBig25-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '923907a',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 3/25,
+            'wall_shape': 'big-u',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+            'ball_low': (-2, -0.5),
+            'ball_high': (2, 1),
+            'goal_low': (-4, 2),
+            'goal_high': (4, 4),
+        }
+    )
+
+    register(
         id='PointmassUWallTrainEnvBigVectRew-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
