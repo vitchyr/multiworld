@@ -57,6 +57,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             invisible_boundary_wall=False,
 
             indicator_threshold_2=0.08,
+            indicator_threshold_3=0.12,
     ):
         self.quick_init(locals())
 
@@ -146,6 +147,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
         self.indicator_threshold_2 = indicator_threshold_2
+        self.indicator_threshold_3 = indicator_threshold_3
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self._action_scale = action_scale
@@ -258,6 +260,13 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             ),
             touch_success_2=float(touch_distance < self.indicator_threshold_2),
             state_success_2=float(state_distance < self.indicator_threshold_2),
+            hand_success_3=float(hand_distance < self.indicator_threshold_3),
+            puck_success_3=float(puck_distance < self.indicator_threshold_3),
+            hand_and_puck_success_3=float(
+                hand_distance + puck_distance < self.indicator_threshold_3
+            ),
+            touch_success_3=float(touch_distance < self.indicator_threshold_3),
+            state_success_3=float(state_distance < self.indicator_threshold_3),
         )
 
     def _get_obs(self):
@@ -335,11 +344,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             'puck_distance', 'puck_distance_l2',
             'state_distance', 'state_distance_l2',
             'touch_distance', 'touch_distance_l2',
-            'hand_success', 'hand_success_2',
-            'puck_success', 'puck_success_2',
-            'hand_and_puck_success', 'hand_and_puck_success_2',
-            'state_success', 'state_success_2',
-            'touch_success', 'touch_success_2',
+            'hand_success', 'hand_success_2', 'hand_success_3',
+            'puck_success', 'puck_success_2', 'puck_success_3',
+            'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
+            'state_success', 'state_success_2', 'state_success_3',
+            'touch_success', 'touch_success_2', 'touch_success_3',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
