@@ -653,50 +653,108 @@ def register_soroush_u_wall_envs():
 
 def register_soroush_flappy_bird_envs():
     register(
-        id='Point2DWallEnvFlappyBird-v0',
+        id='PointmassFlappyBirdTrainEnv-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush'
         },
         kwargs={
             'action_scale': 0.25,
             'wall_shape': 'flappy-bird',
             'wall_thickness': 0.50,
-            'render_size': 200,
+            'render_target': False,
+            'render_size': 84,
             'images_are_rgb': True,
             'sample_realistic_goals': True,
             'norm_order': 2,
-            'reward_type': 'vectorized_dense',
+            'reward_type': 'dense',
         },
     )
 
     register(
-        id='Image84Point2DWallEnvFlappyBird-v0',
-        entry_point=create_image_84_point2d_wall_flappy_bird_v0,
+        id='PointmassFlappyBirdTrainEnv-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'action_scale': 0.15,
+            'wall_shape': 'flappy-bird',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        },
+    )
+
+    register(
+        id='Image48PointmassFlappyBirdTrainEnv-v0',
+        entry_point=create_image_48_pointmass_flappy_bird_train_env_v0,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84PointmassFlappyBirdTrainEnv-v0',
+        entry_point=create_image_84_pointmass_flappy_bird_train_env_v0,
+        tags={
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush'
         },
     )
 
     register(
-        id='Image84Point2DWallEnvFlappyBird-v1',
-        entry_point=create_image_84_point2d_wall_flappy_bird_v1,
+        id='Image48PointmassFlappyBirdTrainEnv-v1',
+        entry_point=create_image_48_pointmass_flappy_bird_train_env_v1,
         tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush'
         },
     )
 
-    register(
-        id='Image84Point2DWallEnvFlappyBird-v2',
-        entry_point=create_image_84_point2d_wall_flappy_bird_v2,
-        tags={
-            'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
-        },
+def create_image_48_pointmass_flappy_bird_train_env_v0():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassFlappyBirdTrainEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
     )
+def create_image_84_pointmass_flappy_bird_train_env_v0():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassFlappyBirdTrainEnv-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+def create_image_48_pointmass_flappy_bird_train_env_v1():
+    from multiworld.core.image_env import ImageEnv
+
+    wrapped_env = gym.make('PointmassFlappyBirdTrainEnv-v1')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=None,
+        transpose=True,
+        normalize=True,
+        non_presampled_goal_img_is_garbage=False,
+    )
+
 
 def create_image_84_point2d_wall_flappy_bird_v0():
     from multiworld.core.image_env import ImageEnv
