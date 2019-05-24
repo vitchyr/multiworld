@@ -779,6 +779,7 @@ class Point2DWallEnv(Point2DEnv):
         fig.subplots_adjust(top=1)
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
+        ax.axis('off')
 
         ax.imshow(
             vals,
