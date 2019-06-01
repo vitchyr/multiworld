@@ -650,7 +650,7 @@ class Point2DWallEnv(Point2DEnv):
         if wall_shape == "none":
             self.walls = []
 
-    def generate_expert_subgoals(self, num_subgoals):
+    def generate_expert_subgoals(self, num_subprobs):
         def avg(p1, p2):
             return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
         ob_and_goal = self._get_obs()
@@ -659,26 +659,26 @@ class Point2DWallEnv(Point2DEnv):
 
         subgoals = []
         if self.wall_shape == "big-u" or self.wall_shape == "easy-u":
-            if num_subgoals == 2:
+            if num_subprobs == 2:
                 if goal[0] <= 0:
-                    subgoals += [(-3, -3), goal]
+                    subgoals += [(-3, -3)]
                 else:
-                    subgoals += [(3, -3), goal]
-            elif num_subgoals == 4:
+                    subgoals += [(3, -3)]
+            elif num_subprobs == 4:
                 subgoals += [(0, -3)]
                 if goal[0] <= 0:
-                    subgoals += [(-3, -3), (-3, 2), goal]
+                    subgoals += [(-3, -3), (-3, 2)]
                 else:
-                    subgoals += [(3, -3), (3, 2), goal]
-            elif num_subgoals == 8:
-                subgoals += [avg((0, -3), ob), (0, -3)]
+                    subgoals += [(3, -3), (3, 2)]
+            elif num_subprobs == 8:
+                subgoals += [avg((0, -3.5), ob), (0, -3.5)]
                 if goal[0] <= 0:
-                    subgoals += [avg((0, -3), (-3, -3)), (-3, -3), avg((-3, -3), (-3, 2)), (-3, 2), avg((-3, 2), goal), goal]
+                    subgoals += [avg((0, -3.5), (-3.5, -3.5)), (-3.5, -3.5), avg((-3.5, -3.5), (-3.5, 2)), (-3.5, 2), avg((-3.5, 2), goal)]
                 else:
-                    subgoals += [avg((0, -3), (3, -3)), (3, -3), avg((3, -3), (3, 2)), (3, 2), avg((3, 2), goal), goal]
+                    subgoals += [avg((0, -3.5), (3.5, -3.5)), (3.5, -3.5), avg((3.5, -3.5), (3.5, 2)), (3.5, 2), avg((3.5, 2), goal)]
 
         if len(subgoals) == 0:
-            subgoals = np.tile(goal, num_subgoals).reshape(-1, 2)
+            subgoals = np.tile(goal, num_subprobs-1).reshape(num_subprobs-1, -1)
 
         return np.array(subgoals)
 
