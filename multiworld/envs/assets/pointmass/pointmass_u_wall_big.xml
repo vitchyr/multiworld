@@ -1,0 +1,43 @@
+<mujoco model='pointmass_u_wall_big'>
+    <compiler inertiafromgeom='true' coordinate='local' angle='radian' settotalmass='14' />
+    <default>
+        <geom contype='1' conaffinity='0' condim='3' friction='.4 .4 .4' rgba='0.8 0.6 .4 1' solimp='0.0 0.8 0.01' solref='0.02 1' />
+    </default>
+    <size nstack='300000' nuser_geom='1' />
+    <option timestep='0.01' gravity='0 0 -9.81' />
+    <asset>
+        <texture type="skybox" builtin="gradient" width="100" height="100" rgb1="1 1 1" rgb2="0 0 0" />
+        <texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01" />
+        <!--<texture name="texplane" type="2d" builtin="checker" rgb1="0 0 0" rgb2="0.8 0.8 0.8" width="100" height="100" />-->
+        <texture name="texplane" type="2d" builtin="flat" rgb1="1.0 1.0 1.0" rgb2="1.0 1.0 1.0" width="100" height="100" />
+        <material name='MatPlane' texture="texplane" shininess="1" texrepeat="60 60" specular="1"  reflectance="0.5" />
+        <material name='geom' texture="texgeom" texuniform="true" />
+    </asset>
+    <worldbody>
+        <light directional="true" cutoff="100" exponent="1" diffuse="1 1 1" specular=".1 .1 .1" pos="0 0 1.3" dir="-0 0 -1.3" />
+
+        <geom name='floor' material="MatPlane" pos='0 0 0' size='40 40 40' type='plane' conaffinity='1' rgba='0.8 0.9 0.8 1' condim='3' />
+
+        <geom name='left_wall' pos='-5.0 0 0.5' size='0.5 5.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+        <geom name='right_wall' pos='5.0 0 0.5' size='0.5 5.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+        <geom name='front_wall' pos='0 5.0 0.5' size='5.5 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+        <geom name='back_wall' pos='0 -5.0 0.5' size='5.5 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+
+        <geom name='uwall_bottom' pos='0 1 0.5' size='2.5 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+        <geom name='uwall_right' pos='2.0 -0.5 0.5' size='0.5 2.0 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+        <geom name='uwall_left' pos='-2.0 -0.5 0.5' size='0.5 2.0 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />
+
+        <body name='pointmass' pos='0 0 0'>
+            <geom name='pointmass' type='sphere' pos ='0 0 0.5' rgba="0 0 1 1" size='0.5' />
+
+            <joint name="xmove" type="slide"  pos="0 0 0" axis="1 0 0"/>
+            <joint name="ymove" type="slide"  pos="0 0 0" axis="0 1 0"/>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <position ctrllimited="true" ctrlrange="-10000 10000" joint="xmove" kp="5"  user="1"/>
+        <position ctrllimited="true" ctrlrange="-10000 10000" joint="ymove" kp="5"  user="1"/>
+    </actuator>
+
+</mujoco>
