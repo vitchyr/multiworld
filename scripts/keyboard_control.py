@@ -26,6 +26,8 @@ from pygame.locals import QUIT, KEYDOWN
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
 
+from multiworld.envs.mujoco.pointmass.pointmass import PointmassEnv
+
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
 
@@ -65,7 +67,19 @@ import pygame
 #     reward_type='vectorized_state_distance'
 # )
 # env = SawyerPushAndReachXYEnv(**env_kwargs)
-env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
+# env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
+
+env_kwargs = dict(
+    frame_skip=100,
+    action_scale=0.3,
+    ball_low=(-2, -0.5),
+    ball_high=(2, 1),
+    goal_low=(-4, 2),
+    goal_high=(4, 4),
+    model_path='pointmass_u_wall_big.xml',
+)
+env = PointmassEnv(**env_kwargs)
+
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
