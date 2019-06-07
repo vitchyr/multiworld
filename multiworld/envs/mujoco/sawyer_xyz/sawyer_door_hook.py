@@ -136,6 +136,10 @@ class SawyerDoorHookEnv(
         return np.array([self.data.get_joint_qpos('doorjoint')])
 
     @property
+    def presampled_goals_path(self):
+        return get_asset_full_path('goals/door_goals.npy')
+
+    @property
     def endeff_id(self):
         return self.model.body_names.index('leftclaw')
 
