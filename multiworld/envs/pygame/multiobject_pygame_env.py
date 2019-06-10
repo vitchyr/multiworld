@@ -31,7 +31,11 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
             target_radius=0.60,
             boundary_dist=4,
             ball_radius=0.50,
+<<<<<<< HEAD
             include_colors_in_obs=False,
+=======
+            include_colors_in_obs = False,
+>>>>>>> 61fd45a219bad1b7b1bbd385f87dec6da7cfdc8e
             walls=None,
             num_colors = 8,
             fixed_colors = False,
