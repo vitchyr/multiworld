@@ -644,11 +644,18 @@ if __name__ == "__main__":
         include_colors_in_obs=True,
         fixed_colors=True,
     )
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in
+    e = ImageEnv(e,
+                 init_camera=sawyer_init_camera_zoomed_in,
+                 imsize=84,
+                 transpose=True,
+                 )
+
+
     for i in range(1000):
+        img = e.wrapped_env.get_image(100, 100)
         e.reset()
-        for j in range(5):
-            import ipdb; ipdb.set_trace()
-            e.step(np.random.rand(2))
-            img = e.get_image(100, 100)
-            cv2.imshow('img', img)
-            cv2.waitKey(10)
+        goal = e.get_goal()
+        import ipdb; ipdb.set_trace()
+
