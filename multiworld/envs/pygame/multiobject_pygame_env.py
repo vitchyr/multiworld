@@ -641,21 +641,18 @@ if __name__ == "__main__":
     e = Multiobj2DEnv(
         render_onscreen=True,
         show_goal=False,
-        include_colors_in_obs=True,
         fixed_colors=True,
+        num_colors=5
     )
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in
-    e = ImageEnv(e,
-                 init_camera=sawyer_init_camera_zoomed_in,
-                 imsize=84,
-                 transpose=True,
-                 )
 
-
+    e.reset()
     for i in range(1000):
-        img = e.wrapped_env.get_image(100, 100)
-        e.reset()
-        goal = e.get_goal()
-        import ipdb; ipdb.set_trace()
+        img = e.get_image(100, 100)
+        if i % 20 == 0:
+            print('reset')
+            e.reset()
+        cv2.imshow('im', img)
+        cv2.waitKey(10)
 

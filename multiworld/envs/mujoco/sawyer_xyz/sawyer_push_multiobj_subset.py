@@ -676,10 +676,10 @@ if __name__ == "__main__":
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in
     env = SawyerMultiobjectEnv(
-        num_objects=3,
+        num_objects=7,
         object_meshes=None,
         num_scene_objects=[1],
-        seed =1,
+        seed =0,
     )
     env = ImageEnv(
         env,
@@ -692,5 +692,5 @@ if __name__ == "__main__":
         if i % 50 == 0:
             env.reset()
         img = env.get_image()
-        # cv2.imshow('img', img)
-        # cv2.waitKey(100)
+        cv2.imshow('img', img)
+        cv2.waitKey(100)
