@@ -28,7 +28,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self,
             reward_info=None,
             frame_skip=50,
-            pos_action_scale=2. / 100,
+            pos_action_scale=4. / 100,
             randomize_goals=True,
             puck_goal_low=(-0.1, 0.5),
             puck_goal_high=(0.1, 0.7),
@@ -423,15 +423,12 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         ob_p = obs['state_achieved_goal'].reshape(-1, self.num_cur_objects + 1, 2)
         goal = obs['state_desired_goal'].reshape(-1, self.num_cur_objects + 1, 2)
-
         # th = objects_present*ob_p != 0
         # ob = ob_p[:, th[0][:, 0]]
 
         distances = np.linalg.norm(ob_p - goal, axis=2)[:, 1:]
 
-        r = -np.sum(distances, axis=1)
-
-        return r
+        return -distances
 
     # def compute_reward(self, action, obs, info=None):
     #     r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'])
