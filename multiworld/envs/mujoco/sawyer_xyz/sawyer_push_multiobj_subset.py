@@ -553,10 +553,17 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
         self.set_hand_xy(state_goal[:2])
+
+        # disappear all the objects
         for i in range(self.num_objects):
+            z = 10 + 10 * i
+            self.set_object_xy(i, np.array([z, z]))
+
+        # set the goal positions of only the current objects
+        for i, j in enumerate(self.cur_objects):
             x = 2 + 2 * i
             y = 4 + 2 * i
-            self.set_object_xy(i, state_goal[x:y])
+            self.set_object_xy(j, state_goal[x:y])
 
     def convert_obs_to_goals(self, obs):
         return obs
