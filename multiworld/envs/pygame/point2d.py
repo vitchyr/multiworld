@@ -669,8 +669,8 @@ class Point2DWallEnv(Point2DEnv):
                 VerticalWall(
                     self.ball_radius,
                     self.inner_wall_max_dist*2,
-                    -self.inner_wall_max_dist*2,
-                    self.inner_wall_max_dist,
+                    -self.inner_wall_max_dist*2, #-2
+                    self.inner_wall_max_dist,    # 1
                     self.wall_thickness
                 ),
                 # Left wall

@@ -424,6 +424,19 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             ))
         return statistics
 
+    def update_subgoals(self, latent_subgoals, latent_subgoals_noisy):
+        import warnings
+        warnings.warn("Not implemented for image env")
+        # from PIL import Image
+        # import pdb; pdb.set_trace()
+        # subgoals = [self._get_flat_img()]
+        # for subgoal in latent_subgoals:
+            # subgoals.append(subgoal)
+        # for idx, subgoal in enumerate(subgoals):
+            # img = np.uint8(subgoal.reshape((3, 48, 48)).transpose((1, 2, 0)) * 255)
+            # Image.fromarray(img).save('goals/goal_{idx}.jpg'.format(idx=idx))
+
+
 def normalize_image(image):
     assert image.dtype == np.uint8
     return np.float32(image) / 255.0
