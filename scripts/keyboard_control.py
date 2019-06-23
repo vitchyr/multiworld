@@ -19,10 +19,6 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
     SawyerPushAndReachXYDoublePuckEnv,
     SawyerPushAndReachXYZDoublePuckEnv,
 )
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
-    SawyerPickAndPlaceEnv,
-    SawyerPickAndPlaceEnvYZ,
-)
 
 import pygame
 from pygame.locals import QUIT, KEYDOWN
@@ -30,21 +26,23 @@ from pygame.locals import QUIT, KEYDOWN
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
 
+from multiworld.envs.mujoco.pointmass.pointmass import PointmassEnv
+
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
 
 
 char_to_action = {
-    'w': np.array([0, -1, 0]),
-    'a': np.array([1, 0, 0]),
-    's': np.array([0, 1, 0]),
-    'd': np.array([-1, 0, 0]),
-    'q': np.array([1, -1, 0]),
-    'e': np.array([-1, -1, 0]),
-    'z': np.array([1, 1, 0]),
-    'c': np.array([-1, 1, 0]),
-    'k': np.array([0, 0, 1]),
-    'j': np.array([0, 0, -1]),
+    'w': np.array([0, -1, 0, 0]),
+    'a': np.array([1, 0, 0, 0]),
+    's': np.array([0, 1, 0, 0]),
+    'd': np.array([-1, 0, 0, 0]),
+    'q': np.array([1, -1, 0, 0]),
+    'e': np.array([-1, -1, 0, 0]),
+    'z': np.array([1, 1, 0, 0]),
+    'c': np.array([-1, 1, 0, 0]),
+    'k': np.array([0, 0, 1, 0]),
+    'j': np.array([0, 0, -1, 0]),
     'h': 'close',
     'l': 'open',
     'x': 'toggle',
@@ -56,21 +54,40 @@ char_to_action = {
 import gym
 import multiworld
 import pygame
-env = SawyerPickAndPlaceEnvYZ(
-    hand_low=(-0.1, 0.52, 0.05),
-    hand_high=(0.0, 0.72, 0.15),
-    action_scale=0.02,
-    hide_goal_markers=True,
-    num_goals_presampled=50,
-    p_obj_in_hand=1,
+# env_kwargs = dict(
+#     sample_realistic_goals=True,
+#     hand_low=(-0.20, 0.50),
+#     hand_high=(0.20, 0.70),
+#     puck_low=(-0.20, 0.50),
+#     puck_high=(0.20, 0.70),
+#     fix_reset=0.075,
+#     heavy_puck=False,  # [True, False],
+#     wall=True,
+#     action_scale=0.02,
+#     reward_type='vectorized_state_distance'
+# )
+# env = SawyerPushAndReachXYEnv(**env_kwargs)
+# env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
+
+env_kwargs = dict(
+    frame_skip=100,
+    action_scale=0.3,
+    ball_low=(-2, -0.5),
+    ball_high=(2, 1),
+    goal_low=(-4, 2),
+    goal_high=(4, 4),
+    model_path='pointmass_u_wall_big.xml',
 )
+env = PointmassEnv(**env_kwargs)
 
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
-action = np.zeros(3)
+action = np.zeros(10)
 while True:
     done = False
+    if not lock_action:
+        action[:3] = 0
     for event in pygame.event.get():
         event_happened = True
         if event.type == QUIT:
@@ -94,7 +111,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:3])
+    env.step(action[:2])
     if done:
         obs = env.reset()
     env.render()

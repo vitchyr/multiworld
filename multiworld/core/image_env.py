@@ -111,7 +111,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         self.return_image_proprio = False
         if 'proprio_observation' in spaces.keys():
-            self.return_image_proprio = False
+            self.return_image_proprio = True
             spaces['image_proprio_observation'] = concatenate_box_spaces(
                 spaces['image_observation'],
                 spaces['proprio_observation']
@@ -427,15 +427,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
     def update_subgoals(self, latent_subgoals, latent_subgoals_noisy):
         import warnings
         warnings.warn("Not implemented for image env")
-        # from PIL import Image
-        # import pdb; pdb.set_trace()
-        # subgoals = [self._get_flat_img()]
-        # for subgoal in latent_subgoals:
-            # subgoals.append(subgoal)
-        # for idx, subgoal in enumerate(subgoals):
-            # img = np.uint8(subgoal.reshape((3, 48, 48)).transpose((1, 2, 0)) * 255)
-            # Image.fromarray(img).save('goals/goal_{idx}.jpg'.format(idx=idx))
-
 
 def normalize_image(image):
     assert image.dtype == np.uint8
