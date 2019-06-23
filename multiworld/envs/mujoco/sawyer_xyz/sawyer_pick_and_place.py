@@ -51,6 +51,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         SawyerXYZEnv.__init__(
             self,
             model_name=self.model_name,
+            frame_skip=5,
             **kwargs
         )
         self.norm_order = norm_order
@@ -131,6 +132,18 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.eval_pickups = 0
         self.cur_mode = 'train'
         self.reset()
+
+    def set_xyz_action(self, action):
+        action = np.clip(action, -1, 1)
+        pos_delta = action * self.action_scale
+        new_mocap_pos = self.data.mocap_pos + pos_delta[None]
+        new_mocap_pos[0, :] = np.clip(
+            new_mocap_pos[0, :],
+            self.mocap_low,
+            self.mocap_high,
+        )
+        self.data.set_mocap_pos('mocap', new_mocap_pos)
+        self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
 
     @property
     def model_name(self):
@@ -568,8 +581,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 'is_obj_in_hand': is_obj_in_hand
             }
 
-    def update_subgoals(self, subgoals):
-        self.subgoals = subgoals
+    def update_subgoals(self, latent_subgoals, latent_subgoals_noisy):
+        self.subgoals = latent_subgoals
 
     def states_to_images(self, states):
         images = []

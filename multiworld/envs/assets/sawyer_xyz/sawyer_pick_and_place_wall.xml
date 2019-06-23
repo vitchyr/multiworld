@@ -22,7 +22,7 @@
                 />
             </body>
 
-            <site name="obj" pos="0 .0 0" size="0.0035" rgba="0.0 0.0 1.0 1"/>
+            <site name="obj" pos="0 .0 0" size="0.035" rgba="0.0 0.0 1.0 1"/>
         </body>
 
         <body name="obj2" pos="0 0 0.1">
@@ -40,7 +40,7 @@
                 />
             </body>
 
-            <site name="obj2" pos="0 .0 0" size="0.0035" rgba="0.0 1.0 0.0 1"/>
+            <site name="obj2" pos="0 .0 0" size="0.035" rgba="0.0 1.0 0.0 1"/>
         </body>
 
 

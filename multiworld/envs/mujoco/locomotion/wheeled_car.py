@@ -34,7 +34,8 @@ class WheeledCarEnv(MujocoEnv, Serializable, MultitaskEnv): #, metaclass=abc.ABC
             reset_low=None,
             reset_high=None,
             *args,
-            **kwargs):
+            **kwargs
+    ):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,

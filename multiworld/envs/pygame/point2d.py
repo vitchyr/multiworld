@@ -39,7 +39,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             render_size=200,
             render_target=True,
             reward_type="dense",
-            norm_order=1,
+            norm_order=2,
             action_scale=1.0,
             target_radius=0.60,
             boundary_dist=4,
@@ -117,25 +117,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.subgoals = None
-        nx, ny = (20, 20)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
-
-        self.sweep_goal_imgs = []
-        for goal in sweep_goal:
-            self.set_to_goal({
-                'state_desired_goal': goal,
-            })
-            img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
-            self.sweep_goal_imgs.append(img)
-        self.sweep_goal_imgs = np.vstack(self.sweep_goal_imgs)
-        print(self.sweep_goal_imgs.shape)
-        self.i = 0
 
     def step(self, velocities):
-        # assert self.action_scale <= 1.0
+        assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
         for wall in self.walls:
@@ -231,17 +215,15 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_achieved_goal=self._position.copy(),
         )
 
-    def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
-        if reward_type is None:
-            reward_type = self.reward_type
+    def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=-1)
-        if reward_type == "sparse":
+        if self.reward_type == "sparse":
             return -(d > self.target_radius).astype(np.float32)
-        elif reward_type == "dense":
+        elif self.reward_type == "dense":
             return -d
-        elif reward_type == 'vectorized_dense':
+        elif self.reward_type == 'vectorized_dense':
             return -np.abs(achieved_goals - desired_goals)
 
     def get_diagnostics(self, paths, prefix=''):
@@ -251,6 +233,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'is_success',
             'is_success_2',
             'is_success_3',
+            'velocity',
+            'speed',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -272,9 +256,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'state_desired_goal': self._target_position.copy(),
         }
 
-    def set_goal(self, goal):
-        self._target_position = goal['state_desired_goal']
-
     def sample_goal_for_rollout(self):
         if not self.fixed_goal is None:
             goal = np.copy(self.fixed_goal)
@@ -293,16 +274,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         #     self.obs_range.high,
         #     size=(batch_size, self.obs_range.low.size),
         # )
-        if not self.fixed_goal is None:
-            goal = np.copy(self.fixed_goal)
-            goals = np.tile(goal, (batch_size, 1))
-        else:
-            goals = np.array(
-                [
-                    self._sample_position(self.obs_range.low, self.obs_range.high, realistic=self.sample_realistic_goals)
-                    for _ in range(batch_size)
-                ]
-            )
+        goals = np.array(
+            [
+                self._sample_position(self.obs_range.low, self.obs_range.high, realistic=self.sample_realistic_goals)
+                for _ in range(batch_size)
+            ]
+        )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -387,7 +364,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             Color('blue'),
         )
 
-        if self.subgoals is not None and self.observation_space.spaces['state_observation'].low.size == self.subgoals[0].size:
+        if self.subgoals is not None:
             for goal in self.subgoals:
                 self.drawer.draw_solid_circle(
                     goal,
@@ -524,88 +501,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def initialize_camera(self, init_fctn):
         pass
 
-    def get_image_v(self, agent, qf, vf, obs, tau):
-        nx, ny = (20, 20)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-        sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
-        sweep_goal = self.sweep_goal_imgs
-        sweep_tau = np.tile(tau, (nx * ny, 1))
-        if vf is not None:
-            v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        else:
-            sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-            v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
-        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
-        return self.get_image_plt(v_vals)
-
-    def get_image_plt(self,
-                      vals,
-                      vmin=None, vmax=None,
-                      extent=[-4, 4, -4, 4],
-                      small_markers=False,
-                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False):
-        fig, ax = plt.subplots()
-        ax.set_ylim(extent[2:4])
-        ax.set_xlim(extent[0:2])
-        ax.set_ylim(ax.get_ylim()[::-1])
-        DPI = fig.get_dpi()
-        fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
-
-        marker_factor = 0.60
-        if small_markers:
-            marker_factor = 0.10
-
-        if draw_state:
-            if small_markers:
-                color = 'cyan'
-            else:
-                color = 'blue'
-            ball = plt.Circle(self._position, self.ball_radius * marker_factor, color=color)
-            ax.add_artist(ball)
-        if draw_goal:
-            goal = plt.Circle(self._target_position, self.target_radius * marker_factor, color='green')
-            ax.add_artist(goal)
-        if draw_subgoals:
-            if self.subgoals is not None:
-                subgoal = plt.Circle(self.subgoals[0], (self.ball_radius + 0.1) * marker_factor, color='red')
-            else:
-                subgoal = None
-            ax.add_artist(subgoal)
-        if draw_walls:
-            for wall in self.walls:
-                ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint2[1], ymax=wall.endpoint1[1])
-                ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
-                ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
-                ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
-
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
-        fig.subplots_adjust(bottom=0)
-        fig.subplots_adjust(top=1)
-        fig.subplots_adjust(right=1)
-        fig.subplots_adjust(left=0)
-
-        ax.imshow(
-            vals,
-            extent=extent,
-            cmap=plt.get_cmap('plasma'),
-            interpolation='nearest',
-            vmax=vmax,
-            vmin=vmin,
-            origin='bottom',  # <-- Important! By default top left is (0, 0)
-        )
-
-        return self.plt_to_numpy(fig)
-
-    def plt_to_numpy(self, fig):
-        fig.canvas.draw()
-        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
-        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
-        plt.close()
-        return data
-
 
 class Point2DWallEnv(Point2DEnv):
     """Point2D with walls"""
@@ -669,8 +564,8 @@ class Point2DWallEnv(Point2DEnv):
                 VerticalWall(
                     self.ball_radius,
                     self.inner_wall_max_dist*2,
-                    -self.inner_wall_max_dist*2, #-2
-                    self.inner_wall_max_dist,    # 1
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist,
                     self.wall_thickness
                 ),
                 # Left wall
@@ -757,43 +652,7 @@ class Point2DWallEnv(Point2DEnv):
         if wall_shape == "none":
             self.walls = []
 
-        nx, ny = (50, 50)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
-
-        self.sweep_goal_imgs = []
-        for goal in sweep_goal:
-            if not self.realistic_state_np(goal):
-                continue
-            self.set_to_goal({
-                'state_desired_goal': goal,
-            })
-            img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
-            self.sweep_goal_imgs.append(img)
-        self.sweep_goal_imgs = np.vstack(self.sweep_goal_imgs)
-
-        nx, ny = (20, 20)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-        sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
-
-        self.sweep_goal_imgs_for_video = []
-        for goal in sweep_goal:
-            # if not self.realistic_state_np(goal):
-                # continue
-            self.set_to_goal({
-                'state_desired_goal': goal,
-            })
-            img = self.get_image(84, 84).transpose((2, 0, 1)).flatten() / 255.0
-            self.sweep_goal_imgs_for_video.append(img)
-        self.sweep_goal_imgs_for_video = np.vstack(self.sweep_goal_imgs_for_video)
-        print(self.sweep_goal_imgs.shape)
-
-
-    def generate_expert_subgoals(self, num_subgoals):
+    def generate_expert_subgoals(self, num_subprobs):
         def avg(p1, p2):
             return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
         ob_and_goal = self._get_obs()
@@ -802,33 +661,36 @@ class Point2DWallEnv(Point2DEnv):
 
         subgoals = []
         if self.wall_shape == "big-u" or self.wall_shape == "easy-u":
-            if num_subgoals == 2:
+            if num_subprobs == 2:
                 if goal[0] <= 0:
-                    subgoals += [(-3, -3), goal]
+                    subgoals += [(-3, -3)]
                 else:
-                    subgoals += [(3, -3), goal]
-            elif num_subgoals == 4:
+                    subgoals += [(3, -3)]
+            elif num_subprobs == 4:
                 subgoals += [(0, -3)]
                 if goal[0] <= 0:
-                    subgoals += [(-3, -3), (-3, 2), goal]
+                    subgoals += [(-3, -3), (-3, 2)]
                 else:
-                    subgoals += [(3, -3), (3, 2), goal]
-            elif num_subgoals == 8:
-                subgoals += [avg((0, -3), ob), (0, -3)]
+                    subgoals += [(3, -3), (3, 2)]
+            elif num_subprobs == 8:
+                subgoals += [avg((0, -3.5), ob), (0, -3.5)]
                 if goal[0] <= 0:
-                    subgoals += [avg((0, -3), (-3, -3)), (-3, -3), avg((-3, -3), (-3, 2)), (-3, 2), avg((-3, 2), goal), goal]
+                    subgoals += [avg((0, -3.5), (-3.5, -3.5)), (-3.5, -3.5), avg((-3.5, -3.5), (-3.5, 2)), (-3.5, 2), avg((-3.5, 2), goal)]
                 else:
-                    subgoals += [avg((0, -3), (3, -3)), (3, -3), avg((3, -3), (3, 2)), (3, 2), avg((3, 2), goal), goal]
+                    subgoals += [avg((0, -3.5), (3.5, -3.5)), (3.5, -3.5), avg((3.5, -3.5), (3.5, 2)), (3.5, 2), avg((3.5, 2), goal)]
 
         if len(subgoals) == 0:
-            subgoals = np.tile(goal, num_subgoals).reshape(-1, 2)
+            subgoals = np.tile(goal, num_subprobs-1).reshape(num_subprobs-1, -1)
 
         return np.array(subgoals)
 
     def get_image_v(self, agent, qf, vf, obs, tau=None):
         nx, ny = (50, 50)
-        sweep_goal = self.sweep_goal_imgs_for_video
-        sweep_tau = np.tile(tau, (nx * ny, 1))
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
         sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
         if tau is not None:
             sweep_tau = np.tile(tau, (nx * ny, 1))
@@ -849,28 +711,10 @@ class Point2DWallEnv(Point2DEnv):
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
-        return self.get_image_plt(v_vals)
-
-    def get_image_v_subgoal(self, agent, qf, vf, obs, tau):
-        nx, ny = (20, 20)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
-        sweep_goal = np.tile(self.subgoals[0].reshape((1, -1)), (nx * ny, 1))
-        sweep_obs = self.sweep_goal_imgs_for_video
-        sweep_tau = np.tile(tau, (nx * ny, 1))
-        if vf is not None:
-            v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
-        else:
-            sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
-            v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
-        v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1).reshape((nx, ny))
-        return self.get_image_plt(v_vals)
-
+        return self.get_image_plt(v_vals, vmin=-2.5, vmax=0.0)
 
     def get_image_rew(self, obs):
-        nx, ny = (20, 20)
+        nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
@@ -881,7 +725,7 @@ class Point2DWallEnv(Point2DEnv):
         return self.get_image_plt(rew_vals)
 
     def get_image_realistic_rew(self):
-        nx, ny = (20, 20)
+        nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
         xv, yv = np.meshgrid(x, y)
@@ -937,6 +781,7 @@ class Point2DWallEnv(Point2DEnv):
         fig.subplots_adjust(top=1)
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
+        ax.axis('off')
 
         ax.imshow(
             vals,
