@@ -28,7 +28,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self,
             reward_info=None,
             frame_skip=50,
-            pos_action_scale=4. / 100,
+            pos_action_scale=2. / 100,
             randomize_goals=True,
             puck_goal_low=(-0.1, 0.5),
             puck_goal_high=(0.1, 0.7),
@@ -121,17 +121,17 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         )
 
         self.num_objects = num_objects
-        low = (self.num_scene_objects[0] + 1) * [-0.2, 0.5]
-        high = (self.num_scene_objects[0] + 1) * [0.2, 0.7]
+        # low = (self.num_scene_objects[0] + 1) * [-0.2, 0.5]
+        # high = (self.num_scene_objects[0] + 1) * [0.2, 0.7]
+        low = np.concatenate((self.hand_goal_low, self.puck_goal_low))
+        high = np.concatenate((self.hand_goal_high, self.puck_goal_high))
         self.obs_box = Box(
             np.array(low),
             np.array(high),
         )
-        goal_low = np.array(low) # np.concatenate((self.hand_goal_low, self.puck_goal_low))
-        goal_high = np.array(high) # np.concatenate((self.hand_goal_high, self.puck_goal_high))
         self.goal_box = Box(
-            goal_low,
-            goal_high,
+            low,
+            high,
         )
         self.total_objects = self.num_objects + 1
         self.objects_box = Box(
@@ -554,6 +554,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         state_goal = goal['state_desired_goal']
         self.set_hand_xy(state_goal[:2])
         for i in range(self.num_objects):
+            z = 10 + 10 * i
+            self.set_object_xy(i, np.array([z, z]))
+        for i, j in enumerate(self.cur_objects):
             x = 2 + 2 * i
             y = 4 + 2 * i
             self.set_object_xy(i, state_goal[x:y])
@@ -669,20 +672,44 @@ class SawyerTwoObjectEnv(SawyerMultiobjectEnv):
 
 
 if __name__ == "__main__":
+    x_var = 0.2
+    x_low = -x_var
+    x_high = x_var
+    y_low = 0.5
+    y_high = 0.7
+    t = 0.05
     import cv2
     from multiworld.core.image_env import ImageEnv
-    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in
+    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
     env = SawyerMultiobjectEnv(
         num_objects=7,
         object_meshes=None,
         num_scene_objects=[1],
         seed =0,
+        maxlen=0.1,
+        action_repeat=5,
+        puck_goal_low=(x_low + t + t, y_low + t),
+        puck_goal_high=(x_high - t - t, y_high - t),
+        hand_goal_low=(x_low, y_low),
+        hand_goal_high=(x_high, y_high),
+        mocap_low=(x_low, y_low, 0.0),
+        mocap_high=(x_high, y_high, 0.5),
+        object_low=(x_low + t + t, y_low + t, 0.02),
+        object_high=(x_high - t - t, y_high - t, 0.02),
     )
     env = ImageEnv(
         env,
-        init_camera=sawyer_init_camera_zoomed_in,
+        init_camera=sawyer_pusher_camera_upright_v2,
         transpose=True,
     )
+    print(dict(puck_goal_low=(x_low + t + t, y_low + t),
+        puck_goal_high=(x_high - t - t, y_high - t),
+        hand_goal_low=(x_low, y_low),
+        hand_goal_high=(x_high, y_high),
+        mocap_low=(x_low, y_low, 0.0),
+        mocap_high=(x_high, y_high, 0.5),
+        object_low=(x_low + t + t, y_low + t, 0.02),
+        object_high=(x_high - t - t, y_high - t, 0.02),))
     env.reset()
     for i in range(10000):
         env.wrapped_env.step(env.action_space.sample())
