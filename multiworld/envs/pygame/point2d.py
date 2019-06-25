@@ -654,7 +654,7 @@ class Point2DWallEnv(Point2DEnv):
 
     def generate_expert_subgoals(self, num_subprobs):
         def avg(p1, p2):
-            return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+            return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
         ob_and_goal = self._get_obs()
         ob = ob_and_goal['state_observation']
         goal = ob_and_goal['state_desired_goal']
@@ -666,60 +666,45 @@ class Point2DWallEnv(Point2DEnv):
                     subgoals += [(-3, -3)]
                 else:
                     subgoals += [(3, -3)]
-            elif num_subprobs == 4:
-                # subgoals += [(0, -3)]
-                if goal[0] <= 0:
-                    subgoals += [(-1.5, -3.5), (-3.0, -1.5), (-3.0, 1.5)]
-                else:
-                    subgoals += [(1.5, -3.5), (3.0, -1.5), (3.0, 1.5)]
-            elif num_subprobs == 8:
-                if goal[0] <= 0:
-                    subgoals += [
-                        avg(ob, (-1.5, -3.5)),
-                        (-1.5, -3.5),
-                        (-3.0, -3.0),
-                        (-3.0, -1.5),
-                        avg((-3.0, -1.5), (-3.0, 1.5)),
-                        (-3.0, 1.5),
-                        avg((-3.0, 1.5), goal),
-                    ]
-                else:
-                    subgoals += [
-                        avg(ob, (1.5, -3.5)),
-                        (1.5, -3.5),
-                        (3.0, -3.0),
-                        (3.0, -1.5),
-                        avg((3.0, -1.5), (3.0, 1.5)),
-                        (3.0, 1.5),
-                        avg((3.0, 1.5), goal),
-                    ]
+            elif num_subprobs in [4, 8]:
+                subgoals += [
+                    [1.0, -3.25],
+                    [3.25, -2.0],
+                    [3.25, 1.5]
+                ]
 
-                # subgoals += [avg((0, -3.5), ob), (0, -3.5)]
-                # if goal[0] <= 0:
-                #     subgoals += [avg((0, -3.5), (-3.5, -3.5)), (-3.5, -3.5), avg((-3.5, -3.5), (-3.5, 2)), (-3.5, 2), avg((-3.5, 2), goal)]
-                # else:
-                #     subgoals += [avg((0, -3.5), (3.5, -3.5)), (3.5, -3.5), avg((3.5, -3.5), (3.5, 2)), (3.5, 2), avg((3.5, 2), goal)]
-            # elif num_subprobs == 6:
-            #     if goal[0] <= 0:
-            #         subgoals += [
-            #             avg(ob, (-1.5, -3.5)),
-            #             (-1.5, -3.5),
-            #             (-3.0, -3.0),
-            #             (-3.0, -1.5),
-            #             avg((-3.0, -1.5), (-3.0, 1.5)),
-            #             (-3.0, 1.5),
-            #             avg((-3.0, 1.5), goal),
-            #         ]
-            #     else:
-            #         subgoals += [
-            #             avg(ob, (1.5, -3.5)),
-            #             (1.5, -3.5),
-            #             (3.0, -3.0),
-            #             (3.0, -1.5),
-            #             avg((3.0, -1.5), (3.0, 1.5)),
-            #             (3.0, 1.5),
-            #             avg((3.0, 1.5), goal),
-            #         ]
+                if goal[0] <= 0:
+                    for subgoal in subgoals:
+                        subgoal[0] *= -1
+
+                if num_subprobs == 8:
+                    subgoals_1 = subgoals
+                    subgoals_2 = []
+
+                    for first, second in zip([ob] + subgoals_1 + [goal], subgoals_1 + [goal]):
+                        subgoals_2.append(avg(first, second))
+
+                    if goal[0] <= 0:
+                        subgoals_2[1] = [-2.5, -3.25]
+                    else:
+                        subgoals_2[1] = [2.5, -3.25]
+                    subgoals_2[3][1] = max(subgoals_2[3][1], 2.25)
+
+                    subgoals = [subgoals_2[0]] + [item for t in zip(subgoals_1, subgoals_2[1:]) for item in t]
+            elif num_subprobs == 6:
+                subgoals += [
+                    [0.5, -2.0],
+                    [2.5, -3.25],
+                    [3.25, -1.25],
+                    [3.25, 0.75],
+                ]
+
+                if goal[0] <= 0:
+                    for subgoal in subgoals:
+                        subgoal[0] *= -1
+
+                subgoals.append(avg(subgoals[-1], goal))
+                subgoals[-1][1] = max(subgoals[-1][1], 2.25)
 
         if len(subgoals) == 0:
             subgoals = np.tile(goal, num_subprobs-1).reshape(num_subprobs-1, -1)
