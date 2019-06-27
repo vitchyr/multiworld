@@ -241,13 +241,16 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         touch_distances[touch_name] = touch_distance
         objects = {}
 
-        for i in range(self.num_objects):
-            if i in self.cur_objects:
-                j = self.cur_objects.tolist().index(i)
-                object_pos = self.get_object_goal_pos(j)
-                object_goal = self.get_object_pos(i)
-                object_distance = np.linalg.norm(object_pos - object_goal)
-                object_distances["current_object_distance"] = object_distance
+        # for i in range(self.num_objects):
+        distances = []
+        cur_object_list = self.cur_objects.tolist()
+        for i in self.cur_objects:
+            j = cur_object_list.index(i)
+            object_pos = self.get_object_goal_pos(j)
+            object_goal = self.get_object_pos(i)
+            object_distance = np.linalg.norm(object_pos - object_goal)
+            distances.append(object_distance)
+        object_distances["current_object_distance"] = np.mean(distances)
 
         b = np.zeros((self.num_objects + 1))
         b[0] = 1 # the arm
