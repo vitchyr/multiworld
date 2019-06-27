@@ -341,10 +341,10 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'hand_distance', 'hand_distance_l2',
-            'puck_distance', 'puck_distance_l2',
-            'state_distance', 'state_distance_l2',
-            'touch_distance', 'touch_distance_l2',
+            'hand_distance', #'hand_distance_l2',
+            'puck_distance', #'puck_distance_l2',
+            'state_distance', #'state_distance_l2',
+            'touch_distance', #'touch_distance_l2',
             'hand_success', 'hand_success_2', 'hand_success_3',
             'puck_success', 'puck_success_2', 'puck_success_3',
             'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
