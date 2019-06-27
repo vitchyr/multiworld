@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mujoco>
-    <include file="shared_config.xml"></include>
+    <include file="shared_config_pnp.xml"></include>
     <worldbody>
         <include file="sawyer_xyz_base_russell.xml"></include>
         <!--<body name="wall" pos="0 0.6 0.02">-->
