@@ -371,14 +371,212 @@ def register_custom_envs():
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
+            obj_low=(-0.1, 0.55, 0.00),
             hand_high=(0.0, 0.65, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
             num_goals_presampled=1000,
+            reward_type='vectorized_state_distance',
         )
 
     )
 
+    """
+    Pick and Place
+    """
+    register(
+        id='SawyerPickupEnvYZ-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.02),
+            hand_high=(0.0, 0.65, 0.15),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=500,
+            # p_obj_in_hand=0.5,
+            # reward_type='vectorized_state_distance',
+        )
+    )
+    """
+    Pick and Place
+    """
+    register(
+        id='SawyerPickupEnvYZOracle-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.02),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=500,
+            oracle_reset_prob=.3,
+            # p_obj_in_hand=0.5,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBig-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.5, 0.02),
+            hand_high=(0.0, 0.7, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=500,
+            oracle_reset_prob=.4,
+            # p_obj_in_hand=0.5,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggest-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=2000,
+            oracle_reset_prob=.4,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggest-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=3000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggestTelescope-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=3000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='telescoping_vectorized_state_distance',
+        )
+    )
+    register(
+        id='Image84SawyerPickupEnvYZOracleBiggest-v1',
+        entry_point=create_image_84_sawyer_pickup_big_v0,
+        tags={
+            'git-commit-hash': 'f773062',
+            'author': 'steven'
+        },
+    )
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggest-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+            oracle_reset_prob=0.5,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggestHard-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.01,
+            hide_goal_markers=True,
+            num_goals_presampled=200,
+            oracle_reset_prob=1.0,
+            p_obj_in_hand=0.5,
+            hard_goals=True,
+            random_init=True,
+            # reward_type='vectorized_state_distance',
+        )
+    )
+
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggestNoWall-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=2000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            structure='none',
+            reward_type='vectorized_state_distance',
+        )
+    )
     register_soroush_envs()
 
 def create_image_84_wheeled_car_env_v0():
@@ -569,6 +767,24 @@ def register_soroush_envs():
             'author': 'Soroush'
         },
     )
+    register(
+        id='Image84SawyerPushAndReachTrainEnvSmallVect-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_small_vect_v0,
+        tags={
+            'git-commit-hash': '352248b',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='Image84SawyerPushAndReachTrainEnvBigVect-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_big_vect_v0,
+        tags={
+            'git-commit-hash': '352248b',
+            'author': 'Soroush'
+        },
+    )
+
 
     register(
         id='SawyerPushAndReachTrainEnvBig-v0',
@@ -1160,6 +1376,7 @@ def create_image_84_sawyer_pnr_train_env_small_v0():
         transpose=True,
         normalize=True,
     )
+
 def create_image_84_sawyer_pnr_test_env_small_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm
@@ -1192,9 +1409,52 @@ def create_image_84_sawyer_pnr_train_env_big_v0():
     return ImageEnv(
         wrapped_env,
         84,
+        init_camera=sawyer_pusher_camera_tdm,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pickup_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
+
+    wrapped_env = gym.make('SawyerPickupEnvYZOracleBiggest-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pick_and_place_camera,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+
+
+def create_image_84_sawyer_pnr_train_env_big_vect_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvBigVectRew-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+
+def create_image_84_sawyer_pnr_train_env_small_vect_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvSmallVectRew-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
     )
 def create_image_48_sawyer_pnr_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv
@@ -1219,6 +1479,7 @@ def create_image_84_sawyer_pnr_test_env_big_v0():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 
 def create_image_84_sawyer_pnr_arena_train_env_big_v0():
@@ -1232,6 +1493,7 @@ def create_image_84_sawyer_pnr_arena_train_env_big_v0():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 def create_image_84_sawyer_pnr_arena_test_env_big_v0():
     from multiworld.core.image_env import ImageEnv
@@ -1257,6 +1519,7 @@ def create_image_84_sawyer_pnr_arena_train_env_big_v1():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 def create_image_84_sawyer_pnr_arena_test_env_big_v1():
     from multiworld.core.image_env import ImageEnv
@@ -1269,6 +1532,7 @@ def create_image_84_sawyer_pnr_arena_test_env_big_v1():
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
+        reward_type='vectorized_state_distance'
     )
 
 def create_image_84_sawyer_pnr_arena_train_env_big_v2():

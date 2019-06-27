@@ -13,6 +13,10 @@ from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dic
 
 from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
+    SawyerPickAndPlaceEnvYZ,
+    SawyerPickAndPlaceEnv,
+)
 
 class ImageEnv(ProxyEnv, MultitaskEnv):
     def __init__(
@@ -120,14 +124,27 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 spaces['image_achieved_goal'],
                 spaces['proprio_achieved_goal']
             )
-
         self.observation_space = Dict(spaces)
         self.action_space = self.wrapped_env.action_space
         self.reward_type = reward_type
         self.threshold = threshold
         self._presampled_goals = presampled_goals
+        self.dummy = False
         if self._presampled_goals is None:
             self.num_goals_presampled = 0
+            if (
+                isinstance(self.wrapped_env, SawyerPickAndPlaceEnv) and
+                not self.wrapped_env.hard_goals and
+                False
+            ):
+                from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
+                    get_image_presampled_goals
+                )
+                print('Setting image presampled goals for pickup')
+                num_goals_to_presample = 300
+                self.set_presampled_goals(
+                    get_image_presampled_goals(self, num_goals_to_presample),
+                    num_goals_to_presample)
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
@@ -152,6 +169,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         info['image_success'] = image_success
         # info['image_dist'] = 0
         # info['image_success'] = 0
+
+    def set_presampled_goals(self, goals, num_goals):
+        self.num_goals_presampled = num_goals
+        self._presampled_goals = goals
 
     def reset(self):
         obs = self.wrapped_env.reset()
@@ -229,6 +250,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return frame
 
     def _get_flat_img(self):
+        if self.dummy:
+            return np.zeros(1)
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image(
             width=self.imsize,
@@ -271,6 +294,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.wrapped_env.set_env_state(pre_state)
             imgs = imgs.reshape(orig_batch_size, -1)
             return imgs
+        elif isinstance(self._wrapped_env, SawyerPickAndPlaceEnvYZ):
+            return self.wrapped_env.states_to_images(states)
+
         elif isinstance(self._wrapped_env, SawyerPushAndReachXYEnv):
             batch_size = states.shape[0]
             imgs = np.zeros((batch_size, self.image_length))
@@ -356,24 +382,30 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         return goals
 
-    def compute_rewards(self, actions, obs, reward_type=None):
+    def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
         if reward_type is None:
             reward_type = self.reward_type
 
         if reward_type=='wrapped_env':
-            return self.wrapped_env.compute_rewards(actions, obs)
+            return self.wrapped_env.compute_rewards(actions, obs, prev_obs=prev_obs)
         elif reward_type=='image_distance':
-            achieved_goals = obs['achieved_goal']
-            desired_goals = obs['desired_goal']
+            achieved_goals = obs['image_achieved_goal']
+            desired_goals = obs['image_desired_goal']
             dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -dist
         elif reward_type=='image_sparse':
-            achieved_goals = obs['achieved_goal']
-            desired_goals = obs['desired_goal']
+            achieved_goals = obs['image_achieved_goal']
+            desired_goals = obs['image_desired_goal']
             dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
             return -(dist > self.threshold).astype(float)
+        elif reward_type == 'image_distance_vectorized':
+            achieved_goals = obs['image_achieved_goal']
+            desired_goals = obs['image_desired_goal']
+            dist = np.abs(achieved_goals - desired_goals)
+            return -dist
         else:
-            return self.wrapped_env.compute_rewards(actions, obs, reward_type=reward_type)
+            return self.wrapped_env.compute_rewards(actions, obs, prev_obs=prev_obs,
+                                                    reward_type=reward_type)
 
     def get_diagnostics(self, paths, **kwargs):
         statistics = self.wrapped_env.get_diagnostics(paths, **kwargs)
@@ -391,6 +423,10 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 always_show_all_stats=True,
             ))
         return statistics
+
+    def update_subgoals(self, latent_subgoals, latent_subgoals_noisy):
+        import warnings
+        warnings.warn("Not implemented for image env")
 
 def normalize_image(image):
     assert image.dtype == np.uint8
