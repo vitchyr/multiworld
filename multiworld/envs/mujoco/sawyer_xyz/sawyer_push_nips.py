@@ -60,6 +60,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             indicator_threshold_3=0.12,
     ):
         self.quick_init(locals())
+        print("initializing inside python file...")
 
         self.square_puck = square_puck
         self.heavy_puck = heavy_puck
