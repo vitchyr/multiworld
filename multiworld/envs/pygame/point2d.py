@@ -738,7 +738,7 @@ class Point2DWallEnv(Point2DEnv):
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
-        return self.get_image_plt(v_vals, vmin=-2.5, vmax=0.0)
+        return self.get_image_plt(v_vals, vmin=-2.0, vmax=0.0)
 
     def get_image_rew(self, obs):
         nx, ny = (50, 50)
