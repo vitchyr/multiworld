@@ -285,25 +285,23 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if width is not None:
+        if self.drawer is None:
             if width != height:
                 raise NotImplementedError()
-            if width != self.render_size:
-                self.drawer = PygameViewer(
-                    screen_width=width,
-                    screen_height=height,
-                    x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
-                    y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
-                    render_onscreen=self.render_onscreen,
-                )
-                self.render_size = width
-        self.render()
+            self.drawer = PygameViewer(
+                screen_width=width,
+                screen_height=height,
+                x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                render_onscreen=self.render_onscreen,
+            )
+        self.draw(self.drawer, False)
         img = self.drawer.get_image()
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
         else:
             r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
-            img = (-r + b)
+            img = (-r + b).transpose().flatten()
             return img
 
     def update_subgoals(self, subgoals):
@@ -332,64 +330,64 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def render(self, close=False, mode='human'):
         if close:
-            self.drawer = None
+            self.render_drawer = None
             return
 
-        if self.drawer is None or self.drawer.terminated:
-            self.drawer = PygameViewer(
-                self.render_size,
-                self.render_size,
-                x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
-                y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
-                render_onscreen=self.render_onscreen,
-            )
-        self.drawer.fill(Color('white'))
-        if self.render_target:
-            self.drawer.draw_solid_circle(
+        if mode == 'rgb_array':
+            return self.get_image(self.render_size, self.render_size)
+        elif mode == 'human':
+            if self.render_drawer is None or self.render_drawer.terminated:
+                self.render_drawer = PygameViewer(
+                    self.render_size,
+                    self.render_size,
+                    x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                    y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                    render_onscreen=True,
+                )
+            self.draw(self.render_drawer, True)
+        else:
+            raise NotImplementedError(mode)
+
+    def draw(self, drawer, tick):
+        drawer.fill(Color('white'))
+        if self.show_goal:
+            drawer.draw_solid_circle(
                 self._target_position,
                 self.target_radius,
                 Color('green'),
             )
-        self.drawer.draw_solid_circle(
+        drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
             Color('blue'),
         )
 
-        if self.subgoals is not None:
-            for goal in self.subgoals:
-                self.drawer.draw_solid_circle(
-                    goal,
-                    self.ball_radius + 0.1,
-                    Color('red'),
-                )
-            for p1, p2 in zip(np.concatenate(([self._position], self.subgoals[:-1]), axis=0), self.subgoals):
-                self.drawer.draw_segment(p1, p2, Color(100, 0, 0, 10))
-
         for wall in self.walls:
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint1,
                 wall.endpoint2,
                 Color('black'),
             )
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint2,
                 wall.endpoint3,
                 Color('black'),
             )
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint3,
                 wall.endpoint4,
                 Color('black'),
             )
-            self.drawer.draw_segment(
+            drawer.draw_segment(
                 wall.endpoint4,
                 wall.endpoint1,
                 Color('black'),
             )
 
-        self.drawer.render()
-        self.drawer.tick(self.render_dt_msec)
+        drawer.render()
+        if tick:
+            drawer.tick(self.render_dt_msec)
+
 
     """Static visualization/utility methods"""
 
