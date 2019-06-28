@@ -125,6 +125,10 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
                 for i in range(self.num_objects):
                     rgb = map(int, rgbs[i, :])
                     self.colors.append(Color(*rgb, 255))
+            self.colors = [(223, 75, 109, 255), (110, 90, 168, 255),
+                           (246, 212, 183, 255), (197, 168, 38, 255),
+                           (129, 164, 205, 255), (128, 134, 99, 255),
+                           (18, 249, 235, 255)]
 
     def randomize_colors(self):
         self.object_colors = []
@@ -651,14 +655,18 @@ if __name__ == "__main__":
     e = Multiobj2DEnv(
         render_onscreen=True,
         show_goal=False,
-        include_colors_in_obs=True,
         fixed_colors=True,
+        num_colors=7
     )
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in
+
+    e.reset()
     for i in range(1000):
-        e.reset()
-        for j in range(5):
-            import ipdb; ipdb.set_trace()
-            e.step(np.random.rand(2))
-            img = e.get_image(100, 100)
-            cv2.imshow('img', img)
-            cv2.waitKey(10)
+        img = e.get_image(100, 100)
+        if i % 20 == 0:
+            print('reset')
+            e.reset()
+        cv2.imshow('im', img)
+        cv2.waitKey(10)
+
