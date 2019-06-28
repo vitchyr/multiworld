@@ -7,7 +7,6 @@ from pygame import Color
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict
-from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import (
@@ -17,13 +16,10 @@ from multiworld.envs.env_util import (
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
 
-from railrl.pythonplusplus import identity
-
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
-from railrl.torch import pytorch_util as ptu
 
 
 class Point2DEnv(MultitaskEnv, Serializable):
@@ -56,6 +52,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
             show_goal=True,
             **kwargs
     ):
+        self.metadata = {
+            'render.modes': ['human', 'rgb_array'],
+        }
+
         if walls is None:
             walls = []
         if len(kwargs) > 0:
@@ -89,22 +89,22 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = np.zeros((2))
 
         u = np.ones(2)
-        self.action_space = spaces.Box(-u, u, dtype=np.float32)
+        self.action_space = spaces.Box(-u, u)
 
         o = self.boundary_dist * np.ones(2)
-        self.obs_range = spaces.Box(-o, o, dtype='float32')
+        self.obs_range = spaces.Box(-o, o)
 
         if goal_low is None:
             goal_low = -o
         if goal_high is None:
             goal_high = o
-        self.goal_range = spaces.Box(np.array(goal_low), np.array(goal_high), dtype='float32')
+        self.goal_range = spaces.Box(np.array(goal_low), np.array(goal_high))
 
         if ball_low is None:
             ball_low = -o
         if ball_high is None:
             ball_high = o
-        self.ball_range = spaces.Box(np.array(ball_low), np.array(ball_high), dtype='float32')
+        self.ball_range = spaces.Box(np.array(ball_low), np.array(ball_high))
 
         self.observation_space = spaces.Dict([
             ('observation', self.obs_range),
@@ -330,7 +330,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         states = np.stack((xv, yv), axis=2).reshape((-1, 2))
         return states
 
-    def render(self, close=False):
+    def render(self, close=False, mode='human'):
         if close:
             self.drawer = None
             return
@@ -723,6 +723,7 @@ class Point2DWallEnv(Point2DEnv):
         xv, yv = np.meshgrid(x, y)
 
         sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        from railrl.torch import pytorch_util as ptu
         rew_vals = ptu.get_numpy(self.realistic_goals(sweep_goal)).reshape((nx, ny))
         return self.get_image_plt(rew_vals)
 
@@ -810,7 +811,7 @@ class PointmassExpertPolicy:
 
     @staticmethod
     def point_in_box(point, low, high):
-        return spaces.Box(np.array(low), np.array(high), dtype='float32').contains(point)
+        return spaces.Box(np.array(low), np.array(high)).contains(point)
 
     def get_action(self, obs, goal_high_level, tau_high_level):
         action = [0, 0]
@@ -852,17 +853,3 @@ class PointmassExpertPolicy:
             action = self.base_policy.eval_np(obs[None], goal_high_level[None], tau_high_level[None])[0]
 
         return np.array(action), {}
-
-
-if __name__ == "__main__":
-    # e = Point2DEnv()
-    import matplotlib.pyplot as plt
-
-    # e = Point2DWallEnv("-", render_size=84)
-    e = ImageEnv(Point2DWallEnv(wall_shape="u", render_size=84))
-    for i in range(10):
-        e.reset()
-        for j in range(50):
-            e.step(np.random.rand(2))
-            e.render()
-            im = e.get_image()
