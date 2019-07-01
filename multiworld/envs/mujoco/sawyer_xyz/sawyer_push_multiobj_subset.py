@@ -17,6 +17,9 @@ from multiworld.core.multitask_env import MultitaskEnv
 
 from multiworld.envs.mujoco.util.create_xml import create_object_xml, create_root_xml, clean_xml
 import multiworld
+from mujoco_py.modder import TextureModder, MaterialModder
+
+from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
 
 BASE_DIR = '/'.join(str.split(multiworld.__file__, '/')[:-2])
 asset_base_path = BASE_DIR + '/multiworld/envs/assets/multi_object_sawyer_xyz/'
@@ -111,6 +114,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
         clean_xml(gen_xml)
 
+        self.modder = TextureModder(self.sim)
+
         self.state_goal = self.sample_goal_for_rollout()
         # MultitaskEnv.__init__(self, distance_metric_order=2)
         # MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
@@ -158,6 +163,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         # )
 
         self.set_initial_object_positions()
+
+        self.initialized_camera = self.initialize_camera(sawyer_pusher_camera_upright_v2)
 
         self.reset()
         self.reset_mocap_welds()
@@ -411,6 +418,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.set_object_xys(positions)
 
     def reset(self):
+        for i in range(self.num_objects):
+            self.modder.rand_rgb('object%d' % i)
+
         velocities = self.data.qvel.copy()
         angles = self.data.qpos.copy()
         angles[:7] = np.array(self.init_angles[:7]) # just change robot joints

@@ -10,35 +10,7 @@ import numpy as np
 import stl
 from stl import mesh
 import multiworld
-colors = np.array([[[0.88258458, 0.61616014, 0.30342244],
-        [0.44904328, 0.69577521, 0.68652953]],
 
-       [[0.92356552, 0.9767882 , 0.3747698 ],
-        [0.60954744, 0.82520297, 0.86401398]],
-
-       [[0.43501996, 0.63948438, 0.36339798],
-        [0.96610361, 0.62895419, 0.73813141]],
-
-       [[0.74471205, 0.8673773 , 0.49197047],
-        [0.41394834, 0.57111574, 0.96317297]],
-
-       [[0.72811933, 0.85309175, 0.67426973],
-        [0.40856733, 0.76953656, 0.61831636]],
-
-       [[0.30017325, 0.95412604, 0.46128121],
-        [0.32090096, 0.91767218, 0.34313292]],
-
-       [[0.5439715 , 0.56920233, 0.8857415 ],
-        [0.3462363 , 0.64596369, 0.74643964]],
-
-       [[0.87068178, 0.83856985, 0.35241548],
-        [0.41416224, 0.35510321, 0.59561766]],
-
-       [[0.61513453, 0.78832289, 0.3787638 ],
-        [0.86263158, 0.66696945, 0.87094896]],
-
-       [[0.81823971, 0.96573404, 0.88676417],
-        [0.83557179, 0.58453926, 0.82495365]]])
 def find_mins_maxs(obj):
     minx = maxx = miny = maxy = minz = maxz = None
     for p in obj.points:
@@ -99,11 +71,9 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
         if load_dict_list == None:
             dict = {}
 
+            color1 = dict['color1'] = np.random.uniform(0.3, 1., 3)
+            color2 = dict['color2'] = np.random.uniform(0.3, 1., 3)
 
-            # color1 = dict['color1'] = np.random.uniform(0.3, 1., 3)
-            # color2 = dict['color2'] = np.random.uniform(0.3, 1., 3)
-            color1 = dict['color1'] = colors[i][0]
-            color2 = dict['color2'] = colors[i][1]
 
             l1 = dict['l1'] =np.random.uniform(minlen, maxlen)
             l2 = dict['l2'] =np.random.uniform(minlen, maxlen)
@@ -186,15 +156,18 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
                               contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
                               )
 
-
-
         else:
+            assets = ET.SubElement(root, "asset")
+
             obj = None
             if obj_classname is not None:
                 obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0",
                                     childclass=obj_classname)
             else: obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0")
 
+            ET.SubElement(assets, "texture", builtin="flat", name="tex_" + obj_string, height="32", width="32", rgb1="1 1 1", type="cube")
+
+            ET.SubElement(assets, "material", name="mat_" + obj_string, shininess="0.03", specular="0.75", texture="tex_" + obj_string)
 
             ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
 
@@ -212,9 +185,9 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             # ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
             #                             rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
             #                             contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling))
-            ET.SubElement(obj, "geom", pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
+            ET.SubElement(obj, "geom", name=obj_string, pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
                                         rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]),
-                                        contype="18", conaffinity="20")
+                                        contype="18", conaffinity="20", material="mat_" + obj_string)
 
             # ET.SubElement(obj, "site", name=obj_string, pos="{} {} 0.0".format(l2, pos2), size="0.01")
 
