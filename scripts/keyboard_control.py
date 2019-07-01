@@ -69,21 +69,37 @@ import pygame
 # env = SawyerPushAndReachXYEnv(**env_kwargs)
 # env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
 
+# env_kwargs = dict(
+#     frame_skip=100,
+#     action_scale=0.3,
+#     ball_low=(-2, -0.5),
+#     ball_high=(2, 1),
+#     goal_low=(-4, 2),
+#     goal_high=(4, 4),
+#     model_path='pointmass_u_wall_big.xml',
+# )
+# env = PointmassEnv(**env_kwargs)
+
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
 env_kwargs = dict(
-    frame_skip=100,
-    action_scale=0.3,
-    ball_low=(-2, -0.5),
-    ball_high=(2, 1),
-    goal_low=(-4, 2),
-    goal_high=(4, 4),
-    model_path='pointmass_u_wall_big.xml',
+    hand_low=(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
+    hand_high=(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
+    action_scale=.02, #.02
+    hide_goal_markers=True,
+    num_goals_presampled=10,
+    oracle_reset_prob=0.8,
+    p_obj_in_hand=.75,
+    random_init=True,
+    two_obj=True, #True
+    structure=None, #None
 )
-env = PointmassEnv(**env_kwargs)
+env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
 
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
 action = np.zeros(10)
+gripped_closed = False
 while True:
     done = False
     if not lock_action:
@@ -100,9 +116,9 @@ while True:
             elif new_action == 'reset':
                 done = True
             elif new_action == 'close':
-                action[3] = 1
+                gripped_closed = True
             elif new_action == 'open':
-                action[3] = -1
+                gripped_closed = False
             elif new_action == 'put obj in hand':
                 print("putting obj in hand")
                 env.put_obj_in_hand()
@@ -111,7 +127,15 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
+
+            if gripped_closed:
+                action[2] = 1
+                # action[2] = 1
+            else:
+                action[2] = -1
+
+                    # if closed_gripper:
+            env.step(action[:len(env.action_space.low)])
     if done:
         obs = env.reset()
     env.render()
