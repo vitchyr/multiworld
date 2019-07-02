@@ -243,6 +243,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return goals
 
     def compute_rewards(self, actions, obs):
+        if self.reward_type=='wrapped_env':
+            return self.wrapped_env.compute_rewards(actions, obs)
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
         dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
@@ -250,8 +252,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             return -dist
         elif self.reward_type=='image_sparse':
             return -(dist > self.threshold).astype(float)
-        elif self.reward_type=='wrapped_env':
-            return self.wrapped_env.compute_rewards(actions, obs)
         else:
             raise NotImplementedError()
 
