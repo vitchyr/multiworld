@@ -122,6 +122,34 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.render_drawer = None
         self.subgoals = None
 
+    # Hack for PETS
+    @property
+    def mode(self):
+        return self.mode
+
+    @mode.setter
+    def mode(self, value):
+        if value == 'eval':
+            self.ball_range = spaces.Box(
+                np.array([-2., -0.5]),
+                np.array([2., 1.])
+            )
+            self.goal_range = spaces.Box(
+                np.array([-4, 2]),
+                np.array([4, 4])
+            )
+        elif value == 'exploration':
+            self.ball_range = spaces.Box(
+                np.array([-4., -4.]),
+                np.array([4., 4.])
+            )
+            self.goal_range = spaces.Box(
+                np.array([-4., -4.]),
+                np.array([4., 4.])
+            )
+        else:
+            raise NotImplementedError(value)
+
     def step(self, velocities):
         # assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
