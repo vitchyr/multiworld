@@ -40,7 +40,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             target_radius=0.60,
             boundary_dist=4,
             ball_radius=0.50,
-            walls=[],
+            walls=None,
             fixed_goal=None,
             goal_low=None,
             goal_high=None,
@@ -52,8 +52,11 @@ class Point2DEnv(MultitaskEnv, Serializable):
             show_goal=True,
             **kwargs
     ):
+        if walls is None:
+            walls = []
         self.metadata = {
             'render.modes': ['human', 'rgb_array'],
+            'video.frames_per_second': 10,
         }
 
         if walls is None:

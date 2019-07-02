@@ -42,6 +42,22 @@ def register_custom_envs():
             'render_onscreen': True,
         },
     )
+    register(
+        id='Point2DFixedGoalEnv-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '639c1ebe399265814be65f2a30b7a012a07c7e0a',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'render_onscreen': False,
+            'fixed_goal': [1, 1],
+            'action_scale': 1,
+        },
+    )
 
     register_soroush_u_wall_envs()
     register_soroush_flappy_bird_envs()
