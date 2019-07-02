@@ -62,15 +62,21 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             preload_obj_dict=None,
 
             reset_to_initial_position=True,
-            object_low=(-0.1, 0.5, 0.0),
-            object_high=(0.1, 0.7, 0.5),
+            object_low=(-np.inf, -np.inf, -np.inf),
+            object_high=(np.inf, np.inf, np.inf),
             action_repeat=1,
+
             fixed_start=True,
+            fixed_start_pos=(0, 0.6),
+
             goal_moves_one_object=False,
 
             num_scene_objects=None, # list of number of objects that can appear per scene
             object_height=0.02,
+
             use_textures=False,
+            init_camera=None,
+
             sliding_joints=False,
     ):
         if seed:
@@ -101,6 +107,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.num_scene_objects = num_scene_objects
         self.object_height = object_height
         self.fixed_start = fixed_start
+        self.fixed_start_pos = np.array(fixed_start_pos)
         self.maxlen = maxlen
         self.use_textures = use_textures
         self.sliding_joints = sliding_joints
@@ -171,7 +178,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.set_initial_object_positions()
 
         if use_textures:
-            self.initialized_camera = self.initialize_camera(sawyer_pusher_camera_upright_v2)
+            self.initialized_camera = self.initialize_camera(init_camera)
 
         self.reset()
         self.reset_mocap_welds()
@@ -227,11 +234,13 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-        # for i in range(self.num_objects):
-        #     x = 7 + i * 7
-        #     y = 10 + i * 7
-        #     qpos[x:y] = np.clip(qpos[x:y], self.object_low, self.object_high)
-        # self.set_state(qpos, qvel)
+
+        for i in range(self.num_objects):
+            if i in self.cur_objects:
+                x = 7 + i * 7
+                y = 10 + i * 7
+                qpos[x:y] = np.clip(qpos[x:y], self.object_low, self.object_high)
+        self.set_state(qpos, qvel)
 
         endeff_pos = self.get_endeff_pos()
         hand_distance = np.linalg.norm(
@@ -260,8 +269,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         cur_object_list = self.cur_objects.tolist()
         for i in self.cur_objects:
             j = cur_object_list.index(i)
-            object_pos = self.get_object_goal_pos(j)
-            object_goal = self.get_object_pos(i)
+            object_goal = self.get_object_goal_pos(j)
+            object_pos = self.get_object_pos(i)
             object_distance = np.linalg.norm(object_pos - object_goal)
             distances.append(object_distance)
         object_distances["current_object_distance"] = np.mean(distances)
@@ -403,7 +412,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             pos = [self.INIT_HAND_POS[:2], ]
             for i in range(n_o):
                 if self.fixed_start:
-                    r = np.array([0, 0.7]) # np.array([0, 0.6])
+                    r = self.fixed_start_pos
                 else:
                     r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
                 pos.append(r)
@@ -437,8 +446,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
         # set_state resets the goal xy, so we need to explicit set it again
-        if self.reset_to_initial_position:
-            self.set_initial_object_positions()
+        # if self.reset_to_initial_position:
+            # self.set_initial_object_positions()
         self.state_goal = self.sample_goal_for_rollout()
         self.reset_mocap_welds()
 
