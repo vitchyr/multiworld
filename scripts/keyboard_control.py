@@ -12,6 +12,7 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
+from multiworld.envs.pygame import register_custom_envs
 # from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
 #     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
@@ -22,6 +23,8 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 
 import pygame
 from pygame.locals import QUIT, KEYDOWN
+
+register_custom_envs()
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
@@ -65,7 +68,8 @@ env_kwargs = dict(
     num_mocap_calls_for_reset=250,  # [10, 250],
     reward_type='vectorized_state_distance'
 )
-env = SawyerPushAndReachXYEnv(**env_kwargs)
+# env = SawyerPushAndReachXYEnv(**env_kwargs)
+env = gym.make('Point2DFixedGoalEnv-v0')
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()

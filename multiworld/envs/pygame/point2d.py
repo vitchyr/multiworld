@@ -119,10 +119,11 @@ class Point2DEnv(MultitaskEnv, Serializable):
         ])
 
         self.drawer = None
+        self.render_drawer = None
         self.subgoals = None
 
     def step(self, velocities):
-        assert self.action_scale <= 1.0
+        # assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
         for wall in self.walls:
@@ -854,3 +855,50 @@ class PointmassExpertPolicy:
             action = self.base_policy.eval_np(obs[None], goal_high_level[None], tau_high_level[None])[0]
 
         return np.array(action), {}
+
+
+if __name__ == '__main__':
+    import gym
+    from multiworld.envs.pygame import register_custom_envs
+    import pygame
+    from pygame.locals import QUIT, KEYDOWN
+    import sys
+    register_custom_envs()
+    char_to_action = {
+        'w': np.array([0, -1, 0, 0]),
+        'a': np.array([1, 0, 0, 0]),
+        's': np.array([0, 1, 0, 0]),
+        'd': np.array([-1, 0, 0, 0]),
+        'q': np.array([1, -1, 0, 0]),
+        'e': np.array([-1, -1, 0, 0]),
+        'z': np.array([1, 1, 0, 0]),
+        'c': np.array([-1, 1, 0, 0]),
+    }
+    env = gym.make('Point2DFixedGoalEnv-v0')
+    env = gym.make('PointmassUWallTrainEnvBig-v0')
+    env.render_size = 50
+    env.action_scale = 2.0
+    env.render_dt_msec = 33
+    env.reset()
+    env.render()
+    while True:
+        action = np.zeros(3)
+        done = False
+        for event in pygame.event.get():
+            event_happened = True
+            if event.type == QUIT:
+                sys.exit()
+            if event.type == KEYDOWN:
+                char = event.dict['key']
+                print(char)
+                new_action = char_to_action.get(chr(char), None)
+                if new_action is not None:
+                    action = new_action[:3]
+                else:
+                    action = np.zeros(3)
+        action = action.copy()
+        action[0] *= -1  # lazy hack: flip y axis
+        env.step(action[:2])
+        if done:
+            obs = env.reset()
+        env.render()
