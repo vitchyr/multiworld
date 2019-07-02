@@ -70,6 +70,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             num_scene_objects=None, # list of number of objects that can appear per scene
             object_height=0.02,
+            use_textures=False,
+            sliding_joints=False,
     ):
         if seed:
             np.random.seed(seed)
@@ -100,6 +102,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.object_height = object_height
         self.fixed_start = fixed_start
         self.maxlen = maxlen
+        self.use_textures = use_textures
+        self.sliding_joints = sliding_joints
         self.cur_objects = [0] * num_objects
 
         self.num_cur_objects = 0
@@ -109,12 +113,14 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.obj_stat_prop = create_object_xml(base_filename, num_objects, object_mass,
                                                friction_params, object_meshes, finger_sensors,
                                                maxlen, minlen, preload_obj_dict, obj_classname,
-                                               block_height, block_width, cylinder_radius)
+                                               block_height, block_width, cylinder_radius,
+                                               use_textures, sliding_joints)
         gen_xml = create_root_xml(base_filename)
         MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
         clean_xml(gen_xml)
 
-        self.modder = TextureModder(self.sim)
+        if self.use_textures:
+            self.modder = TextureModder(self.sim)
 
         self.state_goal = self.sample_goal_for_rollout()
         # MultitaskEnv.__init__(self, distance_metric_order=2)
@@ -164,7 +170,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         self.set_initial_object_positions()
 
-        self.initialized_camera = self.initialize_camera(sawyer_pusher_camera_upright_v2)
+        if use_textures:
+            self.initialized_camera = self.initialize_camera(sawyer_pusher_camera_upright_v2)
 
         self.reset()
         self.reset_mocap_welds()
@@ -396,7 +403,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             pos = [self.INIT_HAND_POS[:2], ]
             for i in range(n_o):
                 if self.fixed_start:
-                    r = np.array([0, 0.6])
+                    r = np.array([0, 0.7]) # np.array([0, 0.6])
                 else:
                     r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
                 pos.append(r)
@@ -418,8 +425,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.set_object_xys(positions)
 
     def reset(self):
-        for i in range(self.num_objects):
-            self.modder.rand_rgb('object%d' % i)
+        if self.use_textures:
+            for i in range(self.num_objects):
+                self.modder.rand_rgb('object%d' % i)
 
         velocities = self.data.qvel.copy()
         angles = self.data.qpos.copy()
@@ -433,6 +441,14 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.set_initial_object_positions()
         self.state_goal = self.sample_goal_for_rollout()
         self.reset_mocap_welds()
+
+        # import ipdb; ipdb.set_trace()
+        # for i in range(self.num_objects):
+        #     obj_id = self.model.body_names.index('object0')
+        #     xpos = self.data.body_xpos[obj_id]
+        #     xquat = self.data.body_xquat[obj_id]
+        #     self.data.set_joint_qpos(xpos)
+
         self.set_initial_object_positions()
         return self._get_obs()
 
