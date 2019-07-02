@@ -37,7 +37,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             structure='wall',
 
             two_obj=False,
-
+            frame_skip=100,
             **kwargs
     ):
         self.quick_init(locals())
@@ -54,15 +54,15 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         SawyerXYZEnv.__init__(
             self,
             model_name=self.model_name,
-            frame_skip=5,
+            frame_skip=frame_skip, #5
             **kwargs
         )
         self.norm_order = norm_order
         if obj_low is None:
-            obj_low = self.hand_low
+            obj_low = np.copy(self.hand_low)
             obj_low[2] = 0.0
         if obj_high is None:
-            obj_high = self.hand_high
+            obj_high = np.copy(self.hand_high)
         self.obj_low = obj_low
         self.obj_high = obj_high
         if goal_low is None:
@@ -172,24 +172,26 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             # return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_soroush.xml')
 
-    def train(self):
-        self.oracle_reset_prob = self.train_oracle_reset_prob
-        self.cur_mode = 'train'
-
-    def eval(self):
-        self.oracle_reset_prob = 0.0
-        self.cur_mode = 'eval'
+    # def train(self):
+    #     self.oracle_reset_prob = self.train_oracle_reset_prob
+    #     self.cur_mode = 'train'
+    #
+    # def eval(self):
+    #     self.oracle_reset_prob = 0.0
+    #     self.cur_mode = 'eval'
 
     def mode(self, mode):
-        if 'train' in mode:
-            self.train()
-        else:
-            self.eval()
+        assert False
+        # if 'train' in mode:
+        #     self.train()
+        # else:
+        #     self.eval()
 
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
 
     def _handle_out_of_bounds(self, obj_id):
+        ### DEPRECATED FUNCTION, DON'T USE ###
         new_obj_pos = self.get_obj_pos(obj_id)
         # if the object is out of bounds and not in the air, move it back
         new_obj_pos = np.clip(
@@ -202,11 +204,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def step(self, action):
         prev_ob = self._get_obs()
         self.set_xyz_action(action[:3])
-        # self.do_simulation(action[3:])
-        self.do_simulation(action[3:], n_frames=100) #n_frames=100
-        # self._handle_out_of_bounds(obj_id=0)
-        # if self.two_obj:
-        #     self._handle_out_of_bounds(obj_id=1)
+        self.do_simulation(action[3:], self.frame_skip)
         if (
                 (self.get_obj_pos(obj_id=0)[2] > .07) or
                 (self.two_obj and self.get_obj_pos(obj_id=1)[2] > .07)
@@ -319,83 +317,170 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         qvel[qvel_obj_start:qvel_obj_end] = 0
         self.set_state(qpos, qvel)
 
-
     def reset_model(self):
-        self._reset_hand()
+        # mode = 'ground'
+        # mode = 'stacked'
+        mode = 'air'
 
-        if self.random_init:
-            goals = self.generate_uncorrected_env_goals(
-                1, p_obj_in_hand=0
-            )['state_desired_goal'][0]
-            self._set_obj_xyz(goals[3:6], obj_id=0)
-            if self.two_obj:
-                self._set_obj_xyz(goals[6:9], obj_id=1)
-            # self.set_to_goal(
-                # {'state_desired_goal': self.expert_start()}
-            # )
-
-        else:
-            raise NotImplementedError
-
-        if self.oracle_reset_prob > np.random.random():
-            uncorrected_goal = self.generate_uncorrected_env_goals(1)
-            self.set_to_goal(
-                {'state_desired_goal': uncorrected_goal['state_desired_goal'][0]},
-                is_obj_in_hand=bool(uncorrected_goal['is_obj_in_hand'][0][0])
-            )
+        self._reset_ee()
+        self._reset_obj(mode=mode)
+        self._reset_gripper(mode=mode)
 
         self.set_goal(self.sample_goal())
-        # self.set_goal({'state_desired_goal': self.expert_goal()})
-
-        self._set_goal_marker(self._state_goal)
-        if self.hard_goals:
-            reset_pos_dict, goal_dict = self.generate_opposing_positions()
-            self.set_to_goal(reset_pos_dict)
-            self.set_goal(goal_dict)
 
         self.picked_up_object = False
         return self._get_obs()
 
-    def _reset_hand(self):
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.hand_reset_pos)
+    def _sample_realistic_goals(self, batch_size, mode='ground'):
+        goals = np.zeros((batch_size, self.observation_space.spaces['state_desired_goal'].low.size))
+        for i in range(batch_size):
+            ee = self._sample_realistic_ee()
+            obj = self._sample_realistic_obj(mode=mode, ee=ee)
+            gripper = self._sample_realistic_gripper(mode=mode)
+            goals[i] = np.concatenate((ee, obj, gripper))
+
+        pre_state = self.get_env_state()
+        for i in range(batch_size):
+            self.set_to_goal({'state_desired_goal': goals[i]})
+            goals[i] = self._get_obs()['state_achieved_goal']
+        self.set_env_state(pre_state)
+
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': goals,
+            'proprio_desired_goal': goals[:, :3],
+            # 'is_obj_in_hand': is_obj_in_hand
+        }
+
+    def set_to_goal(self, goal, is_obj_in_hand=None):
+        ### WILL NOT WORK FOR AIR GOALS
+        ### SECOND ARGUEMENT DEPRECATED
+        state_goal = goal['state_desired_goal']
+        for _ in range(1):  # 10
+            self.data.set_mocap_pos('mocap', state_goal[:3])
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
+            self.do_simulation(np.array([-1]), self.frame_skip)
+        self._set_obj_xyz(state_goal[3:6], obj_id=0)
+        if self.two_obj:
+            self._set_obj_xyz(state_goal[6:9], obj_id=1)
+
+        for _ in range(4):
+            self.do_simulation(state_goal[-1:], self.frame_skip)
+
+    def _reset_ee(self):
+        new_mocap_pos_xy = self._sample_realistic_ee()
+        for _ in range(1): #10
+            self.data.set_mocap_pos('mocap', new_mocap_pos_xy)
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             self.do_simulation(None, self.frame_skip)
+        # curr_ee_pos = self.get_endeff_pos()
+        # print(curr_ee_pos-new_mocap_pos_xy)
 
-    def set_to_goal(self, goal, is_obj_in_hand=False):
-        """
-        This function can fail due to mocap imprecision or impossible object
-        positions.
-        """
-        state_goal = goal['state_desired_goal']
-        hand_goal = state_goal[:3]
-        for _ in range(30):
-            self.data.set_mocap_pos('mocap', hand_goal)
-            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
-            self.do_simulation(np.array([-1]))
-        # error = self.data.get_site_xpos('endeffector') - hand_goal
-        corrected_obj_pos0 = state_goal[3:6] #+ error
-        corrected_obj_pos0[2] = max(corrected_obj_pos0[2], self.obj_init_z)
-        self._set_obj_xyz(corrected_obj_pos0, obj_id=0)
+    def _reset_obj(self, mode='ground'):
+        obj = self._sample_realistic_obj(mode=mode, ee=self.get_endeff_pos())
+
+        self._set_obj_xyz(obj[0:3], obj_id=0)
         if self.two_obj:
-            corrected_obj_pos1 = state_goal[6:9] #+ error
-            corrected_obj_pos1[2] = max(corrected_obj_pos1[2], self.obj_init_z)
-            self._set_obj_xyz(corrected_obj_pos1, obj_id=1)
+            self._set_obj_xyz(obj[3:6], obj_id=1)
+        
+    def _reset_gripper(self, mode='ground'):
+        gripper = self._sample_realistic_gripper(mode=mode)
+        self.do_simulation(gripper, self.frame_skip)
 
-        if is_obj_in_hand:
-            action = np.array(1)
+    def _sample_realistic_ee(self):
+        return np.random.uniform(self.hand_space.low, self.hand_space.high)
+
+    def _sample_realistic_obj(self, mode='ground', ee=None):
+        assert mode in ['ground', 'stacked', 'air']
+
+        # choose first obj to set
+        if self.two_obj:
+            obj_id = np.random.choice(2)
         else:
-            action = np.array(1 - 2 * np.random.choice(2))
+            obj_id = 0
 
-        for _ in range(10):
-            self.do_simulation(action)
-        self.sim.forward()
-        self._handle_out_of_bounds(obj_id=0)
+        obj0, obj1 = None, None
+
+        if mode == 'ground':
+            obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+            while self._ee_obj_collision(ee, obj0):
+                obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+
+            if self.two_obj:
+                obj_id = 1 - obj_id
+                obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
+                while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1):
+                    obj1 = self._sample_obj(obj_id=obj_id, other_obj=obj0)
+        elif mode == 'stacked':
+            assert self.two_obj
+
+            obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+            obj1_perfect = np.copy(obj0)
+            obj1_perfect[2] = 0.045
+            while self._ee_obj_collision(ee, obj0) or self._ee_obj_collision(ee, obj1_perfect):
+                obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+                obj1_perfect = np.copy(obj0)
+                obj1_perfect[2] = 0.045
+
+            obj_id = 1 - obj_id
+            obj1 = self._sample_obj(obj_id=obj_id, mode='stacked', other_obj=obj0)
+        elif mode == 'air':
+            obj0 = self._sample_obj(obj_id=obj_id, mode='air', ee=ee)
+
+            if self.two_obj:
+                obj_id = 1 - obj_id
+                obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
+                while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1):
+                    obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
+
         if self.two_obj:
-            self._handle_out_of_bounds(obj_id=1)
-        for _ in range(10):
-            self.do_simulation(action)
-        self.sim.forward()
+            if obj_id == 1:
+                return np.concatenate((obj0, obj1))
+            else:
+                return np.concatenate((obj1, obj0))
+        else:
+            return obj0
+        
+    def _sample_obj(self, obj_id=0, mode='ground', ee=None, other_obj=None):
+        if obj_id == 0:
+            start_idx, end_idx = 3, 6
+        elif obj_id == 1:
+            start_idx, end_idx = 6, 9
+        obj_xyz = None
+        if mode == 'ground':
+            obj_xyz = np.random.uniform(
+                self.hand_and_obj_space.low[start_idx:end_idx],
+                self.hand_and_obj_space.high[start_idx:end_idx]
+            )
+            obj_xyz[2] = 0.015
+        elif mode == 'stacked':
+            obj_xyz = np.copy(other_obj)
+            obj_xyz[1] += np.random.normal(0.0, 0.003)
+            obj_xyz[2] = 0.045
+        elif mode == 'air':
+            obj_xyz = np.copy(ee)
+            obj_xyz[2] -= 0.02
+        return obj_xyz
+
+    def _sample_realistic_gripper(self, mode='ground'):
+        if mode in ['ground', 'stacked']:
+            if np.random.uniform() <= 0.2: #0.2:
+                return np.array([1])
+            else:
+                return np.array([-1])
+        elif mode == 'air':
+            return np.array([1])
+
+    def _obj_obj_collision(self, obj0, obj1):
+        dist = np.linalg.norm(obj0 - obj1)
+        obj_radius = 0.025
+        return dist <= (obj_radius + obj_radius)
+
+    def _ee_obj_collision(self, ee, obj):
+        dist = np.linalg.norm(ee - obj)
+        obj_radius = 0.025
+        ee_radius = 0.065
+        return dist <= (ee_radius + obj_radius)
 
 
     """
@@ -413,13 +498,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def sample_goals(self, batch_size):
         if self._presampled_goals is None:
-            self._presampled_goals = \
-                    corrected_state_goals(
-                        self,
-                        self.generate_uncorrected_env_goals(
-                            self.num_goals_presampled
-                        )
-                    )
+            self._presampled_goals = self._sample_realistic_goals(batch_size=self.num_goals_presampled)
         idx = np.random.randint(0, self.num_goals_presampled, batch_size)
         sampled_goals = {
             k: v[idx] for k, v in self._presampled_goals.items()
@@ -510,14 +589,18 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def get_env_state(self):
         base_state = super().get_env_state()
-        goal = self._state_goal.copy()
+        if self._state_goal is not None:
+            goal = self._state_goal.copy()
+        else:
+            goal = None
         return base_state, goal
 
     def set_env_state(self, state):
         base_state, goal = state
         super().set_env_state(base_state)
         self._state_goal = goal
-        self._set_goal_marker(goal)
+        if goal is not None:
+            self._set_goal_marker(goal)
 
     def generate_opposing_positions(self):
         raise NotImplementedError
@@ -563,65 +646,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return left_goal_dict, right_goal_dict
         else:
             return right_goal_dict, left_goal_dict
-
-    def generate_uncorrected_env_goals(self, num_goals, p_obj_in_hand=None):
-        """
-        Due to small errors in mocap, moving to a specified hand position may be
-        slightly off. This is an issue when the object must be placed into a given
-        hand goal since high precision is needed. The solution used is to try and
-        set to the goal manually and then take whatever goal the hand and object
-        end up in as the "corrected" goal. The downside to this is that it's not
-        possible to call set_to_goal with the corrected goal as input as mocap
-        errors make it impossible to rereate the exact same hand position.
-
-        The return of this function should be passed into
-        corrected_image_env_goals or corrected_state_env_goals
-        """
-        if p_obj_in_hand is None:
-            p_obj_in_hand = self.p_obj_in_hand
-        is_obj_in_hand = np.zeros((num_goals, 1))
-        if self.fix_goal:
-            goals = np.repeat(self.fixed_goal.copy()[None], num_goals, 0)
-        else:
-            goals = np.random.uniform(
-                self.gripper_and_hand_and_obj_space.low,
-                self.gripper_and_hand_and_obj_space.high,
-                size=(num_goals, self.gripper_and_hand_and_obj_space.low.size),
-            )
-            num_objs_in_hand = int(num_goals * p_obj_in_hand)
-            if num_goals == 1:
-                num_objs_in_hand = int(np.random.random() < p_obj_in_hand)
-
-            # Put object in hand
-            for idx in range(num_objs_in_hand):
-                if self.two_obj:
-                    obj_start_idx = 3 + 3 * np.random.choice(2)
-                else:
-                    obj_start_idx = 3
-                goals[idx, obj_start_idx:obj_start_idx + 3] = goals[idx, :3].copy()
-                # center the object inside the gripper
-                goals[idx, obj_start_idx + 1] -= 0.01
-                goals[idx, obj_start_idx + 2] += 0.01
-                is_obj_in_hand[idx] = 1
-
-            # Put object one the table (not floating)
-            goals[num_objs_in_hand:, 5] = self.obj_init_z
-            if self.two_obj:
-                goals[num_objs_in_hand:, 8] = self.obj_init_z
-            if self.structure == 'wall':
-                for goal in goals:
-                    if goal[4] > 0.55 and goal[4] < 0.65:
-                        goal[5] = 0.05
-                    if self.two_obj and goal[7] > 0.55 and goal[7] < 0.65:
-                        goal[8] = 0.05
-                    if goal[1] > 0.55 and goal[1] < 0.65 and goal[2] < 0.03:
-                        goal[2] = 0.05
-            return {
-                'desired_goal': goals,
-                'state_desired_goal': goals,
-                'proprio_desired_goal': goals[:, :3],
-                'is_obj_in_hand': is_obj_in_hand
-            }
 
     def update_subgoals(self, latent_subgoals, latent_subgoals_noisy):
         self.subgoals = latent_subgoals
@@ -825,7 +849,10 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             flat_obs_with_gripper = np.concatenate((e, b0, b1, gripper))
         else:
             flat_obs_with_gripper = np.concatenate((e, b0, gripper))
-        hand_goal = self._state_goal[:3]
+        if self._state_goal is not None:
+            hand_goal = self._state_goal[:3]
+        else:
+            hand_goal = None
 
         return dict(
             observation=flat_obs_with_gripper,
@@ -945,72 +972,36 @@ class SawyerPushOneD(SawyerPickAndPlaceEnvYZ):
         action[2] = 1
         super().step(action)
 
-def corrected_state_goals(pickup_env, pickup_env_goals):
-    pickup_env._state_goal = np.zeros(
-        pickup_env.observation_space.spaces['state_desired_goal'].low.size
-    )
-    goals = pickup_env_goals.copy()
-    num_goals = len(list(goals.values())[0])
-    for idx in range(num_goals):
-        if idx % 100 == 0:
-            print(idx)
-        pickup_env.set_to_goal(
-            {'state_desired_goal': goals['state_desired_goal'][idx]},
-            is_obj_in_hand=bool(pickup_env_goals['is_obj_in_hand'][idx][0])
-        )
-        corrected_state_goal = pickup_env._get_obs()['achieved_goal']
-        corrected_proprio_goal = pickup_env._get_obs()['proprio_achieved_goal']
-
-        goals['desired_goal'][idx] = corrected_state_goal
-        goals['proprio_desired_goal'][idx] = corrected_proprio_goal
-        goals['state_desired_goal'][idx] = corrected_state_goal
-    return goals
-
-def corrected_image_env_goals(image_env, pickup_env_goals):
-    """
-    This isn't as easy as setting to the corrected since mocap will fail to
-    move to the exact position, and the object will fail to stay in the hand.
-    """
-    pickup_env = image_env.wrapped_env
-    image_env.wrapped_env._state_goal = np.zeros(
-        pickup_env.observation_space.spaces['state_desired_goal'].low.size
-    )
-    goals = pickup_env_goals.copy()
-
-    num_goals = len(list(goals.values())[0])
-    goals = dict(
-        image_desired_goal=np.zeros((num_goals, image_env.image_length)),
-        desired_goal=np.zeros((num_goals, image_env.image_length)),
-        state_desired_goal=np.zeros(
-            (num_goals,
-             pickup_env.observation_space.spaces['state_desired_goal'].low.size
-            )
-        ),
-        proprio_desired_goal=np.zeros((num_goals, 3))
-    )
-    for idx in range(num_goals):
-        if idx % 100 == 0:
-            print(idx)
-        image_env.set_to_goal(
-            {'state_desired_goal': pickup_env_goals['state_desired_goal'][idx]},
-            is_obj_in_hand=bool(pickup_env_goals['is_obj_in_hand'][idx][0])
-        )
-        corrected_state_goal = image_env._get_obs()['state_achieved_goal']
-        corrected_proprio_goal = image_env._get_obs()['proprio_achieved_goal']
-        corrected_image_goal = image_env._get_obs()['image_achieved_goal']
-
-        goals['image_desired_goal'][idx] = corrected_image_goal
-        goals['desired_goal'][idx] = corrected_image_goal
-        goals['state_desired_goal'][idx] = corrected_state_goal
-        goals['proprio_desired_goal'][idx] = corrected_proprio_goal
-    return goals
-
 def get_image_presampled_goals(image_env, num_presampled_goals):
     image_env.reset()
     pickup_env = image_env.wrapped_env
-    image_env_goals = corrected_image_env_goals(
-        image_env,
-        pickup_env.generate_uncorrected_env_goals(num_presampled_goals)
-    )
-    return image_env_goals
+
+    # mode = 'ground'
+    # mode = 'stacked'
+    mode = 'air'
+    state_goals = np.zeros((num_presampled_goals, pickup_env.observation_space.spaces['state_desired_goal'].low.size))
+    proprio_goals = np.zeros((num_presampled_goals, 3))
+    image_goals = np.zeros((num_presampled_goals, image_env.image_length))
+    for i in range(num_presampled_goals):
+        ee = pickup_env._sample_realistic_ee()
+        obj = pickup_env._sample_realistic_obj(mode=mode, ee=ee)
+        gripper = pickup_env._sample_realistic_gripper(mode=mode)
+        state_goals[i] = np.concatenate((ee, obj, gripper))
+
+    pre_state = pickup_env.get_env_state()
+    for i in range(num_presampled_goals):
+        pickup_env.set_to_goal({'state_desired_goal': state_goals[i]})
+
+        state_goals[i] = image_env._get_obs()['state_achieved_goal']
+        proprio_goals[i] = image_env._get_obs()['proprio_achieved_goal']
+        image_goals[i] = image_env._get_obs()['image_achieved_goal']
+
+    pickup_env.set_env_state(pre_state)
+
+    return {
+        'desired_goal': image_goals,
+        'image_desired_goal': image_goals,
+        'state_desired_goal': state_goals,
+        'proprio_desired_goal': proprio_goals,
+    }
 
