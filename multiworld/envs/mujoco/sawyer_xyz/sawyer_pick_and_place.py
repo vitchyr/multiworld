@@ -36,6 +36,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
             two_obj=False,
             frame_skip=100,
+            reset_p=None,
+            goal_p=None,
             **kwargs
     ):
         self.quick_init(locals())
@@ -139,6 +141,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.obj_radius = 0.025
         self.ee_radius = 0.065
+        self.reset_p = reset_p
+        self.goal_p = goal_p
         self.reset()
 
     def set_xyz_action(self, action):
@@ -287,9 +291,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
-        # mode = 'ground'
-        # mode = 'stacked'
-        # mode = 'air'
         mode = self._sample_reset_mode()
 
         self._reset_ee()
@@ -303,15 +304,31 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _sample_reset_mode(self):
         if self.two_obj:
-            return np.random.choice(['ground', 'stacked', 'air'], size=1, p=[1/3, 1/3, 1/3])[0]
+            if self.reset_p is not None:
+                p = self.reset_p
+            else:
+                p = [1 / 3, 1 / 3, 1 / 3]
+            return np.random.choice(['ground', 'stacked', 'air'], size=1, p=p)[0]
         else:
-            return np.random.choice(['ground', 'air'], size=1, p=[1/2, 1/2])[0]
+            if self.reset_p is not None:
+                p = self.reset_p
+            else:
+                p = [1 / 2, 1 / 2]
+            return np.random.choice(['ground', 'air'], size=1, p=p)[0]
 
     def _sample_goal_mode(self):
         if self.two_obj:
-            return np.random.choice(['ground', 'stacked', 'air'], size=1, p=[1/3, 1/3, 1/3])[0]
+            if self.goal_p is not None:
+                p = self.goal_p
+            else:
+                p = [1 / 3, 1 / 3, 1 / 3]
+            return np.random.choice(['ground', 'stacked', 'air'], size=1, p=p)[0]
         else:
-            return np.random.choice(['ground', 'air'], size=1, p=[1/2, 1/2])[0]
+            if self.goal_p is not None:
+                p = self.goal_p
+            else:
+                p = [1 / 2, 1 / 2]
+            return np.random.choice(['ground', 'air'], size=1, p=p)[0]
 
     def _sample_realistic_goals(self, batch_size):
         print("sampling goals from pick_n_place env", batch_size)
@@ -756,8 +773,14 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             self.gripper_and_hand_and_obj_space.high[0:3],
             self.gripper_and_hand_and_obj_space.high[3:6],
 
-            self.hand_space.high[:3],
             self.hand_space.low[:3],
+            self.hand_space.high[:3],
+
+            self.obj_low,
+            self.obj_high,
+
+            self.hand_low,
+            self.hand_high,
         ]
         for pos in pos_arrays:
             pos[0] = x_axis
