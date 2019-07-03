@@ -87,9 +87,6 @@ env_kwargs = dict(
     action_scale=.02, #.02
     hide_goal_markers=True,
     num_goals_presampled=10,
-    oracle_reset_prob=0.8,
-    p_obj_in_hand=.75,
-    random_init=True,
     two_obj=True, #True
     structure=None, #None
 )
