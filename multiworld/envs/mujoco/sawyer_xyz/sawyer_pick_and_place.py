@@ -148,6 +148,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.train_pickups = 0
         self.eval_pickups = 0
         self.cur_mode = 'train'
+
+        self.obj_radius = 0.025
+        self.ee_radius = 0.065
         self.reset()
 
     def set_xyz_action(self, action):
@@ -189,17 +192,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def viewer_setup(self):
         sawyer_pick_and_place_camera(self.viewer.cam)
-
-    def _handle_out_of_bounds(self, obj_id):
-        ### DEPRECATED FUNCTION, DON'T USE ###
-        new_obj_pos = self.get_obj_pos(obj_id)
-        # if the object is out of bounds and not in the air, move it back
-        new_obj_pos = np.clip(
-            new_obj_pos,
-            self.obj_low,
-            self.obj_high
-        )
-        self._set_obj_xyz(new_obj_pos, obj_id)
 
     def step(self, action):
         prev_ob = self._get_obs()
@@ -320,7 +312,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def reset_model(self):
         # mode = 'ground'
         # mode = 'stacked'
-        mode = 'air'
+        # mode = 'air'
+        mode = self._sample_reset_mode()
 
         self._reset_ee()
         self._reset_obj(mode=mode)
@@ -331,9 +324,23 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.picked_up_object = False
         return self._get_obs()
 
-    def _sample_realistic_goals(self, batch_size, mode='ground'):
+    def _sample_reset_mode(self):
+        if self.two_obj:
+            return np.random.choice(['ground', 'stacked', 'air'], size=1, p=[1/3, 1/3, 1/3])[0]
+        else:
+            return np.random.choice(['ground', 'air'], size=1, p=[1/2, 1/2])[0]
+
+    def _sample_goal_mode(self):
+        if self.two_obj:
+            return np.random.choice(['ground', 'stacked', 'air'], size=1, p=[1/3, 1/3, 1/3])[0]
+        else:
+            return np.random.choice(['ground', 'air'], size=1, p=[1/2, 1/2])[0]
+
+    def _sample_realistic_goals(self, batch_size):
+        print("sampling goals from pick_n_place env", batch_size)
         goals = np.zeros((batch_size, self.observation_space.spaces['state_desired_goal'].low.size))
         for i in range(batch_size):
+            mode = self._sample_goal_mode()
             ee = self._sample_realistic_ee()
             obj = self._sample_realistic_obj(mode=mode, ee=ee)
             gripper = self._sample_realistic_gripper(mode=mode)
@@ -349,12 +356,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'desired_goal': goals,
             'state_desired_goal': goals,
             'proprio_desired_goal': goals[:, :3],
-            # 'is_obj_in_hand': is_obj_in_hand
         }
 
-    def set_to_goal(self, goal, is_obj_in_hand=None):
+    def set_to_goal(self, goal):
         ### WILL NOT WORK FOR AIR GOALS
-        ### SECOND ARGUEMENT DEPRECATED
         state_goal = goal['state_desired_goal']
         for _ in range(1):  # 10
             self.data.set_mocap_pos('mocap', state_goal[:3])
@@ -464,7 +469,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _sample_realistic_gripper(self, mode='ground'):
         if mode in ['ground', 'stacked']:
-            if np.random.uniform() <= 0.2: #0.2:
+            if np.random.uniform() <= 0.2:
                 return np.array([1])
             else:
                 return np.array([-1])
@@ -473,14 +478,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _obj_obj_collision(self, obj0, obj1):
         dist = np.linalg.norm(obj0 - obj1)
-        obj_radius = 0.025
-        return dist <= (obj_radius + obj_radius)
+        return dist <= (self.obj_radius + self.obj_radius)
 
     def _ee_obj_collision(self, ee, obj):
         dist = np.linalg.norm(ee - obj)
-        obj_radius = 0.025
-        ee_radius = 0.065
-        return dist <= (ee_radius + obj_radius)
+        return dist <= (self.ee_radius + self.obj_radius)
 
 
     """
@@ -844,7 +846,6 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
             )
             b1[0] = 0.0
         gripper = self.get_gripper_pos()
-        # print(gripper)
         if self.two_obj:
             flat_obs_with_gripper = np.concatenate((e, b0, b1, gripper))
         else:
@@ -978,11 +979,13 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
 
     # mode = 'ground'
     # mode = 'stacked'
-    mode = 'air'
+    # mode = 'air'
+
     state_goals = np.zeros((num_presampled_goals, pickup_env.observation_space.spaces['state_desired_goal'].low.size))
     proprio_goals = np.zeros((num_presampled_goals, 3))
     image_goals = np.zeros((num_presampled_goals, image_env.image_length))
     for i in range(num_presampled_goals):
+        mode = pickup_env._sample_goal_mode()
         ee = pickup_env._sample_realistic_ee()
         obj = pickup_env._sample_realistic_obj(mode=mode, ee=ee)
         gripper = pickup_env._sample_realistic_gripper(mode=mode)
