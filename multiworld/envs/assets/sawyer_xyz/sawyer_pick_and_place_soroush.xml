@@ -20,7 +20,7 @@
             </body>
 
             <!--<site name="obj" pos="0 .0 0" size="0.035" rgba="0.0 0.0 1.0 1"/>-->
-            <!--<site name="obj" pos="0 .0 0" size="0.025" rgba="0.0 1.0 0.0 0.2"/>-->
+            <!--<site name="obj" pos="0 .0 0" size="0.018 0.018 0.018" type="box" rgba="0.0 1.0 0.0 0.2"/>-->
         </body>
 
         <body name="obj2" pos="0 0 0.1">

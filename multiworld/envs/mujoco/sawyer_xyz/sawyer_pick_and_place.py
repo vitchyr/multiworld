@@ -1,5 +1,6 @@
 from collections import OrderedDict
 import numpy as np
+import time
 from gym.spaces import Box, Dict
 
 from multiworld.envs.env_util import get_stat_in_paths, \
@@ -20,7 +21,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_high=None,
 
             reward_type='hand_and_obj_distance',
-            indicator_threshold=0.06,
+            indicator_threshold=0.02,
 
             fix_goal=False,
             fixed_goal=(0.15, 0.6, 0.055, -0.15, 0.6),
@@ -139,8 +140,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.eval_pickups = 0
         self.cur_mode = 'train'
 
-        self.obj_radius = 0.025
-        self.ee_radius = 0.065
+        self.obj_radius = 0.018 #0.020
+        self.ee_radius = 0.054 #0.065
+        # self.obj_radius = 0.020
+        # self.ee_radius = 0.065
         self.reset_p = reset_p
         self.goal_p = goal_p
         self.reset()
@@ -240,16 +243,20 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if self.two_obj:
             obj_distance1 = np.linalg.norm(obj_goal1 - self.get_obj_pos(obj_id=1), ord=self.norm_order,)
             obj_distance = obj_distance0 + obj_distance1
+            hand_indicator_threshold = self.indicator_threshold * 2
         else:
             obj_distance = obj_distance0
+            hand_indicator_threshold = self.indicator_threshold
+
         info = dict(
             hand_distance=hand_distance,
+            obj_distance=obj_distance,
             obj_distance0=obj_distance0,
             hand_and_obj_distance=hand_distance+obj_distance,
-            hand_success=float(hand_distance < self.indicator_threshold),
-            obj_success=float(obj_distance < self.indicator_threshold),
+            hand_success=float(hand_distance < hand_indicator_threshold),
+            obj_success=float(obj_distance < hand_indicator_threshold),
             hand_and_obj_success=float(
-                hand_distance+obj_distance < self.indicator_threshold
+                hand_distance+obj_distance < self.indicator_threshold + hand_indicator_threshold
             ),
             total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
         )
@@ -331,7 +338,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return np.random.choice(['ground', 'air'], size=1, p=p)[0]
 
     def _sample_realistic_goals(self, batch_size):
-        print("sampling goals from pick_n_place env", batch_size)
+        print("sampling goals from pick_n_place env:", batch_size)
+        t = time.time()
         goals = np.zeros((batch_size, self.observation_space.spaces['state_desired_goal'].low.size))
         for i in range(batch_size):
             mode = self._sample_goal_mode()
@@ -345,6 +353,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.set_to_goal({'state_desired_goal': goals[i]})
             goals[i] = self._get_obs()['state_achieved_goal']
         self.set_env_state(pre_state)
+        print("total time:", time.time()-t)
 
         return {
             'desired_goal': goals,
@@ -376,7 +385,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         # print(curr_ee_pos-new_mocap_pos_xy)
 
     def _reset_obj(self, mode='ground'):
-        obj = self._sample_realistic_obj(mode=mode, ee=self.get_endeff_pos())
+        obj = self._sample_realistic_obj(mode=mode, ee=self.get_endeff_pos(), type='reset')
 
         self._set_obj_xyz(obj[0:3], obj_id=0)
         if self.two_obj:
@@ -389,7 +398,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def _sample_realistic_ee(self):
         return np.random.uniform(self.hand_space.low, self.hand_space.high)
 
-    def _sample_realistic_obj(self, mode='ground', ee=None):
+    def _sample_realistic_obj(self, mode='ground', ee=None, type='goal'):
         assert mode in ['ground', 'stacked', 'air']
 
         # choose first obj to set
@@ -408,7 +417,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             if self.two_obj:
                 obj_id = 1 - obj_id
                 obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
-                while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1):
+                while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1, type=type):
                     obj1 = self._sample_obj(obj_id=obj_id, other_obj=obj0)
         elif mode == 'stacked':
             assert self.two_obj
@@ -470,12 +479,14 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         elif mode == 'air':
             return np.array([1])
 
-    def _obj_obj_collision(self, obj0, obj1):
-        dist = np.linalg.norm(obj0 - obj1)
-        return dist <= (self.obj_radius + self.obj_radius)
-
+    def _obj_obj_collision(self, obj0, obj1, type='goal'):
+        dist = np.linalg.norm(obj0 - obj1, ord=np.inf)
+        if type == 'reset':
+            return dist <= (self.obj_radius + self.obj_radius + 0.02) # extra room for robot to pick up both objs
+        else:
+            return dist <= (self.obj_radius + self.obj_radius)
     def _ee_obj_collision(self, ee, obj):
-        dist = np.linalg.norm(ee - obj)
+        dist = np.linalg.norm(ee - obj, ord=np.inf)
         return dist <= (self.ee_radius + self.obj_radius)
 
     """
@@ -878,6 +889,8 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         return np.array(subgoals)
 
 def get_image_presampled_goals(image_env, num_presampled_goals):
+    print("sampling image goals from pick_n_place env:", num_presampled_goals)
+    t = time.time()
     image_env.reset()
     pickup_env = image_env.wrapped_env
 
@@ -899,6 +912,8 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
         proprio_goals[i] = image_env._get_obs()['proprio_achieved_goal']
         image_goals[i] = image_env._get_obs()['image_achieved_goal']
     pickup_env.set_env_state(pre_state)
+
+    print("total time:", time.time() - t)
 
     return {
         'desired_goal': image_goals,
