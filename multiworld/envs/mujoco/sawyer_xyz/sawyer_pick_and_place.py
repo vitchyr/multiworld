@@ -29,16 +29,18 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             goal_high=None,
             hard_goals=False,
 
-            hide_goal_markers=False,
+            hide_goal_markers=True,
             presampled_goals=None,
             num_goals_presampled=1000,
             norm_order=2,
-            structure='wall',
+            structure=None,
 
             two_obj=False,
             frame_skip=100,
             reset_p=None,
             goal_p=None,
+
+            fixed_reset=None,
             **kwargs
     ):
         self.quick_init(locals())
@@ -144,6 +146,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.ee_radius = 0.054 #0.065
         # self.obj_radius = 0.020
         # self.ee_radius = 0.065
+        if fixed_reset is not None:
+            fixed_reset = np.array(fixed_reset)
+        self.fixed_reset = fixed_reset
         self.reset_p = reset_p
         self.goal_p = goal_p
         self.reset()
@@ -322,18 +327,18 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         # self.set_state(qpos, qvel)
 
     def reset_model(self):
-        mode = self._sample_reset_mode()
+        type = self._sample_reset_type()
 
         self._reset_ee()
-        self._reset_obj(mode=mode)
-        self._reset_gripper(mode=mode)
+        self._reset_obj(type=type)
+        self._reset_gripper(type=type)
 
         self.set_goal(self.sample_goal())
 
         self.picked_up_object = False
         return self._get_obs()
 
-    def _sample_reset_mode(self):
+    def _sample_reset_type(self):
         if self.two_obj:
             if self.reset_p is not None:
                 p = self.reset_p
@@ -347,7 +352,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 p = [1 / 2, 1 / 2]
             return np.random.choice(['ground', 'air'], size=1, p=p)[0]
 
-    def _sample_goal_mode(self):
+    def _sample_goal_type(self):
         if self.two_obj:
             if self.goal_p is not None:
                 p = self.goal_p
@@ -366,10 +371,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         t = time.time()
         goals = np.zeros((batch_size, self.observation_space.spaces['state_desired_goal'].low.size))
         for i in range(batch_size):
-            mode = self._sample_goal_mode()
+            type = self._sample_goal_type()
             ee = self._sample_realistic_ee()
-            obj = self._sample_realistic_obj(mode=mode, ee=ee)
-            gripper = self._sample_realistic_gripper(mode=mode)
+            obj = self._sample_realistic_obj(type=type, ee=ee)
+            gripper = self._sample_realistic_gripper(type=type)
             goals[i] = np.concatenate((ee, obj, gripper))
 
         pre_state = self.get_env_state()
@@ -400,7 +405,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.do_simulation(state_goal[-1:], self.frame_skip)
 
     def _reset_ee(self):
-        new_mocap_pos_xy = self._sample_realistic_ee()
+        new_mocap_pos_xy = self._sample_realistic_ee(mode='reset')
         for _ in range(1): #10
             self.data.set_mocap_pos('mocap', new_mocap_pos_xy)
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
@@ -408,22 +413,30 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         # curr_ee_pos = self.get_endeff_pos()
         # print(curr_ee_pos-new_mocap_pos_xy)
 
-    def _reset_obj(self, mode='ground'):
-        obj = self._sample_realistic_obj(mode=mode, ee=self.get_endeff_pos(), type='reset')
+    def _reset_obj(self, type='ground'):
+        obj = self._sample_realistic_obj(type=type, ee=self.get_endeff_pos(), mode='reset')
 
         self._set_obj_xyz(obj[0:3], obj_id=0)
         if self.two_obj:
             self._set_obj_xyz(obj[3:6], obj_id=1)
         
-    def _reset_gripper(self, mode='ground'):
-        gripper = self._sample_realistic_gripper(mode=mode)
+    def _reset_gripper(self, type='ground'):
+        gripper = self._sample_realistic_gripper(type=type)
         self.do_simulation(gripper, self.frame_skip)
 
-    def _sample_realistic_ee(self):
+    def _sample_realistic_ee(self, mode='goal'):
+        if mode == 'reset' and self.fixed_reset is not None:
+            return self.fixed_reset[0:3]
         return np.random.uniform(self.hand_space.low, self.hand_space.high)
 
-    def _sample_realistic_obj(self, mode='ground', ee=None, type='goal'):
-        assert mode in ['ground', 'stacked', 'air']
+    def _sample_realistic_obj(self, type='ground', ee=None, mode='goal'):
+        assert type in ['ground', 'stacked', 'air']
+
+        if mode == 'reset' and self.fixed_reset is not None:
+            if self.two_obj:
+                return self.fixed_reset[3:9]
+            else:
+                return self.fixed_reset[3:6]
 
         # choose first obj to set
         if self.two_obj:
@@ -433,37 +446,37 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
         obj0, obj1 = None, None
 
-        if mode == 'ground':
-            obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+        if type == 'ground':
+            obj0 = self._sample_obj(obj_id=obj_id, type='ground')
             while self._ee_obj_collision(ee, obj0):
-                obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+                obj0 = self._sample_obj(obj_id=obj_id, type='ground')
 
             if self.two_obj:
                 obj_id = 1 - obj_id
-                obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
-                while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1, type=type):
+                obj1 = self._sample_obj(obj_id=obj_id, type='ground')
+                while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1, mode=mode):
                     obj1 = self._sample_obj(obj_id=obj_id, other_obj=obj0)
-        elif mode == 'stacked':
+        elif type == 'stacked':
             assert self.two_obj
 
-            obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+            obj0 = self._sample_obj(obj_id=obj_id, type='ground')
             obj1_perfect = np.copy(obj0)
             obj1_perfect[2] = 0.045
             while self._ee_obj_collision(ee, obj0) or self._ee_obj_collision(ee, obj1_perfect):
-                obj0 = self._sample_obj(obj_id=obj_id, mode='ground')
+                obj0 = self._sample_obj(obj_id=obj_id, type='ground')
                 obj1_perfect = np.copy(obj0)
                 obj1_perfect[2] = 0.045
 
             obj_id = 1 - obj_id
-            obj1 = self._sample_obj(obj_id=obj_id, mode='stacked', other_obj=obj0)
-        elif mode == 'air':
-            obj0 = self._sample_obj(obj_id=obj_id, mode='air', ee=ee)
+            obj1 = self._sample_obj(obj_id=obj_id, type='stacked', other_obj=obj0)
+        elif type == 'air':
+            obj0 = self._sample_obj(obj_id=obj_id, type='air', ee=ee)
 
             if self.two_obj:
                 obj_id = 1 - obj_id
-                obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
+                obj1 = self._sample_obj(obj_id=obj_id, type='ground')
                 while self._ee_obj_collision(ee, obj1) or self._obj_obj_collision(obj0, obj1):
-                    obj1 = self._sample_obj(obj_id=obj_id, mode='ground')
+                    obj1 = self._sample_obj(obj_id=obj_id, type='ground')
 
         if self.two_obj:
             if obj_id == 1:
@@ -473,39 +486,39 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         else:
             return obj0
         
-    def _sample_obj(self, obj_id=0, mode='ground', ee=None, other_obj=None):
+    def _sample_obj(self, obj_id=0, type='ground', ee=None, other_obj=None):
         if obj_id == 0:
             start_idx, end_idx = 3, 6
         elif obj_id == 1:
             start_idx, end_idx = 6, 9
         obj_xyz = None
-        if mode == 'ground':
+        if type == 'ground':
             obj_xyz = np.random.uniform(
                 self.hand_and_obj_space.low[start_idx:end_idx],
                 self.hand_and_obj_space.high[start_idx:end_idx]
             )
             obj_xyz[2] = 0.015
-        elif mode == 'stacked':
+        elif type == 'stacked':
             obj_xyz = np.copy(other_obj)
             obj_xyz[1] += np.random.normal(0.0, 0.003)
             obj_xyz[2] = 0.045
-        elif mode == 'air':
+        elif type == 'air':
             obj_xyz = np.copy(ee)
             obj_xyz[2] -= 0.02
         return obj_xyz
 
-    def _sample_realistic_gripper(self, mode='ground'):
-        if mode in ['ground', 'stacked']:
+    def _sample_realistic_gripper(self, type='ground'):
+        if type in ['ground', 'stacked']:
             if np.random.uniform() <= 0.25:
                 return np.array([1])
             else:
                 return np.array([-1])
-        elif mode == 'air':
+        elif type == 'air':
             return np.array([1])
 
-    def _obj_obj_collision(self, obj0, obj1, type='goal'):
+    def _obj_obj_collision(self, obj0, obj1, mode='goal'):
         dist = np.linalg.norm(obj0 - obj1, ord=np.inf)
-        if type == 'reset':
+        if mode == 'reset':
             return dist <= (self.obj_radius + self.obj_radius + 0.02) # extra room for robot to pick up both objs
         else:
             return dist <= (self.obj_radius + self.obj_radius)
@@ -930,10 +943,10 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
     proprio_goals = np.zeros((num_presampled_goals, 3))
     image_goals = np.zeros((num_presampled_goals, image_env.image_length))
     for i in range(num_presampled_goals):
-        mode = pickup_env._sample_goal_mode()
+        type = pickup_env._sample_goal_type()
         ee = pickup_env._sample_realistic_ee()
-        obj = pickup_env._sample_realistic_obj(mode=mode, ee=ee)
-        gripper = pickup_env._sample_realistic_gripper(mode=mode)
+        obj = pickup_env._sample_realistic_obj(type=type, ee=ee)
+        gripper = pickup_env._sample_realistic_gripper(type=type)
         state_goals[i] = np.concatenate((ee, obj, gripper))
 
     pre_state = pickup_env.get_env_state()
