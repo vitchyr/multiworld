@@ -1,6 +1,6 @@
 from collections import OrderedDict
 import logging
-
+import random
 import numpy as np
 from gym import spaces
 from pygame import Color
@@ -36,6 +36,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             randomize_position_on_reset=True,
             images_are_rgb=False,  # else black and white
             show_goal=True,
+            change_colors=False,
             **kwargs
     ):
         if walls is None:
@@ -81,9 +82,23 @@ class Point2DEnv(MultitaskEnv, Serializable):
             ('state_desired_goal', self.obs_range),
             ('state_achieved_goal', self.obs_range),
         ])
-
         self.drawer = None
         self.render_drawer = None
+        self.color_index = 0
+        self.change_colors = change_colors
+        self.colors = [Color(255, 0, 0, 255),
+                    Color(0, 255, 0, 255),
+                    Color(0, 0, 255, 255),
+                    Color(255, 0, 0, 255),
+                    Color(255, 102, 178, 255),
+                    Color(0, 102, 204, 255),
+                    Color(204, 204, 0, 255),
+                    Color(255, 127, 0, 255),
+                    Color(102, 0, 102, 255),
+                    Color(102, 51, 0, 255),
+                    Color(255, 0, 0, 255),
+                    Color(0, 102, 102, 255),]
+        #self.colors = [Color('green'), Color('red'), Color('blue'), Color('black'), Color('purple'), Color('brown'), Color('pink'), Color('orange'), Color('grey'), Color('yellow')]
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -120,6 +135,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def reset(self):
         self._target_position = self.sample_goal()['state_desired_goal']
+        if self.change_colors:
+            self.color_index = (self.color_index + 1) % 10
         if self.randomize_position_on_reset:
             self._position = self._sample_position(
                 self.obs_range.low,
@@ -267,10 +284,14 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 self.target_radius,
                 Color('green'),
             )
+        if self.change_colors:
+            pm_color = self.colors[self.color_index]
+        else:
+            pm_color = Color('blue')
         drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
-            Color('blue'),
+            pm_color,
         )
 
         for wall in self.walls:
@@ -444,6 +465,7 @@ class Point2DWallEnv(Point2DEnv):
             wall_shape="",
             wall_thickness=1.0,
             inner_wall_max_dist=1,
+            change_walls=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -451,7 +473,13 @@ class Point2DWallEnv(Point2DEnv):
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
         self.wall_thickness = wall_thickness
-        if wall_shape == "u":
+        self.change_walls = change_walls
+        self.wall_shapes = ["u", "-", "h", "--", "big-u", "easy-u", "big-h", "box", "none"]
+        self.wall_index = 0
+        self.update_walls()
+
+    def update_walls(self):
+        if self.wall_shape == "u":
             self.walls = [
                 # Right wall
                 VerticalWall(
@@ -475,7 +503,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
-        if wall_shape == "-" or wall_shape == "h":
+        if self.wall_shape == "-" or self.wall_shape == "h":
             self.walls = [
                 HorizontalWall(
                     self.ball_radius,
@@ -484,7 +512,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
-        if wall_shape == "--":
+        if self.wall_shape == "--":
             self.walls = [
                 HorizontalWall(
                     self.ball_radius,
@@ -493,7 +521,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
-        if wall_shape == "big-u":
+        if self.wall_shape == "big-u":
             self.walls = [
                 VerticalWall(
                     self.ball_radius,
@@ -519,7 +547,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.wall_thickness
                 ),
             ]
-        if wall_shape == "easy-u":
+        if self.wall_shape == "easy-u":
             self.walls = [
                 VerticalWall(
                     self.ball_radius,
@@ -545,7 +573,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.wall_thickness
                 ),
             ]
-        if wall_shape == "big-h":
+        if self.wall_shape == "big-h":
             self.walls = [
                 # Bottom wall
                 HorizontalWall(
@@ -555,7 +583,7 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist*2,
                 ),
             ]
-        if wall_shape == "box":
+        if self.wall_shape == "box":
             self.walls = [
                 # Bottom wall
                 VerticalWall(
@@ -566,8 +594,24 @@ class Point2DWallEnv(Point2DEnv):
                     self.wall_thickness
                 ),
             ]
-        if wall_shape == "none":
+        if self.wall_shape == "none":
             self.walls = []
+
+    def reset(self):
+        self._target_position = self.sample_goal()['state_desired_goal']
+        if self.change_colors:
+            self.color_index = (self.color_index + 1) % 10
+        if self.change_walls:
+            self.wall_index = (self.wall_index + 1) % 9
+            self.wall_shape = self.wall_shapes[self.wall_index]
+            self.update_walls()
+        if self.randomize_position_on_reset:
+            self._position = self._sample_position(
+                self.obs_range.low,
+                self.obs_range.high,
+            )
+
+        return self._get_obs()
 
 
 if __name__ == "__main__":

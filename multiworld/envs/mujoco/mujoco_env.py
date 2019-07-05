@@ -109,6 +109,7 @@ class MujocoEnv(gym.Env):
             self.sim.step()
 
     def render(self, mode='human'):
+        return
         if mode == 'rgb_array':
             self._get_viewer().render()
             # window size used for old mujoco-py:

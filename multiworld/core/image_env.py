@@ -29,7 +29,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             recompute_reward=True,
     ):
         """
-
         :param wrapped_env:
         :param imsize:
         :param init_camera:
@@ -71,8 +70,12 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
         # init camera
+        # import pdb; pdb.set_trace()
         if init_camera is not None:
-            sim = self._wrapped_env.initialize_camera(init_camera)
+            if hasattr(self._wrapped_env, 'initialized_camera'):
+                sim = self._wrapped_env.initialized_camera
+            else:
+                sim = self._wrapped_env.initialize_camera(init_camera)
             # viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
             # init_camera(viewer.cam)
             # sim.add_render_context(viewer)

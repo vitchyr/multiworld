@@ -118,17 +118,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.render_drawer = None
 
         self.color_index = 0
-        self.colors = []
-        if fixed_colors:
-            for j in range(self.num_colors):
-                rgbs = np.random.randint(0, 256, (self.num_objects, 3))
-                for i in range(self.num_objects):
-                    rgb = map(int, rgbs[i, :])
-                    self.colors.append(Color(*rgb, 255))
-            self.colors = [(223, 75, 109, 255), (110, 90, 168, 255),
-                           (246, 212, 183, 255), (197, 168, 38, 255),
-                           (129, 164, 205, 255), (128, 134, 99, 255),
-                           (18, 249, 235, 255)]
+        self.colors = [Color('green'), Color('red'), Color('blue'), Color('black'), Color('purple'), Color('brown'), Color('pink'), Color('orange'), Color('grey'), Color('yellow')]
 
     def randomize_colors(self):
         self.object_colors = []
@@ -136,8 +126,8 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         
         for i in range(self.num_objects):
             if self.fixed_colors:
-                self.color_index = np.random.randint(self.num_colors)
                 self.object_colors.append(self.colors[self.color_index])
+                self.color_index = (self.color_index + 1) % 10
             else:
                 rgb = map(int, rgbs[i, :])
                 self.object_colors.append(Color(*rgb, 255))
@@ -203,10 +193,6 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         return pos
 
     def _get_obs(self):
-        ohe = None
-        if self.fixed_colors:
-            ohe = np.zeros(self.num_colors)
-            ohe[self.color_index] = 1
         obs = self._position.copy()
         if self.use_env_labels:
             return dict(
