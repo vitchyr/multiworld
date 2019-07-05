@@ -238,10 +238,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         obj_goal0 = self._state_goal[3:6]
         if self.two_obj:
             obj_goal1 = self._state_goal[6:9]
+        obj_pos0 = self.get_obj_pos(obj_id=0)
         hand_distance = np.linalg.norm(hand_goal - self.get_endeff_pos(), ord=self.norm_order,)
-        obj_distance0 = np.linalg.norm(obj_goal0 - self.get_obj_pos(obj_id=0), ord=self.norm_order,)
+        obj_distance0 = np.linalg.norm(obj_goal0 - obj_pos0, ord=self.norm_order,)
         if self.two_obj:
-            obj_distance1 = np.linalg.norm(obj_goal1 - self.get_obj_pos(obj_id=1), ord=self.norm_order,)
+            obj_pos1 = self.get_obj_pos(obj_id=1)
+            obj_distance1 = np.linalg.norm(obj_goal1 - obj_pos1, ord=self.norm_order,)
             obj_distance = obj_distance0 + obj_distance1
             hand_indicator_threshold = self.indicator_threshold * 2
         else:
@@ -252,6 +254,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             hand_distance=hand_distance,
             obj_distance=obj_distance,
             obj_distance0=obj_distance0,
+            obj_x0=np.abs(obj_pos0[0]),
+            obj_y0=np.abs(obj_pos0[1]),
+            obj_z0=np.abs(obj_pos0[2]),
             hand_and_obj_distance=hand_distance+obj_distance,
             hand_success=float(hand_distance < hand_indicator_threshold),
             obj_success=float(obj_distance < hand_indicator_threshold),
@@ -262,6 +267,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         )
         if self.two_obj:
             info["obj_distance1"] = obj_distance1
+            info["obj_x1"] = np.abs(obj_pos1[0])
+            info["obj_y1"] = np.abs(obj_pos1[1])
+            info["obj_z1"] = np.abs(obj_pos1[2])
         return info
 
     def get_obj_pos(self, obj_id):
@@ -296,6 +304,22 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         qpos[qpos_obj_start:qpos_obj_start + 3] = pos.copy()
         qvel[qvel_obj_start:qvel_obj_end] = 0
         self.set_state(qpos, qvel)
+
+        # qpos = self.data.qpos.flat.copy()
+        # qvel = self.data.qvel.flat.copy()
+        # obj_name = 'objjoint_y' + self.obj_id[obj_id]
+        # qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
+        # qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+        # # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+        # qpos[qpos_idx] = pos[1]
+        # qvel[qvel_idx] = 0
+        # obj_name = 'objjoint_z' + self.obj_id[obj_id]
+        # qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
+        # qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+        # # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+        # qpos[qpos_idx] = pos[2]
+        # qvel[qvel_idx] = 0
+        # self.set_state(qpos, qvel)
 
     def reset_model(self):
         mode = self._sample_reset_mode()
@@ -549,6 +573,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             r = current_r - old_r
         elif reward_type == 'state_distance':
             r = -np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=1)
+        elif reward_type == 'state_distance_wo_second_obj':
+            achieved_goals_wo_second_obj = np.concatenate((achieved_goals[:, :6], achieved_goals[:, -1:]), axis=1)
+            desired_goals_wo_second_obj = np.concatenate((desired_goals[:, :6], desired_goals[:, -1:]), axis=1)
+            r = -np.linalg.norm(achieved_goals_wo_second_obj - desired_goals_wo_second_obj, ord=self.norm_order, axis=1)
         elif reward_type == 'hand_success':
             r = -(hand_distances > self.indicator_threshold).astype(float)
         elif reward_type == 'obj_distance':
@@ -576,9 +604,13 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'obj_distance0',
             'hand_and_obj_distance',
             'total_pickups',
+            'obj_x0', 'obj_y0', 'obj_z0',
         ]
         if self.two_obj:
             stat_names.append('obj_distance1')
+            stat_names.append('obj_x1')
+            stat_names.append('obj_y1')
+            stat_names.append('obj_z1')
         for stat_name in stat_names:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)

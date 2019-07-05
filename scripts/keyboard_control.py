@@ -84,16 +84,21 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAn
 env_kwargs = dict(
     hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
     hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
-    action_scale=.02, #.02
+    action_scale=.05, #.02
     hide_goal_markers=True,
     num_goals_presampled=10,
     structure=None, #None
     # two_obj=False, #True
     # reset_p=(1.0, 0.0),
     # goal_p=(0.0, 1.0),
-    two_obj=True,  # True
-    reset_p=(1.0, 0.0, 0.0),
-    goal_p=(0.0, 0.0, 1.0),
+    # two_obj=True,  # True
+    # reset_p=(1.0, 0.0, 0.0),
+    # goal_p=(0.0, 0.0, 1.0),
+    two_obj=False,  # True
+    reset_p=(1.0, 0.0),
+    goal_p=(0.0, 1.0),
+
+    frame_skip=5,
 )
 env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
 
