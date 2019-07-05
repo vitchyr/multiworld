@@ -91,14 +91,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.colors = [Color(255, 0, 0, 255),
                     Color(0, 255, 0, 255),
                     Color(0, 0, 255, 255),
-                    Color(255, 0, 0, 255),
                     Color(255, 102, 178, 255),
                     Color(0, 102, 204, 255),
                     Color(204, 204, 0, 255),
                     Color(255, 127, 0, 255),
                     Color(102, 0, 102, 255),
                     Color(102, 51, 0, 255),
-                    Color(255, 0, 0, 255),
                     Color(0, 102, 102, 255),]
         #self.colors = [Color('green'), Color('red'), Color('blue'), Color('black'), Color('purple'), Color('brown'), Color('pink'), Color('orange'), Color('grey'), Color('yellow')]
 
