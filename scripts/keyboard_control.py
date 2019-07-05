@@ -54,51 +54,19 @@ char_to_action = {
 import gym
 import multiworld
 import pygame
-# env_kwargs = dict(
-#     sample_realistic_goals=True,
-#     hand_low=(-0.20, 0.50),
-#     hand_high=(0.20, 0.70),
-#     puck_low=(-0.20, 0.50),
-#     puck_high=(0.20, 0.70),
-#     fix_reset=0.075,
-#     heavy_puck=False,  # [True, False],
-#     wall=True,
-#     action_scale=0.02,
-#     reward_type='vectorized_state_distance'
-# )
-# env = SawyerPushAndReachXYEnv(**env_kwargs)
-# env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
-
-# env_kwargs = dict(
-#     frame_skip=100,
-#     action_scale=0.3,
-#     ball_low=(-2, -0.5),
-#     ball_high=(2, 1),
-#     goal_low=(-4, 2),
-#     goal_high=(4, 4),
-#     model_path='pointmass_u_wall_big.xml',
-# )
-# env = PointmassEnv(**env_kwargs)
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
 env_kwargs = dict(
     hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
     hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
-    action_scale=.05, #.02
-    hide_goal_markers=True,
-    num_goals_presampled=10,
-    structure=None, #None
-    # two_obj=False, #True
-    # reset_p=(1.0, 0.0),
-    # goal_p=(0.0, 1.0),
-    # two_obj=True,  # True
-    # reset_p=(1.0, 0.0, 0.0),
-    # goal_p=(0.0, 0.0, 1.0),
+    num_goals_presampled=1,
     two_obj=False,  # True
     reset_p=(1.0, 0.0),
     goal_p=(0.0, 1.0),
 
-    frame_skip=5,
+    fixed_reset=(0.0, 0.70, 0.10, 0.0, 0.60, 0.015),
+    # action_scale=.02, #.02
+    frame_skip=100,
 )
 env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
 
