@@ -274,6 +274,7 @@ def clean_xml(filename):
     xml_number = int(filename.split('auto_gen')[-1][:-4])
     obj_file = '/'.join(filename.split('/')[:-1]) + '/auto_gen_objects{}.xml'.format(xml_number)
     print('deleting main file: {} and obj_file: {}'.format(filename, obj_file))
+    import ipdb; ipdb.set_trace()
     os.remove(filename)
     os.remove(obj_file)
 def create_root_xml(filename):

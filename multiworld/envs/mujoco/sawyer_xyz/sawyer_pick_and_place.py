@@ -7,7 +7,7 @@ from multiworld.envs.env_util import get_stat_in_paths, \
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.mujoco.sawyer_xyz.base import SawyerXYZEnv
 from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
-
+from mujoco_py.modder import TextureModder, MaterialModder
 
 class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
@@ -32,7 +32,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             presampled_goals=None,
             num_goals_presampled=1000,
             p_obj_in_hand=.75,
-
+            colors=[(1, 0, 0), (0, 1, 0), (0, 0, 1)],
             **kwargs
     ):
         self.quick_init(locals())
@@ -57,6 +57,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.random_init = random_init
         self.p_obj_in_hand = p_obj_in_hand
         self.indicator_threshold = indicator_threshold
+
+        self.modder = TextureModder(self.sim)
+        self.colors = colors
 
         self.obj_init_z = obj_init_positions[0][2]
         self.obj_init_positions = np.array(obj_init_positions)
@@ -231,6 +234,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.set_state(qpos, qvel)
 
     def reset_model(self):
+        ind = np.random.choice(len(self.colors))
+        color = self.colors[ind]
+        # self.modder.set_rgb('obj_T', color)
+        self.modder.rand_rgb('obj_T')
         self._reset_hand()
         if self.reset_free:
             self._set_obj_xyz(self.last_obj_pos)
@@ -542,3 +549,48 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
     )
     return image_env_goals
 
+if __name__ == "__main__":
+    x_var = 0.2
+    x_low = -x_var
+    x_high = x_var
+    y_low = 0.5
+    y_high = 0.7
+    t = 0.05
+    import cv2
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
+    from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera_zoomed
+    import os.path
+    import numpy as np
+    goal_path = '/home/stevenlin/research/multiworld/multiworld/envs/mujoco/goals/pickup_goals.npy'
+    # goal_path = os.path.join(
+    #     os.path.dirname(os.path.realpath(__file__)),
+    #     'goals/pickup_goals.npy'
+    # )
+    goals = np.load(goal_path, allow_pickle=True).item()
+    env = SawyerPickAndPlaceEnvYZ(
+        hand_low=(-0.1, 0.55, 0.05),
+        hand_high=(0.0, 0.65, 0.13),
+        action_scale=0.02,
+        hide_goal_markers=True,
+        num_goals_presampled=1,
+        p_obj_in_hand=1.0,
+    )
+    env = ImageEnv(
+        wrapped_env=env,
+        imsize=48,
+        init_camera=sawyer_pick_and_place_camera_zoomed,
+        transpose=True,
+        normalize=True,
+        presampled_goals=goals,
+    )
+    # import ipdb; ipdb.set_trace()
+    env.reset()
+    goals = env.generate_uncorrected_env_goals(100)
+    goals = corrected_image_env_goals(env, goals)['image_desired_goal']
+    for goal in goals:
+        img = goal * 255
+        img = img.reshape(3, 48, 48).transpose()
+        img = np.array(img, dtype=np.uint8)
+        cv2.imshow('img', img[:, :, ::-1])
+        cv2.waitKey(100)

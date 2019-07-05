@@ -8,16 +8,14 @@
             <inertial pos="0 0 0" mass="1" diaginertia="100000 100000 100000"/>
             <geom name="objbox" type="box" pos="0 0 0"
                   size=".025 .015 .015" rgba="0.0 0.0 1.0 1"
-                  contype="6" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
-
+                  contype="6"  conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
                   />
         <body name="obj2" pos="0 0 0.01">
             <geom name="obj_T" type="box" pos="0 0 0"
                   size=".025 .017 .005" rgba="0.0 0.0 1.0 1"
-                  contype="6" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
+                  contype="6" material="material_obj" conaffinity="6" friction="1.0 0.10 0.002" condim="4" mass=1.0, margin=0.0
             />
         </body>
-
             <site name="obj" pos="0 .0 0" size="0.035" rgba="0.0 0.0 1.0 1"/>
         </body>
 
@@ -26,6 +24,10 @@
         <site name="obj-goal-site" pos="0 0 0" size="0.01"
               rgba="0.5 0.5 1 0.5"/>
     </worldbody>
+    <asset>
+        <texture builtin="flat" height="32" name="tex_object" rgb1="1 1 1" type="cube" width="32"/>
+        <material name="material_obj" shininess="0.03" specular="0.75" texture="tex_object"/>
+    </asset>
     <actuator>
         <motor gear="100" joint="rc_close"  />
     </actuator>

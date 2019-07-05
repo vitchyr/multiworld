@@ -74,7 +74,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             num_scene_objects=None, # list of number of objects that can appear per scene
             object_height=0.02,
 
-            use_textures=False,
+            use_textures=True,
             init_camera=None,
 
             sliding_joints=False,
