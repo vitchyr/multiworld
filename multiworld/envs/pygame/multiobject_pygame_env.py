@@ -4,7 +4,7 @@ import logging
 import numpy as np
 from gym import spaces
 from pygame import Color
-
+import random
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import (
@@ -41,6 +41,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
             show_goal=True,
             use_env_labels = False,
             num_objects=1,
+            include_white=False,
             **kwargs
     ):
         if walls is None:
@@ -73,6 +74,9 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.num_colors = num_colors
         self._target_position = None
         self._position = np.zeros((2))
+        self.include_white = include_white
+        self.initial_pass = False
+        self.white_passed = False
 
         u = np.ones(2)
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
@@ -114,25 +118,16 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.render_drawer = None
 
         self.color_index = 0
-        self.colors = []
-        if fixed_colors:
-            for j in range(self.num_colors):
-                rgbs = np.random.randint(0, 256, (self.num_objects, 3))
-                for i in range(self.num_objects):
-                    rgb = map(int, rgbs[i, :])
-                    self.colors.append(Color(*rgb, 255))
-            self.colors = [(223, 75, 109, 255), (110, 90, 168, 255),
-                           (246, 212, 183, 255), (197, 168, 38, 255),
-                           (129, 164, 205, 255), (128, 134, 99, 255),
-                           (18, 249, 235, 255)]
+        self.colors = [Color('green'), Color('red'), Color('blue'), Color('black'), Color('purple'), Color('brown'), Color('pink'), Color('orange'), Color('grey'), Color('yellow')]
 
     def randomize_colors(self):
         self.object_colors = []
         rgbs = np.random.randint(0, 256, (self.num_objects, 3))
+
         for i in range(self.num_objects):
             if self.fixed_colors:
-                self.color_index = np.random.randint(self.num_colors)
                 self.object_colors.append(self.colors[self.color_index])
+                self.color_index = (self.color_index + 1) % 10
             else:
                 rgb = map(int, rgbs[i, :])
                 self.object_colors.append(Color(*rgb, 255))
@@ -171,6 +166,8 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
 
 
     def reset(self):
+        if self.white_passed:
+            self.include_white = False
         self.randomize_colors()
         self._target_position = self.sample_goal()['state_desired_goal']
         if self.randomize_position_on_reset:
@@ -178,7 +175,9 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
                 self.obs_range.low,
                 self.obs_range.high,
             )
-
+        if self.initial_pass:
+            self.white_passed = True
+        self.initial_pass = True
         return self._get_obs()
 
     def _position_inside_wall(self, pos):
@@ -194,10 +193,6 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         return pos
 
     def _get_obs(self):
-        ohe = None
-        if self.fixed_colors:
-            ohe = np.zeros(self.num_colors)
-            ohe[self.color_index] = 1
         obs = self._position.copy()
         if self.use_env_labels:
             return dict(
@@ -336,11 +331,12 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
                 self.target_radius,
                 Color('green'),
             )
-        drawer.draw_solid_circle(
-            self._position,
-            self.ball_radius,
-            self.object_colors[0],
-        )
+        if not self.include_white:
+            drawer.draw_solid_circle(
+                self._position,
+                self.ball_radius,
+                self.object_colors[0],
+            )
 
         for wall in self.walls:
             drawer.draw_segment(
