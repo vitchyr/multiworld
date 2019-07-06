@@ -37,6 +37,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             images_are_rgb=False,  # else black and white
             show_goal=True,
             change_colors=False,
+            fixed_colors=True,
             **kwargs
     ):
         if walls is None:
@@ -63,6 +64,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.randomize_position_on_reset = randomize_position_on_reset
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
+        self.fixed_colors = fixed_colors
 
         self.max_target_distance = self.boundary_dist - self.target_radius
 
@@ -89,14 +91,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.colors = [Color(255, 0, 0, 255),
                     Color(0, 255, 0, 255),
                     Color(0, 0, 255, 255),
-                    Color(255, 0, 0, 255),
                     Color(255, 102, 178, 255),
                     Color(0, 102, 204, 255),
                     Color(204, 204, 0, 255),
                     Color(255, 127, 0, 255),
                     Color(102, 0, 102, 255),
                     Color(102, 51, 0, 255),
-                    Color(255, 0, 0, 255),
                     Color(0, 102, 102, 255),]
         #self.colors = [Color('green'), Color('red'), Color('blue'), Color('black'), Color('purple'), Color('brown'), Color('pink'), Color('orange'), Color('grey'), Color('yellow')]
 
@@ -136,7 +136,15 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def reset(self):
         self._target_position = self.sample_goal()['state_desired_goal']
         if self.change_colors:
-            self.color_index = (self.color_index + 1) % 10
+            if self.fixed_colors:
+                self.color_index = (self.color_index + 1) % 10
+                self.pm_color = self.colors[self.color_index]
+            else:
+                rgbs = np.random.randint(0, 256, (1, 3))
+                rgb = map(int, rgbs[0, :])
+                self.pm_color = Color(*rgb, 255)
+        else:
+            pm_color = Color('blue')
         if self.randomize_position_on_reset:
             self._position = self._sample_position(
                 self.obs_range.low,
@@ -284,14 +292,11 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 self.target_radius,
                 Color('green'),
             )
-        if self.change_colors:
-            pm_color = self.colors[self.color_index]
-        else:
-            pm_color = Color('blue')
+
         drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
-            pm_color,
+            self.pm_color,
         )
 
         for wall in self.walls:
@@ -474,11 +479,51 @@ class Point2DWallEnv(Point2DEnv):
         self.wall_shape = wall_shape
         self.wall_thickness = wall_thickness
         self.change_walls = change_walls
-        self.wall_shapes = ["u", "-", "h", "--", "big-u", "easy-u", "big-h", "box", "none"]
-        self.wall_index = 0
-        self.update_walls()
+        self.wall_shapes = ["left", "right", "top", "bottom"]
+        if self.change_walls:
+            self.randomize_walls()
+        else:
+            self.fixed_wall()
 
-    def update_walls(self):
+    def randomize_walls(self):
+        self.walls = []
+        random.shuffle(self.wall_shapes)
+        for w in self.wall_shapes[:3]:
+            if np.random.uniform() < 0.333:
+                self.add_wall(w)
+
+    def add_wall(self, wall):
+        if wall == "right":
+            # Right wall
+            self.walls.append(VerticalWall(
+                self.ball_radius,
+                self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "left":# Left wall
+            self.walls.append(VerticalWall(
+                self.ball_radius,
+                -self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "bottom":# Bottom wall
+            self.walls.append(HorizontalWall(
+                self.ball_radius,
+                self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "top":
+            self.walls.append(HorizontalWall(
+                self.ball_radius,
+                -self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+
+    def fixed_wall(self):
         if self.wall_shape == "u":
             self.walls = [
                 # Right wall
@@ -598,19 +643,23 @@ class Point2DWallEnv(Point2DEnv):
             self.walls = []
 
     def reset(self):
-        self._target_position = self.sample_goal()['state_desired_goal']
         if self.change_colors:
-            self.color_index = (self.color_index + 1) % 10
+            if self.fixed_colors:
+                self.color_index = (self.color_index + 1) % 10
+                self.pm_color = self.colors[self.color_index]
+            else:
+                rgbs = np.random.randint(0, 256, (1, 3))
+                rgb = map(int, rgbs[0, :])
+                self.pm_color = Color(*rgb, 255)
+        else:
+            pm_color = Color('blue')
         if self.change_walls:
-            self.wall_index = (self.wall_index + 1) % 9
-            self.wall_shape = self.wall_shapes[self.wall_index]
-            self.update_walls()
+            self.randomize_walls()
         if self.randomize_position_on_reset:
             self._position = self._sample_position(
                 self.obs_range.low,
-                self.obs_range.high,
-            )
-
+                self.obs_range.high)
+        self._target_position = self.sample_goal()['state_desired_goal']
         return self._get_obs()
 
 

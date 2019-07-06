@@ -123,7 +123,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
     def randomize_colors(self):
         self.object_colors = []
         rgbs = np.random.randint(0, 256, (self.num_objects, 3))
-        
+
         for i in range(self.num_objects):
             if self.fixed_colors:
                 self.object_colors.append(self.colors[self.color_index])

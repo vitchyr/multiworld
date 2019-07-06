@@ -438,11 +438,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
     def reset(self):
         if self.use_textures:
             for i in range(self.num_objects):
-                if self.fixed_colors:
-                    color = np.asarray(self.preload_obj_dict[i].get('color2')) * 255.0
-                    self.modder.set_rgb('object%d' % i, color)
-                else:
-                    self.modder.rand_rgb('object%d' % i)
+                self.modder.rand_rgb('object%d' % i)
 
         velocities = self.data.qvel.copy()
         angles = self.data.qpos.copy()
