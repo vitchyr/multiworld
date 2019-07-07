@@ -61,7 +61,7 @@ env_kwargs = dict(
     hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
     num_goals_presampled=1,
     two_obj=True,  # True
-    reset_p=(1.0, 0.0, 0.0),
+    reset_p=(0.0, 1.0, 0.0),
     goal_p=(0.0, 0.0, 1.0),
 
     # fixed_reset=(0.0, 0.70, 0.10, 0.0, 0.60, 0.015, 0.0, 0.55, 0.015),

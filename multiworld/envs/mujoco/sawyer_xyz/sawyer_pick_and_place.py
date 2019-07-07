@@ -871,13 +871,14 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         return np.r_[adjust_x, action]
 
     def _snap_obj_to_axis(self):
-        new_obj_pos0 = self.get_obj_pos(obj_id=0)
-        new_obj_pos0[0] = self.x_axis
-        self._set_obj_xyz(new_obj_pos0, obj_id=0)
-        if self.two_obj:
-            new_obj_pos1 = self.get_obj_pos(obj_id=1)
-            new_obj_pos1[0] = self.x_axis
-            self._set_obj_xyz(new_obj_pos1, obj_id=1)
+        # new_obj_pos0 = self.get_obj_pos(obj_id=0)
+        # new_obj_pos0[0] = self.x_axis
+        # self._set_obj_xyz(new_obj_pos0, obj_id=0)
+        # if self.two_obj:
+        #     new_obj_pos1 = self.get_obj_pos(obj_id=1)
+        #     new_obj_pos1[0] = self.x_axis
+        #     self._set_obj_xyz(new_obj_pos1, obj_id=1)
+        pass
 
     def step(self, action):
         self._snap_obj_to_axis()
