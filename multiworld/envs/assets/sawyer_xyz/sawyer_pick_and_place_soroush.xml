@@ -3,8 +3,11 @@
     <include file="shared_config_pnp.xml"></include>
     <worldbody>
         <include file="sawyer_xyz_base_russell.xml"></include>
-        <body name="obj" pos="0 0 0.1">
-            <joint name="objjoint" type="free" limited='false' damping="0" armature="0" />
+        <!--<body name="obj" pos="0 0 0.1">-->
+            <!--<joint name="objjoint" type="free" limited='false' damping="0" armature="0" />-->
+        <body name="obj" pos="0 0 0.0">
+            <joint name="objjoint_y" type="slide" pos="0.0 0.0 0.0" axis="0 1 0" limited='false' damping="0" armature="0"/>
+            <joint name="objjoint_z" type="slide" pos="0.0 0.0 0.0" axis="0 0 1" limited='false' damping="0" armature="0"/>
             <!--<inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>-->
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <geom name="objbox" type="box" pos="0 0 0"
@@ -23,8 +26,11 @@
             <!--<site name="obj" pos="0 .0 0" size="0.018 0.018 0.018" type="box" rgba="0.0 1.0 0.0 0.2"/>-->
         </body>
 
-        <body name="obj2" pos="0 0 0.1">
-            <joint name="objjoint2" type="free" limited='false' damping="0" armature="0" />
+        <!--<body name="obj2" pos="0 0 0.1">-->
+            <!--<joint name="objjoint2" type="free" limited='false' damping="0" armature="0" />-->
+        <body name="obj2" pos="0 0 0.0">
+            <joint name="objjoint_y2" type="slide" pos="0.0 0.0 0.0" axis="0 1 0" limited='false' damping="0" armature="0"/>
+            <joint name="objjoint_z2" type="slide" pos="0.0 0.0 0.0" axis="0 0 1" limited='false' damping="0" armature="0"/>
             <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
             <!--<inertial pos="0 0 0" mass="10.0" diaginertia="100000 100000 100000"/>-->
             <geom name="objbox2" type="box" pos="0 0 0"
