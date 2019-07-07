@@ -300,31 +300,31 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             )
 
     def _set_obj_xyz(self, pos, obj_id):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        obj_name = 'objjoint' + self.obj_id[obj_id]
-        qpos_obj_start, qpos_obj_end = self.sim.model.get_joint_qpos_addr(obj_name)
-        qvel_obj_start, qvel_obj_end = self.sim.model.get_joint_qvel_addr(obj_name)
-        # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
-        qpos[qpos_obj_start:qpos_obj_start + 3] = pos.copy()
-        qvel[qvel_obj_start:qvel_obj_end] = 0
-        self.set_state(qpos, qvel)
-
         # qpos = self.data.qpos.flat.copy()
         # qvel = self.data.qvel.flat.copy()
-        # obj_name = 'objjoint_y' + self.obj_id[obj_id]
-        # qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
-        # qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+        # obj_name = 'objjoint' + self.obj_id[obj_id]
+        # qpos_obj_start, qpos_obj_end = self.sim.model.get_joint_qpos_addr(obj_name)
+        # qvel_obj_start, qvel_obj_end = self.sim.model.get_joint_qvel_addr(obj_name)
         # # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
-        # qpos[qpos_idx] = pos[1]
-        # qvel[qvel_idx] = 0
-        # obj_name = 'objjoint_z' + self.obj_id[obj_id]
-        # qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
-        # qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
-        # # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
-        # qpos[qpos_idx] = pos[2]
-        # qvel[qvel_idx] = 0
+        # qpos[qpos_obj_start:qpos_obj_start + 3] = pos.copy()
+        # qvel[qvel_obj_start:qvel_obj_end] = 0
         # self.set_state(qpos, qvel)
+
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        obj_name = 'objjoint_y' + self.obj_id[obj_id]
+        qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
+        qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+        # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+        qpos[qpos_idx] = pos[1]
+        qvel[qvel_idx] = 0
+        obj_name = 'objjoint_z' + self.obj_id[obj_id]
+        qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
+        qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+        # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+        qpos[qpos_idx] = pos[2]
+        qvel[qvel_idx] = 0
+        self.set_state(qpos, qvel)
 
     def reset_model(self):
         type = self._sample_reset_type()
