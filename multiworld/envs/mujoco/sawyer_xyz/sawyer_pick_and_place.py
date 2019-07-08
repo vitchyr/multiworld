@@ -12,6 +12,7 @@ from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
+from mujoco_py.builder import MujocoException
 
 
 class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
@@ -33,7 +34,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             presampled_goals=None,
             num_goals_presampled=1000,
             norm_order=2,
-            structure=None,
+            structure='2d',
 
             two_obj=False,
             frame_skip=100,
@@ -50,6 +51,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             1: '2',
         }
 
+        assert structure in ['2d', '3d', 'wall']
         self.structure = structure
         self.two_obj = two_obj
         self.hard_goals = hard_goals
@@ -171,9 +173,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def model_name(self):
         if self.structure == 'wall':
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_wall.xml')
-        else:
-            # return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place.xml')
-            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_soroush.xml')
+        elif self.structure == '3d':
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_3d.xml')
+        elif self.structure == '2d':
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d.xml')
 
     def train(self):
         self.cur_mode = 'train'
@@ -193,7 +196,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def step(self, action):
         prev_ob = self._get_obs()
         self.set_xyz_action(action[:3])
-        self.do_simulation(action[3:], self.frame_skip)
+        mujoco_exception_raised = False
+        try:
+            self.do_simulation(action[3:], self.frame_skip)
+        except MujocoException as e:
+            mujoco_exception_raised = True
+            print("Inside step:", e)
         if (
                 (self.get_obj_pos(obj_id=0)[2] > .07) or
                 (self.two_obj and self.get_obj_pos(obj_id=1)[2] > .07)
@@ -208,7 +216,11 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob, prev_obs=prev_ob)
-        info = self._get_info()
+        info = self._get_info(
+            ob=ob,
+            prev_ob=prev_ob,
+            mujoco_exception_raised=mujoco_exception_raised
+        )
         done = False
         return ob, reward, done, info
 
@@ -238,7 +250,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             proprio_desired_goal=hand_goal,
         )
 
-    def _get_info(self):
+    def _get_info(self, ob, prev_ob, mujoco_exception_raised=False):
         hand_goal = self._state_goal[:3]
         obj_goal0 = self._state_goal[3:6]
         if self.two_obj:
@@ -255,6 +267,16 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_distance = obj_distance0
             hand_indicator_threshold = self.indicator_threshold
 
+        obj_diff0 = prev_ob['state_observation'][3:6] - ob['state_observation'][3:6]
+        if self.two_obj:
+            obj_diff1 = prev_ob['state_observation'][6:9] - ob['state_observation'][6:9]
+        else:
+            obj_diff1 = np.array([0, 0, 0])
+        flying_object = False
+        if np.linalg.norm(obj_diff0, ord=np.inf) > 0.20 or np.linalg.norm(obj_diff1, ord=np.inf) > 0.20:
+            flying_object = True
+            print("flying_object!")
+
         info = dict(
             hand_distance=hand_distance,
             obj_distance=obj_distance,
@@ -269,6 +291,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 hand_distance+obj_distance < self.indicator_threshold + hand_indicator_threshold
             ),
             total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
+            mujoco_exception_raised=mujoco_exception_raised,
+            flying_object=flying_object,
         )
         if self.two_obj:
             info["obj_distance1"] = obj_distance1
@@ -299,32 +323,36 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 -1000
             )
 
-    def _set_obj_xyz(self, pos, obj_id):
-        # qpos = self.data.qpos.flat.copy()
-        # qvel = self.data.qvel.flat.copy()
-        # obj_name = 'objjoint' + self.obj_id[obj_id]
-        # qpos_obj_start, qpos_obj_end = self.sim.model.get_joint_qpos_addr(obj_name)
-        # qvel_obj_start, qvel_obj_end = self.sim.model.get_joint_qvel_addr(obj_name)
-        # # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
-        # qpos[qpos_obj_start:qpos_obj_start + 3] = pos.copy()
-        # qvel[qvel_obj_start:qvel_obj_end] = 0
-        # self.set_state(qpos, qvel)
-
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        obj_name = 'objjoint_y' + self.obj_id[obj_id]
-        qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
-        qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
-        # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
-        qpos[qpos_idx] = pos[1]
-        qvel[qvel_idx] = 0
-        obj_name = 'objjoint_z' + self.obj_id[obj_id]
-        qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
-        qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
-        # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
-        qpos[qpos_idx] = pos[2]
-        qvel[qvel_idx] = 0
-        self.set_state(qpos, qvel)
+    def _set_obj_xyz(self, pos, obj_id, set_vel_to_zero=True):
+        if self.structure in ['wall', '3d']:
+            qpos = self.data.qpos.flat.copy()
+            qvel = self.data.qvel.flat.copy()
+            obj_name = 'objjoint' + self.obj_id[obj_id]
+            qpos_obj_start, qpos_obj_end = self.sim.model.get_joint_qpos_addr(obj_name)
+            qvel_obj_start, qvel_obj_end = self.sim.model.get_joint_qvel_addr(obj_name)
+            # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+            qpos[qpos_obj_start:qpos_obj_start + 3] = pos.copy()
+            if set_vel_to_zero:
+                qvel[qvel_obj_start:qvel_obj_end] = 0
+            self.set_state(qpos, qvel)
+        elif self.structure in ['2d']:
+            qpos = self.data.qpos.flat.copy()
+            qvel = self.data.qvel.flat.copy()
+            obj_name = 'objjoint_y' + self.obj_id[obj_id]
+            qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
+            qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+            # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+            qpos[qpos_idx] = pos[1]
+            if set_vel_to_zero:
+                qvel[qvel_idx] = 0
+            obj_name = 'objjoint_z' + self.obj_id[obj_id]
+            qpos_idx = self.sim.model.get_joint_qpos_addr(obj_name)
+            qvel_idx = self.sim.model.get_joint_qvel_addr(obj_name)
+            # the qpos is 7 dimensions. It might be x, y, z, quad. Ignore quad for now
+            qpos[qpos_idx] = pos[2]
+            if set_vel_to_zero:
+                qvel[qvel_idx] = 0
+            self.set_state(qpos, qvel)
 
     def reset_model(self):
         type = self._sample_reset_type()
@@ -396,20 +424,29 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         for _ in range(1):  # 10
             self.data.set_mocap_pos('mocap', state_goal[:3])
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
-            self.do_simulation(np.array([-1]), self.frame_skip)
+            try:
+                self.do_simulation(np.array([-1]), self.frame_skip)
+            except MujocoException as e:
+                print("Inside set_to_goal:", e)
         self._set_obj_xyz(state_goal[3:6], obj_id=0)
         if self.two_obj:
             self._set_obj_xyz(state_goal[6:9], obj_id=1)
 
         for _ in range(4):
-            self.do_simulation(state_goal[-1:], self.frame_skip)
+            try:
+                self.do_simulation(state_goal[-1:], self.frame_skip)
+            except MujocoException as e:
+                print("Inside set_to_goal:", e)
 
     def _reset_ee(self):
         new_mocap_pos_xy = self._sample_realistic_ee(mode='reset')
         for _ in range(1): #10
             self.data.set_mocap_pos('mocap', new_mocap_pos_xy)
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
-            self.do_simulation(None, self.frame_skip)
+            try:
+                self.do_simulation(None, self.frame_skip)
+            except MujocoException as e:
+                print("Inside _reset_ee:", e)
         # curr_ee_pos = self.get_endeff_pos()
         # print(curr_ee_pos-new_mocap_pos_xy)
 
@@ -422,7 +459,10 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         
     def _reset_gripper(self, type='ground'):
         gripper = self._sample_realistic_gripper(type=type)
-        self.do_simulation(gripper, self.frame_skip)
+        try:
+            self.do_simulation(gripper, self.frame_skip)
+        except MujocoException as e:
+            print("Inside _reset_gripper:", e)
 
     def _sample_realistic_ee(self, mode='goal'):
         if mode == 'reset' and self.fixed_reset is not None:
@@ -618,6 +658,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             'hand_and_obj_distance',
             'total_pickups',
             'obj_x0', 'obj_y0', 'obj_z0',
+            'mujoco_exception_raised', 'flying_object',
         ]
         if self.two_obj:
             stat_names.append('obj_distance1')
@@ -812,11 +853,13 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
+        snap_obj_to_axis=True,
         *args,
         **kwargs
     ):
         self.quick_init(locals())
         self.x_axis = x_axis
+        self.snap_obj_to_axis = snap_obj_to_axis
         super().__init__(*args, **kwargs)
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
@@ -871,14 +914,14 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         return np.r_[adjust_x, action]
 
     def _snap_obj_to_axis(self):
-        # new_obj_pos0 = self.get_obj_pos(obj_id=0)
-        # new_obj_pos0[0] = self.x_axis
-        # self._set_obj_xyz(new_obj_pos0, obj_id=0)
-        # if self.two_obj:
-        #     new_obj_pos1 = self.get_obj_pos(obj_id=1)
-        #     new_obj_pos1[0] = self.x_axis
-        #     self._set_obj_xyz(new_obj_pos1, obj_id=1)
-        pass
+        if self.snap_obj_to_axis:
+            new_obj_pos0 = self.get_obj_pos(obj_id=0)
+            new_obj_pos0[0] = self.x_axis
+            self._set_obj_xyz(new_obj_pos0, obj_id=0, set_vel_to_zero=False)
+            if self.two_obj:
+                new_obj_pos1 = self.get_obj_pos(obj_id=1)
+                new_obj_pos1[0] = self.x_axis
+                self._set_obj_xyz(new_obj_pos1, obj_id=1, set_vel_to_zero=False)
 
     def step(self, action):
         self._snap_obj_to_axis()
