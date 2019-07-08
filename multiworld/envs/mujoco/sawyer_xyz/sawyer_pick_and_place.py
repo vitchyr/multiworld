@@ -291,8 +291,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 hand_distance+obj_distance < self.indicator_threshold + hand_indicator_threshold
             ),
             total_pickups=self.train_pickups if self.cur_mode == 'train' else self.eval_pickups,
-            mujoco_exception_raised=mujoco_exception_raised,
-            flying_object=flying_object,
+            mujoco_exception_raised=int(mujoco_exception_raised),
+            flying_object=int(flying_object),
         )
         if self.two_obj:
             info["obj_distance1"] = obj_distance1
@@ -854,12 +854,14 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         self,
         x_axis=0.0,
         snap_obj_to_axis=True,
+        set_vel_to_zero_in_snap_obj=False,
         *args,
         **kwargs
     ):
         self.quick_init(locals())
         self.x_axis = x_axis
         self.snap_obj_to_axis = snap_obj_to_axis
+        self.set_vel_to_zero_in_snap_obj = set_vel_to_zero_in_snap_obj
         super().__init__(*args, **kwargs)
         pos_arrays = [
             self.hand_and_obj_space.low[:3],
@@ -917,11 +919,11 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         if self.snap_obj_to_axis:
             new_obj_pos0 = self.get_obj_pos(obj_id=0)
             new_obj_pos0[0] = self.x_axis
-            self._set_obj_xyz(new_obj_pos0, obj_id=0, set_vel_to_zero=False)
+            self._set_obj_xyz(new_obj_pos0, obj_id=0, set_vel_to_zero=self.set_vel_to_zero_in_snap_obj)
             if self.two_obj:
                 new_obj_pos1 = self.get_obj_pos(obj_id=1)
                 new_obj_pos1[0] = self.x_axis
-                self._set_obj_xyz(new_obj_pos1, obj_id=1, set_vel_to_zero=False)
+                self._set_obj_xyz(new_obj_pos1, obj_id=1, set_vel_to_zero=self.set_vel_to_zero_in_snap_obj)
 
     def step(self, action):
         self._snap_obj_to_axis()
