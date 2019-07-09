@@ -79,7 +79,11 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.include_white = include_white
         self.initial_pass = False
         self.white_passed = False
-        self.object_colors = [Color('blue')]
+
+        if change_colors:
+            self.randomize_colors()
+        else:
+            self.object_colors = [Color('blue')]
 
         u = np.ones(2)
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
@@ -166,7 +170,6 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         }
         done = False
         return ob, reward, done, info
-
 
     def reset(self):
         if self.white_passed:
@@ -520,6 +523,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
         super().__init__(**kwargs)
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
+        self.wall_shapes = ["right", "left", "bottom", "top"]
         self.wall_thickness = wall_thickness
         self.change_walls = change_walls
 
@@ -685,24 +689,42 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
         if wall_shape == "none":
             self.walls = []
 
+    # def reset(self):
+    #     if self.change_colors:
+    #         if self.fixed_colors:
+    #             self.color_index = (self.color_index + 1) % 10
+    #             self.pm_color = self.colors[self.color_index]
+    #         else:
+    #             rgbs = np.random.randint(0, 256, (1, 3))
+    #             rgb = map(int, rgbs[0, :])
+    #             self.pm_color = Color(*rgb, 255)
+    #     else:
+    #         pm_color = Color('blue')
+    #     if self.change_walls:
+    #         self.randomize_walls()
+    #     if self.randomize_position_on_reset:
+    #         self._position = self._sample_position(
+    #             self.obs_range.low,
+    #             self.obs_range.high)
+    #     self._target_position = self.sample_goal()['state_desired_goal']
+    #     return self._get_obs()
+
     def reset(self):
+        if self.white_passed:
+            self.include_white = False
         if self.change_colors:
-            if self.fixed_colors:
-                self.color_index = (self.color_index + 1) % 10
-                self.pm_color = self.colors[self.color_index]
-            else:
-                rgbs = np.random.randint(0, 256, (1, 3))
-                rgb = map(int, rgbs[0, :])
-                self.pm_color = Color(*rgb, 255)
-        else:
-            pm_color = Color('blue')
+            self.randomize_colors()
         if self.change_walls:
             self.randomize_walls()
+        self._target_position = self.sample_goal()['state_desired_goal']
         if self.randomize_position_on_reset:
             self._position = self._sample_position(
                 self.obs_range.low,
-                self.obs_range.high)
-        self._target_position = self.sample_goal()['state_desired_goal']
+                self.obs_range.high,
+            )
+        if self.initial_pass:
+            self.white_passed = True
+        self.initial_pass = True
         return self._get_obs()
 
 
