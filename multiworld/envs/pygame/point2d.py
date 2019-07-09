@@ -17,7 +17,7 @@ from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
 
 import matplotlib
-matplotlib.use('agg')
+# matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 
@@ -459,65 +459,81 @@ class Point2DEnv(MultitaskEnv, Serializable):
         actions_x = actions[:, 0]
         actions_y = -actions[:, 1]
 
-        ax.quiver(x[:-1], y[:-1], x[1:] - x[:-1], y[1:] - y[:-1],
-                  scale_units='xy', angles='xy', scale=1, width=0.005)
-        ax.quiver(x[:-1], y[:-1], actions_x, actions_y, scale_units='xy',
+        # ax.quiver(x[:-1], y[:-1], x[1:] - x[:-1], y[1:] - y[:-1],
+        #           scale_units='xy', angles='xy', scale=1, width=0.005)
+        action_scale = 4.0
+        ax.quiver(x[:-1], y[:-1], action_scale * actions_x,
+                  action_scale * actions_y,
+                  scale_units='xy',
                   angles='xy', scale=1, color='r',
                   width=0.0035, )
+        boundary_dist = 4
         ax.plot(
             [
-                -Point2DEnv.boundary_dist,
-                -Point2DEnv.boundary_dist,
+                -boundary_dist,
+                -boundary_dist,
             ],
             [
-                Point2DEnv.boundary_dist,
-                -Point2DEnv.boundary_dist,
+                boundary_dist,
+                -boundary_dist,
             ],
             color='k', linestyle='-',
         )
         ax.plot(
             [
-                Point2DEnv.boundary_dist,
-                -Point2DEnv.boundary_dist,
+                boundary_dist,
+                -boundary_dist,
             ],
             [
-                Point2DEnv.boundary_dist,
-                Point2DEnv.boundary_dist,
+                boundary_dist,
+                boundary_dist,
             ],
             color='k', linestyle='-',
         )
         ax.plot(
             [
-                Point2DEnv.boundary_dist,
-                Point2DEnv.boundary_dist,
+                boundary_dist,
+                boundary_dist,
             ],
             [
-                Point2DEnv.boundary_dist,
-                -Point2DEnv.boundary_dist,
+                boundary_dist,
+                -boundary_dist,
             ],
             color='k', linestyle='-',
         )
         ax.plot(
             [
-                Point2DEnv.boundary_dist,
-                -Point2DEnv.boundary_dist,
+                boundary_dist,
+                -boundary_dist,
             ],
             [
-                -Point2DEnv.boundary_dist,
-                -Point2DEnv.boundary_dist,
+                -boundary_dist,
+                -boundary_dist,
             ],
             color='k', linestyle='-',
         )
+        from matplotlib.collections import PatchCollection
+        from matplotlib.patches import Rectangle
+        errorboxes = [
+            Rectangle((-2.5, -1.5), 1, 4),
+            Rectangle((1.5, -1.5), 1, 4),
+            Rectangle((-2.5, -1.5), 4, 1),
+        ]
+        pc = PatchCollection(errorboxes, facecolor='r', alpha=0.5,
+                             edgecolor='None')
+
+        # Add collection to axes
+        ax.add_collection(pc)
 
         if goal is not None:
             ax.plot(goal[0], -goal[1], marker='*', color='g', markersize=15)
         ax.set_ylim(
-            -Point2DEnv.boundary_dist - 1,
-            Point2DEnv.boundary_dist + 1,
+            -boundary_dist - 1,
+            boundary_dist + 1,
         )
         ax.set_xlim(
-            -Point2DEnv.boundary_dist - 1,
-            Point2DEnv.boundary_dist + 1,
+            -boundary_dist - 1,
+            boundary_dist + 1,
         )
 
     def initialize_camera(self, init_fctn):
@@ -593,9 +609,9 @@ class Point2DWallEnv(Point2DEnv):
                 # Left wall
                 VerticalWall(
                     self.ball_radius,
-                    -self.inner_wall_max_dist*2,
-                    -self.inner_wall_max_dist*2,
-                    self.inner_wall_max_dist,
+                    -self.inner_wall_max_dist*2,  # x pos -2.5
+                    -self.inner_wall_max_dist*2,  # y bot -2.5
+                    self.inner_wall_max_dist,  # y top 1.5
                     self.wall_thickness
                 ),
                 # Bottom wall
@@ -902,21 +918,24 @@ if __name__ == '__main__':
         'z': np.array([1, 1, 0, 0]),
         'c': np.array([-1, 1, 0, 0]),
     }
-    env = gym.make('Point2DFixedGoalEnv-v0')
-    env = gym.make('PointmassUWallTrainEnvBig-v0')
+    # env = gym.make('Point2DFixedGoalEnv-v0')
+    # env = gym.make('PointmassUWallTrainEnvBig-v0')
+    env = gym.make('PointmassUWallTestEnvBig-v0')
     env.render_size = 50
-    env.action_scale = 2.0
+    env.action_scale = 0.5
     env.render_dt_msec = 33
-    env.reset()
+    obs, *_ = env.reset()
     env.render()
     while True:
         action = np.zeros(3)
         done = False
+        key_pressed = False
         for event in pygame.event.get():
             event_happened = True
             if event.type == QUIT:
                 sys.exit()
             if event.type == KEYDOWN:
+                key_pressed = True
                 char = event.dict['key']
                 print(char)
                 new_action = char_to_action.get(chr(char), None)
@@ -926,7 +945,9 @@ if __name__ == '__main__':
                     action = np.zeros(3)
         action = action.copy()
         action[0] *= -1  # lazy hack: flip y axis
-        env.step(action[:2])
+        obs, *_ = env.step(action[:2])
+        if key_pressed:
+            print(obs['observation'])
         if done:
             obs = env.reset()
         env.render()
