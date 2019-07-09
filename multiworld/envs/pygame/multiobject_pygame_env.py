@@ -34,6 +34,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
             include_colors_in_obs = False,
             walls=None,
             num_colors = 8,
+            change_colors=True,
             fixed_colors = False,
             fixed_goal=None,
             randomize_position_on_reset=True,
@@ -70,6 +71,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.show_goal = show_goal
         self.num_objects = num_objects
         self.max_target_distance = self.boundary_dist - self.target_radius
+        self.change_colors = change_colors
         self.fixed_colors = fixed_colors
         self.num_colors = num_colors
         self._target_position = None
@@ -77,6 +79,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.include_white = include_white
         self.initial_pass = False
         self.white_passed = False
+        self.object_colors = [Color('blue')]
 
         u = np.ones(2)
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
@@ -168,7 +171,8 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
     def reset(self):
         if self.white_passed:
             self.include_white = False
-        self.randomize_colors()
+        if self.change_colors:
+            self.randomize_colors()
         self._target_position = self.sample_goal()['state_desired_goal']
         if self.randomize_position_on_reset:
             self._position = self._sample_position(
@@ -509,6 +513,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
             wall_shape="",
             wall_thickness=1.0,
             inner_wall_max_dist=1,
+            change_walls=False,
             **kwargs
     ):
         self.quick_init(locals())
@@ -516,6 +521,52 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
         self.wall_thickness = wall_thickness
+        self.change_walls = change_walls
+
+        if self.change_walls:
+            self.randomize_walls()
+        else:
+            self.fixed_wall(wall_shape)
+
+    def randomize_walls(self):
+        self.walls = []
+        random.shuffle(self.wall_shapes)
+        for w in self.wall_shapes[:3]:
+            if np.random.uniform() < 0.333:
+                self.add_wall(w)
+
+    def add_wall(self, wall):
+        if wall == "right":
+            # Right wall
+            self.walls.append(VerticalWall(
+                self.ball_radius,
+                self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "left":# Left wall
+            self.walls.append(VerticalWall(
+                self.ball_radius,
+                -self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "bottom":# Bottom wall
+            self.walls.append(HorizontalWall(
+                self.ball_radius,
+                self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "top":
+            self.walls.append(HorizontalWall(
+                self.ball_radius,
+                -self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+
+    def fixed_wall(self, wall_shape):
         if wall_shape == "u":
             self.walls = [
                 # Right wall
@@ -633,6 +684,26 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
             ]
         if wall_shape == "none":
             self.walls = []
+
+    def reset(self):
+        if self.change_colors:
+            if self.fixed_colors:
+                self.color_index = (self.color_index + 1) % 10
+                self.pm_color = self.colors[self.color_index]
+            else:
+                rgbs = np.random.randint(0, 256, (1, 3))
+                rgb = map(int, rgbs[0, :])
+                self.pm_color = Color(*rgb, 255)
+        else:
+            pm_color = Color('blue')
+        if self.change_walls:
+            self.randomize_walls()
+        if self.randomize_position_on_reset:
+            self._position = self._sample_position(
+                self.obs_range.low,
+                self.obs_range.high)
+        self._target_position = self.sample_goal()['state_desired_goal']
+        return self._get_obs()
 
 
 if __name__ == "__main__":

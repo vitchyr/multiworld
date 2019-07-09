@@ -70,7 +70,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.image_shape = (self.imsize, self.imsize)
         # Flattened past image queue
         # init camera
-        # import pdb; pdb.set_trace()
         if init_camera is not None:
             if hasattr(self._wrapped_env, 'initialized_camera'):
                 sim = self._wrapped_env.initialized_camera
