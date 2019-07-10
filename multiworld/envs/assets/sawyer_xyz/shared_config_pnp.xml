@@ -36,15 +36,22 @@ Usage:
     <compiler inertiafromgeom="auto" angle="radian" coordinate="local"  meshdir="../meshes" texturedir = "../textures"/>
    <!--  <compiler inertiafromgeom="auto" angle="radian" coordinate="local" eulerseq="XYZ" meshdir="../meshes"/> -->
     <size njmax="6000" nconmax="6000"/>
+    <!--<option-->
+            <!--gravity="0 0 -9.81"-->
+            <!--iterations="50"-->
+            <!--integrator="Euler"-->
+            <!--timestep="0.01"-->
+            <!--cone="elliptic"-->
+            <!--impratio="3"-->
+            <!--tolerance="1e-10"-->
+            <!--impedance='constant'-->
+    <!--/>-->
     <option
-            gravity="0 0 -9.81"
-            iterations="50"
-            integrator="Euler"
-            timestep="0.01"
-            cone="elliptic"
-            impratio="3"
-            tolerance="1e-10"
-            impedance='constant'
+        gravity="0 0 -9.81"
+        iterations="100"
+        integrator="Euler"
+        timestep="0.002"
+        cone="elliptic"
     />
 
     <default>

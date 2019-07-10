@@ -61,15 +61,15 @@ env_kwargs = dict(
     hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
     num_goals_presampled=1,
     two_obj=True,  # True
-    reset_p=(0.0, 1.0, 0.0),
+    reset_p=(1.0, 0.0, 0.0),
     goal_p=(0.0, 0.0, 1.0),
 
     fixed_reset=(0.0, 0.67, 0.06, 0.0, 0.60, 0.015, 0.0, 0.55, 0.015),
     action_scale=.02, #.02
-    frame_skip=100,
+    frame_skip=500, #100
 
-    structure='3d',
-    snap_obj_to_axis=True,
+    structure='2d',
+    snap_obj_to_axis=False,
 )
 env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
 
@@ -78,50 +78,50 @@ lock_action = False
 obs = env.reset()
 action = np.zeros(10)
 gripped_closed = False
-# while True:
-#     done = False
-#     if not lock_action:
-#         action[:3] = 0
-#     for event in pygame.event.get():
-#         event_happened = True
-#         if event.type == QUIT:
-#             sys.exit()
-#         if event.type == KEYDOWN:
-#             char = event.dict['key']
-#             new_action = char_to_action.get(chr(char), None)
-#             if new_action == 'toggle':
-#                 lock_action = not lock_action
-#             elif new_action == 'reset':
-#                 done = True
-#             elif new_action == 'close':
-#                 gripped_closed = True
-#             elif new_action == 'open':
-#                 gripped_closed = False
-#             elif new_action == 'put obj in hand':
-#                 print("putting obj in hand")
-#                 env.put_obj_in_hand()
-#                 action[3] = 1
-#             elif new_action is not None:
-#                 action[:3] = new_action[:3]
-#             else:
-#                 action = np.zeros(3)
-#
-#             if gripped_closed:
-#                 action[2] = 1
-#                 # action[2] = 1
-#             else:
-#                 action[2] = -1
-#
-#                     # if closed_gripper:
-#             # print(action[:len(env.action_space.low)])
-#             env.step(action[:len(env.action_space.low)])
-#     if done:
-#         obs = env.reset()
-#         # print("reset")
-#     env.render()
+while True:
+    done = False
+    if not lock_action:
+        action[:3] = 0
+    for event in pygame.event.get():
+        event_happened = True
+        if event.type == QUIT:
+            sys.exit()
+        if event.type == KEYDOWN:
+            char = event.dict['key']
+            new_action = char_to_action.get(chr(char), None)
+            if new_action == 'toggle':
+                lock_action = not lock_action
+            elif new_action == 'reset':
+                done = True
+            elif new_action == 'close':
+                gripped_closed = True
+            elif new_action == 'open':
+                gripped_closed = False
+            elif new_action == 'put obj in hand':
+                print("putting obj in hand")
+                env.put_obj_in_hand()
+                action[3] = 1
+            elif new_action is not None:
+                action[:3] = new_action[:3]
+            else:
+                action = np.zeros(3)
 
-for i in range(1000):
-    if i % 10 == 0:
-        env.reset()
-    env.step(np.array([1, 0, -1]))
+            if gripped_closed:
+                action[2] = 1
+                # action[2] = 1
+            else:
+                action[2] = -1
+
+                    # if closed_gripper:
+            # print(action[:len(env.action_space.low)])
+            env.step(action[:len(env.action_space.low)])
+    if done:
+        obs = env.reset()
+        # print("reset")
     env.render()
+
+# for i in range(1000):
+#     if i % 10 == 0:
+#         env.reset()
+#     env.step(np.array([1, 0, -1]))
+#     env.render()

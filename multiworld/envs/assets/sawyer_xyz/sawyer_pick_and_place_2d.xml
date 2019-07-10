@@ -7,16 +7,16 @@
             <joint name="objjoint_y" type="slide" pos="0.0 0.0 0.0" axis="0 1 0" limited='false' damping="0" armature="0"/>
             <joint name="objjoint_z" type="slide" pos="0.0 0.0 0.0" axis="0 0 1" limited='false' damping="0" armature="0"/>
             <!--<inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>-->
-            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <!--<inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>-->
             <geom name="objbox" type="box" pos="0 0 0"
                 size=".025 .015 .015" rgba="0.0 0.0 1.0 1"
-                contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3"
+                contype="1" conaffinity="1" condim="3" mass="0.01"
 
                   />
             <body name="obj_T" pos="0 0 0.01">
                 <geom name="obj_T_geom" type="box" pos="0 0 0"
                     size=".025 .017 .005" rgba="0.0 0.0 1.0 1"
-                    contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3"
+                    contype="1" conaffinity="1" condim="3"
                 />
             </body>
 
@@ -27,17 +27,17 @@
         <body name="obj2" pos="0 0 0.0">
             <joint name="objjoint_y2" type="slide" pos="0.0 0.0 0.0" axis="0 1 0" limited='false' damping="0" armature="0"/>
             <joint name="objjoint_z2" type="slide" pos="0.0 0.0 0.0" axis="0 0 1" limited='false' damping="0" armature="0"/>
-            <inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>
+            <!--<inertial pos="0 0 0" mass="0.01" diaginertia="100000 100000 100000"/>-->
             <!--<inertial pos="0 0 0" mass="10.0" diaginertia="100000 100000 100000"/>-->
             <geom name="objbox2" type="box" pos="0 0 0"
                 size=".025 .015 .015" rgba="1.0 0.0 0.0 1"
-                contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3"
+                contype="1" conaffinity="1" condim="3" mass="0.01"
 
                   />
             <body name="obj_T2" pos="0 0 0.01">
                 <geom name="obj_T_geom2" type="box" pos="0 0 0"
                     size=".025 .017 .005" rgba="1.0 0.0 0.0 1"
-                    contype="1" conaffinity="1" friction="1 0.1 0.002" condim="3"
+                    contype="1" conaffinity="1" condim="3"
                 />
             </body>
 
