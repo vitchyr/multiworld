@@ -56,7 +56,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             walls = []
         self.metadata = {
             'render.modes': ['human', 'rgb_array'],
-            'video.frames_per_second': 10,
+            'video.frames_per_second': 5,
         }
 
         if walls is None:
