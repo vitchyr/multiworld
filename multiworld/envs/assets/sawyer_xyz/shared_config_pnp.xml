@@ -48,11 +48,18 @@ Usage:
     <!--/>-->
     <option
         gravity="0 0 -9.81"
-        iterations="100"
         integrator="Euler"
-        timestep="0.002"
         cone="elliptic"
+        iterations="100"
+        timestep="0.002"
     />
+    <!--<option-->
+        <!--gravity="0 0 -9.81"-->
+        <!--integrator="Euler"-->
+        <!--cone="elliptic"-->
+        <!--iterations="100"-->
+        <!--timestep="0.005"-->
+    <!--/>-->
 
     <default>
         <joint limited="true"
