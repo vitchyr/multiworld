@@ -66,10 +66,11 @@ env_kwargs = dict(
 
     fixed_reset=(0.0, 0.67, 0.06, 0.0, 0.60, 0.015, 0.0, 0.55, 0.015),
     action_scale=.02, #.02
-    frame_skip=500, #100
+    # frame_skip=500, #100
 
     structure='2d',
     snap_obj_to_axis=False,
+    hide_state_markers=True,
 )
 env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
 

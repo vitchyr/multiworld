@@ -37,11 +37,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             structure='2d',
 
             two_obj=False,
-            frame_skip=100,
+            frame_skip=500,
             reset_p=None,
             goal_p=None,
 
             fixed_reset=None,
+            hide_state_markers=True,
             **kwargs
     ):
         self.quick_init(locals())
@@ -84,6 +85,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._state_goal = None
 
         self.hide_goal_markers = hide_goal_markers
+        self.hide_state_markers = hide_state_markers
 
         self.action_space = Box(
             np.array([-1, -1, -1, -1]),
@@ -215,6 +217,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         # The marker seems to get reset every time you do a simulation
         self._set_goal_marker(self._state_goal)
         ob = self._get_obs()
+        self._set_state_marker(ob["state_observation"])
         reward = self.compute_reward(action, ob, prev_obs=prev_ob)
         info = self._get_info(
             ob=ob,
@@ -323,6 +326,24 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 -1000
             )
 
+    def _set_state_marker(self, ob):
+        if self.hide_state_markers:
+            self.data.site_xpos[self.model.site_name2id('obj'), 2] = (
+                -1000
+            )
+            if self.two_obj:
+                self.data.site_xpos[self.model.site_name2id('obj2'), 2] = (
+                    -1000
+                )
+        else:
+            self.data.site_xpos[self.model.site_name2id('obj')] = (
+                ob[3:6]
+            )
+            if self.two_obj:
+                self.data.site_xpos[self.model.site_name2id('obj2')] = (
+                    ob[6:9]
+                )
+
     def _set_obj_xyz(self, pos, obj_id, set_vel_to_zero=True):
         if self.structure in ['wall', '3d']:
             qpos = self.data.qpos.flat.copy()
@@ -360,6 +381,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self._reset_ee()
         self._reset_obj(type=type)
         self._reset_gripper(type=type)
+
+        ob = self._get_obs()
+        self._set_state_marker(ob["state_observation"])
 
         self.set_goal(self.sample_goal())
 
@@ -437,6 +461,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 self.do_simulation(state_goal[-1:], self.frame_skip)
             except MujocoException as e:
                 print("Inside set_to_goal:", e)
+
+        ob = self._get_obs()
+        self._set_state_marker(ob["state_observation"])
 
     def _reset_ee(self):
         new_mocap_pos_xy = self._sample_realistic_ee(mode='reset')
