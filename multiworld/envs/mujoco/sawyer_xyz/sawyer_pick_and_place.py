@@ -37,7 +37,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             structure='2d',
 
             two_obj=False,
-            frame_skip=100,
+            frame_skip=500,
             reset_p=None,
             goal_p=None,
 
