@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <mujoco>
-    <include file="shared_config_pnp.xml"></include>
+    <include file="config_pnp.xml"></include>
     <worldbody>
-        <include file="sawyer_xyz_base_russell.xml"></include>
+        <include file="sawyer_xyz_base_pnp.xml"></include>
         <body name="obj" pos="0 0 0.0">
             <joint name="objjoint_y" type="slide" pos="0.0 0.0 0.0" axis="0 1 0" limited='false' damping="0" armature="0"/>
             <joint name="objjoint_z" type="slide" pos="0.0 0.0 0.0" axis="0 0 1" limited='false' damping="0" armature="0"/>
