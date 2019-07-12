@@ -132,19 +132,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.dummy = False
         if self._presampled_goals is None:
             self.num_goals_presampled = 0
-            if (
-                isinstance(self.wrapped_env, SawyerPickAndPlaceEnv) and
-                not self.wrapped_env.hard_goals and
-                False
-            ):
-                from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
-                    get_image_presampled_goals
-                )
-                print('Setting image presampled goals for pickup')
-                num_goals_to_presample = 300
-                self.set_presampled_goals(
-                    get_image_presampled_goals(self, num_goals_to_presample),
-                    num_goals_to_presample)
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
 
