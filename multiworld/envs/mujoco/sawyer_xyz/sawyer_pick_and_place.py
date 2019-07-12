@@ -1006,16 +1006,16 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         ]
         return np.array(subgoals)
 
-def get_image_presampled_goals(image_env, num_presampled_goals):
-    print("sampling image goals from pick_n_place env:", num_presampled_goals)
+def get_image_presampled_goals(image_env, num_goals_presampled):
+    print("sampling image goals from pick_n_place env:", num_goals_presampled)
     t = time.time()
     image_env.reset()
     pickup_env = image_env.wrapped_env
 
-    state_goals = np.zeros((num_presampled_goals, pickup_env.observation_space.spaces['state_desired_goal'].low.size))
-    proprio_goals = np.zeros((num_presampled_goals, 3))
-    image_goals = np.zeros((num_presampled_goals, image_env.image_length))
-    for i in range(num_presampled_goals):
+    state_goals = np.zeros((num_goals_presampled, pickup_env.observation_space.spaces['state_desired_goal'].low.size))
+    proprio_goals = np.zeros((num_goals_presampled, 3))
+    image_goals = np.zeros((num_goals_presampled, image_env.image_length))
+    for i in range(num_goals_presampled):
         type = pickup_env._sample_goal_type()
         ee = pickup_env._sample_realistic_ee()
         obj = pickup_env._sample_realistic_obj(type=type, ee=ee)
@@ -1023,7 +1023,7 @@ def get_image_presampled_goals(image_env, num_presampled_goals):
         state_goals[i] = np.concatenate((ee, obj, gripper))
 
     pre_state = pickup_env.get_env_state()
-    for i in range(num_presampled_goals):
+    for i in range(num_goals_presampled):
         pickup_env.set_to_goal({'state_desired_goal': state_goals[i]})
 
         state_goals[i] = image_env._get_obs()['state_achieved_goal']
