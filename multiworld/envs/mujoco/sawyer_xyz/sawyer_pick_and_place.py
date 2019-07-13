@@ -69,8 +69,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             obj_low[2] = 0.0
         if obj_high is None:
             obj_high = np.copy(self.hand_high)
-        self.obj_low = obj_low
-        self.obj_high = obj_high
+        self.obj_low = np.array(obj_low)
+        self.obj_high = np.array(obj_high)
         if goal_low is None:
             goal_low = np.hstack((self.hand_low, obj_low))
         if goal_high is None:
@@ -147,7 +147,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.cur_mode = 'train'
 
         self.obj_radius = 0.018 #0.020
-        self.ee_radius = 0.054 #0.065
+        self.ee_radius = 0.053 #0.065
         # self.obj_radius = 0.020
         # self.ee_radius = 0.065
         if fixed_reset is not None:
@@ -536,6 +536,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
             obj_id = 1 - obj_id
             obj1 = self._sample_obj(obj_id=obj_id, type='stacked', other_obj=obj0)
+            while self._ee_obj_collision(ee, obj1):
+                obj1 = self._sample_obj(obj_id=obj_id, type='stacked', other_obj=obj0)
         elif type == 'air':
             obj0 = self._sample_obj(obj_id=obj_id, type='air', ee=ee)
 
@@ -586,7 +588,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def _obj_obj_collision(self, obj0, obj1, mode='goal'):
         dist = np.linalg.norm(obj0 - obj1, ord=np.inf)
         if mode == 'reset':
-            return dist <= (self.obj_radius + self.obj_radius + 0.02) # extra room for robot to pick up both objs
+            return dist <= (self.obj_radius + self.obj_radius + 0.03) # extra room for robot to pick up both objs
         else:
             return dist <= (self.obj_radius + self.obj_radius)
     def _ee_obj_collision(self, ee, obj):
@@ -880,7 +882,7 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
     def __init__(
         self,
         x_axis=0.0,
-        snap_obj_to_axis=True,
+        snap_obj_to_axis=False,
         set_vel_to_zero_in_snap_obj=False,
         *args,
         **kwargs
