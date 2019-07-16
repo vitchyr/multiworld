@@ -148,14 +148,14 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return new_obs, reward, done, info
 
     def _update_info(self, info, obs):
-        achieved_goal = obs['image_achieved_goal']
-        desired_goal = obs['image_desired_goal'] #self._img_goal
-        image_dist = np.linalg.norm(achieved_goal-desired_goal)
-        image_success = (image_dist<self.threshold).astype(float)-1
-        info['image_dist'] = image_dist
-        info['image_success'] = image_success
-        # info['image_dist'] = 0
-        # info['image_success'] = 0
+        # achieved_goal = obs['image_achieved_goal']
+        # desired_goal = obs['image_desired_goal'] #self._img_goal
+        # image_dist = np.linalg.norm(achieved_goal-desired_goal)
+        # image_success = (image_dist<self.threshold).astype(float)-1
+        # info['image_dist'] = image_dist
+        # info['image_success'] = image_success
+        info['image_dist'] = 0
+        info['image_success'] = 0
 
     def set_presampled_goals(self, goals):
         self._presampled_goals = goals
@@ -234,7 +234,9 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
     def _get_flat_img(self):
         if self.dummy:
-            return np.zeros(1)
+            # return np.zeros(1)
+            image_obs = np.zeros(self.image_length)
+            return image_obs
         # returns the image as a torch format np array
         image_obs = self._wrapped_env.get_image(
             width=self.imsize,
