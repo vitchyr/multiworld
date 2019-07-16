@@ -252,10 +252,6 @@ class SawyerDoorHookEnv(
         }
 
     def set_to_goal(self, goal):
-        # hand_pos = goal['state_desired_goal'][:3]
-        # door_pos = goal['state_desired_goal'][3:]
-        # self._set_hand_pos(hand_pos)
-        # self._set_door_pos(door_pos)
         raise NotImplementedError("Hard to do because what if the hand is in "
                                   "the door? Use presampled goals.")
 

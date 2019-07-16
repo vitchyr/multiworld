@@ -144,11 +144,6 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             else: obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str)
 
             if sliding_joints:
-                # ET.SubElement(obj, "joint", type="slide", limited='false', axis="1 0 0", damping="0", armature="0")
-                # ET.SubElement(obj, "joint", type="slide", limited='false', axis="0 1 0", damping="0", armature="0")
-                # ET.SubElement(obj, "joint", type="slide", limited='false', axis="0 0 1", damping="0", armature="0")
-                # ET.SubElement(obj, "joint", type="ball", limited='true', damping="0", armature="0")
-
                 ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
                 ET.SubElement(obj, "inertial", pos="0 0 0", diaginertia='9999 9999 9999', mass="1", )
             else:
