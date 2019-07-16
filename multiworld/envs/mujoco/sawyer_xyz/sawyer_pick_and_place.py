@@ -1028,9 +1028,10 @@ def get_image_presampled_goals(image_env, num_goals_presampled):
     for i in range(num_goals_presampled):
         pickup_env.set_to_goal({'state_desired_goal': state_goals[i]})
 
-        state_goals[i] = image_env._get_obs()['state_achieved_goal']
-        proprio_goals[i] = image_env._get_obs()['proprio_achieved_goal']
-        image_goals[i] = image_env._get_obs()['image_achieved_goal']
+        obs = image_env._get_obs()
+        state_goals[i] = obs['state_achieved_goal']
+        proprio_goals[i] = obs['proprio_achieved_goal']
+        image_goals[i] = obs['image_achieved_goal']
     pickup_env.set_env_state(pre_state)
 
     print("total time:", time.time() - t)
