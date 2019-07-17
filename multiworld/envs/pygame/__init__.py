@@ -165,6 +165,26 @@ def register_soroush_u_wall_envs():
     )
 
     register(
+        id='PointmassFlatWallTrainEnvBig-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '31e4008',
+            'author': 'Vitchyr',
+            'project': 'PETS',
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': '---',
+            'wall_thickness': 0.50,
+            'render_target': False,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'sample_realistic_goals': True,
+            'norm_order': 2,
+            'reward_type': 'dense',
+        }
+    )
+    register(
         id='PointmassUWallTrainEnvBig-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={

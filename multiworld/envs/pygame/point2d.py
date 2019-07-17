@@ -130,14 +130,24 @@ class Point2DEnv(MultitaskEnv, Serializable):
     @mode.setter
     def mode(self, value):
         if value == 'eval':
-            self.ball_range = spaces.Box(
-                np.array([-2., -0.5]),
-                np.array([2., 1.])
-            )
-            self.goal_range = spaces.Box(
-                np.array([-4, 2]),
-                np.array([4, 4])
-            )
+            if self.wall_shape in {'u', 'big-u'}:
+                self.ball_range = spaces.Box(
+                    np.array([-2., -0.5]),
+                    np.array([2., 1.])
+                )
+                self.goal_range = spaces.Box(
+                    np.array([-4, 2]),
+                    np.array([4, 4])
+                )
+            else:
+                self.ball_range = spaces.Box(
+                    np.array([-1., -0.75]),
+                    np.array([1., -0.25])
+                )
+                self.goal_range = spaces.Box(
+                    np.array([-1, 1]),
+                    np.array([1, 3])
+                )
         elif value == 'exploration':
             self.ball_range = spaces.Box(
                 np.array([-4., -4.]),
@@ -610,6 +620,15 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
+        if wall_shape == "---":
+            self.walls = [
+                HorizontalWall(
+                    self.ball_radius,
+                    0,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist*2,
+                )
+            ]
         if wall_shape == "big-u":
             self.walls = [
                 VerticalWall(
@@ -932,12 +951,16 @@ if __name__ == '__main__':
         'e': np.array([-1, -1, 0, 0]),
         'z': np.array([1, 1, 0, 0]),
         'c': np.array([-1, 1, 0, 0]),
+        'r': 'reset',
     }
     # env = gym.make('Point2DFixedGoalEnv-v0')
     # env = gym.make('PointmassUWallTrainEnvBig-v0')
-    env = gym.make('PointmassUWallTestEnvBig-v0')
+    # env = gym.make('PointmassUWallTestEnvBig-v0')
+    env = gym.make('PointmassFlatWallTrainEnvBig-v0')
+    # env = gym.make('PointmassFlatWallTrainEnvBig-v0')
     env.render_size = 50
-    env.action_scale = 0.5
+    env.mode='eval'
+    # env.action_scale = 0.5
     env.render_dt_msec = 33
     obs, *_ = env.reset()
     env.render()
@@ -952,12 +975,15 @@ if __name__ == '__main__':
             if event.type == KEYDOWN:
                 key_pressed = True
                 char = event.dict['key']
-                print(char)
                 new_action = char_to_action.get(chr(char), None)
-                if new_action is not None:
-                    action = new_action[:3]
+                print(char)
+                if new_action == 'reset':
+                    env.reset()
                 else:
-                    action = np.zeros(3)
+                    if new_action is not None:
+                        action = new_action[:3]
+                    else:
+                        action = np.zeros(3)
         action = action.copy()
         action[0] *= -1  # lazy hack: flip y axis
         obs, *_ = env.step(action[:2])
