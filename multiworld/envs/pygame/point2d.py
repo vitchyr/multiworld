@@ -154,10 +154,23 @@ class Point2DEnv(MultitaskEnv, Serializable):
         # assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
+        orig_new_pos = new_position.copy()
         for wall in self.walls:
             new_position = wall.handle_collision(
                 self._position, new_position
             )
+        if sum(new_position != orig_new_pos) > 1:
+            """
+            Hack: sometimes you get caught on two walls at a time. If you
+            process the input in the other direction, you might only get
+            caught on one wall instead.
+            """
+            new_position = orig_new_pos.copy()
+            for wall in self.walls[::-1]:
+                new_position = wall.handle_collision(
+                    self._position, new_position
+                )
+
         self._position = new_position
         self._position = np.clip(
             self._position,
@@ -620,6 +633,8 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                     -self.inner_wall_max_dist*2,
                     self.inner_wall_max_dist*2,
+                    # -self.inner_wall_max_dist,
+                    # self.inner_wall_max_dist,
                     self.wall_thickness
                 ),
             ]
