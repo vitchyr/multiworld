@@ -5,7 +5,6 @@ import imp
 import glob
 import os
 import random
-
 import numpy as np
 import stl
 from stl import mesh
@@ -45,7 +44,8 @@ ASSET_BASE_DIR = '/'.join(os.path.abspath(multiworld.__file__).split('/')[:-2]) 
 
 def create_object_xml(filename, num_objects, object_mass, friction_params, object_meshes,
                       finger_sensors, maxlen, minlen, load_dict_list, obj_classname = None,
-                      block_height = 0.03, block_width = 0.03, cylinder_radius = 0.04):
+                      block_height = 0.03, block_width = 0.03, cylinder_radius = 0.04,
+                      use_textures = False, sliding_joints = False, ):
     """
     :param hyperparams:
     :param load_dict_list: if not none load configuration, instead of sampling
@@ -143,12 +143,27 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
                                     childclass=obj_classname)
             else: obj = ET.SubElement(world_body, "body",name=obj_string, pos=pos_str)
 
-            ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
+            if sliding_joints:
+                ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
+                ET.SubElement(obj, "inertial", pos="0 0 0", diaginertia='9999 9999 9999', mass="1", )
+            else:
+                ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
 
-            #visual mesh
-            ET.SubElement(obj, "geom", type="mesh", mesh = chosen_mesh + "_mesh",
-                          rgba="{} {} {} 1".format(color1[0], color1[1], color1[2]), mass="{}".format(mass_per_elem),
-                          contype="0", conaffinity="0")
+            if use_textures:
+                assets = ET.SubElement(root, "asset")
+
+                ET.SubElement(assets, "texture", builtin="flat", name="tex_" + obj_string, height="32", width="32", rgb1="1 1 1", type="cube")
+
+                ET.SubElement(assets, "material", name="mat_" + obj_string, shininess="0.03", specular="0.75", texture="tex_" + obj_string)
+
+                ET.SubElement(obj, "geom", name=obj_string, type="mesh", mesh = chosen_mesh + "_mesh",
+                              rgba="1 1 1 1", mass="{}".format(mass_per_elem),
+                              contype="0", conaffinity="0", material="mat_" + obj_string)
+            else:
+                #visual mesh
+                ET.SubElement(obj, "geom", type="mesh", mesh = chosen_mesh + "_mesh",
+                              rgba="{} {} {} 1".format(color1[0], color1[1], color1[2]), mass="{}".format(mass_per_elem),
+                              contype="0", conaffinity="0")
             #contact meshes
             for n in range(n_cvx_files):
                 ET.SubElement(obj, "geom", type="mesh", mesh=chosen_mesh + "_convex_mesh{}".format(n),
@@ -156,15 +171,12 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
                               contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
                               )
 
-
-
         else:
             obj = None
             if obj_classname is not None:
                 obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0",
                                     childclass=obj_classname)
             else: obj = ET.SubElement(world_body, "body", name=obj_string, pos="0 0 0")
-
 
             ET.SubElement(obj, "joint", type="free", limited='false', damping="0", armature="0")
 
@@ -182,9 +194,20 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             # ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
             #                             rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
             #                             contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling))
-            ET.SubElement(obj, "geom", pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
+            if use_textures:
+                assets = ET.SubElement(root, "asset")
+
+                ET.SubElement(assets, "texture", builtin="flat", name="tex_" + obj_string, height="32", width="32", rgb1="1 1 1", type="cube")
+
+                ET.SubElement(assets, "material", name="mat_" + obj_string, shininess="0.03", specular="0.75", texture="tex_" + obj_string)
+
+                ET.SubElement(obj, "geom", name=obj_string, pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
+                                        rgba="1 1 1 1", contype="18", conaffinity="20", material="mat_" + obj_string)
+
+            else:
+                ET.SubElement(obj, "geom", name=obj_string, pos="0 0 0", type="cylinder", size=str(cylinder_radius) + " 0.015",
                                         rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]),
-                                        contype="18", conaffinity="20")
+                                        contype="18", conaffinity="20", )
 
             # ET.SubElement(obj, "site", name=obj_string, pos="{} {} 0.0".format(l2, pos2), size="0.01")
 
