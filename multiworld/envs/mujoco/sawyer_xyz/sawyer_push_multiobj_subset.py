@@ -180,10 +180,18 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.set_initial_object_positions()
 
         if use_textures:
-            self.initialized_camera = self.initialize_camera(init_camera)
+            super().initialize_camera(init_camera)
+            self.initialized_camera = init_camera
 
         self.reset()
         self.reset_mocap_welds()
+
+    def initialize_camera(self, init_fctn):
+        if self.use_textures:
+            # do nothing, because the camera was already initialized
+            assert init_fctn == self.initialized_camera, "cameras do not match"
+        else:
+            super().initialize_camera(init_fctn)
 
     @property
     def model_name(self):
