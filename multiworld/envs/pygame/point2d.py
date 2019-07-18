@@ -955,10 +955,10 @@ if __name__ == '__main__':
     }
     # env = gym.make('Point2DFixedGoalEnv-v0')
     # env = gym.make('PointmassUWallTrainEnvBig-v0')
-    # env = gym.make('PointmassUWallTestEnvBig-v0')
-    env = gym.make('PointmassFlatWallTrainEnvBig-v0')
+    env = gym.make('PointmassUWallTestEnvBig-v0')
     # env = gym.make('PointmassFlatWallTrainEnvBig-v0')
-    env.render_size = 50
+    # env = gym.make('PointmassFlatWallTrainEnvBig-v0')
+    env.render_size = 100
     env.mode='eval'
     # env.action_scale = 0.5
     env.render_dt_msec = 33
