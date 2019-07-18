@@ -4,7 +4,7 @@ import logging
 import numpy as np
 from gym import spaces
 from pygame import Color
-
+import random
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import (
@@ -31,12 +31,18 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
             target_radius=0.60,
             boundary_dist=4,
             ball_radius=0.50,
+            include_colors_in_obs = False,
             walls=None,
+            num_colors = 8,
+            change_colors=True,
+            fixed_colors = False,
             fixed_goal=None,
             randomize_position_on_reset=True,
             images_are_rgb=False,  # else black and white
             show_goal=True,
+            use_env_labels = False,
             num_objects=1,
+            include_white=False,
             **kwargs
     ):
         if walls is None:
@@ -64,35 +70,74 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
         self.num_objects = num_objects
-
         self.max_target_distance = self.boundary_dist - self.target_radius
-
+        self.change_colors = change_colors
+        self.fixed_colors = fixed_colors
+        self.num_colors = num_colors
         self._target_position = None
         self._position = np.zeros((2))
+        self.include_white = include_white
+        self.initial_pass = False
+        self.white_passed = False
+
+        if change_colors:
+            self.randomize_colors()
+        else:
+            self.object_colors = [Color('blue')]
 
         u = np.ones(2)
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
-
+        self.include_colors_in_obs = include_colors_in_obs
         o = self.boundary_dist * np.ones(2)
-        self.obs_range = spaces.Box(-o, o, dtype='float32')
-        self.observation_space = spaces.Dict([
-            ('observation', self.obs_range),
-            ('desired_goal', self.obs_range),
-            ('achieved_goal', self.obs_range),
-            ('state_observation', self.obs_range),
-            ('state_desired_goal', self.obs_range),
-            ('state_achieved_goal', self.obs_range),
-        ])
+        ohe_range = spaces.Box(np.zeros(self.num_colors), np.ones(self.num_colors), dtype='float32')
+        if include_colors_in_obs and self.fixed_colors:
+            high = np.concatenate((o, np.ones(self.num_colors)))
+            low = np.concatenate((-o, np.zeros(self.num_colors)))
+        else:
+            high = o
+            low = -o
+
+        self.obs_range = spaces.Box(low, high, dtype='float32')
+        self.use_env_labels = use_env_labels
+        if self.use_env_labels:
+
+            self.observation_space = spaces.Dict([
+                ('label', ohe_range),
+                ('observation', self.obs_range),
+                ('desired_goal', self.obs_range),
+                ('achieved_goal', self.obs_range),
+                ('state_observation', self.obs_range),
+                ('state_desired_goal', self.obs_range),
+                ('state_achieved_goal', self.obs_range),
+            ])
+
+        else:
+            self.observation_space = spaces.Dict([
+                ('observation', self.obs_range),
+                ('desired_goal', self.obs_range),
+                ('achieved_goal', self.obs_range),
+                ('state_observation', self.obs_range),
+                ('state_desired_goal', self.obs_range),
+                ('state_achieved_goal', self.obs_range),
+            ])
 
         self.drawer = None
         self.render_drawer = None
 
+        self.color_index = 0
+        self.colors = [Color('green'), Color('red'), Color('blue'), Color('black'), Color('purple'), Color('brown'), Color('pink'), Color('orange'), Color('grey'), Color('yellow')]
+
     def randomize_colors(self):
         self.object_colors = []
         rgbs = np.random.randint(0, 256, (self.num_objects, 3))
+
         for i in range(self.num_objects):
-            rgb = map(int, rgbs[i, :])
-            self.object_colors.append(Color(*rgb, 255))
+            if self.fixed_colors:
+                self.object_colors.append(self.colors[self.color_index])
+                self.color_index = (self.color_index + 1) % 10
+            else:
+                rgb = map(int, rgbs[i, :])
+                self.object_colors.append(Color(*rgb, 255))
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -126,16 +171,20 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         done = False
         return ob, reward, done, info
 
-
     def reset(self):
-        self.randomize_colors()
+        if self.white_passed:
+            self.include_white = False
+        if self.change_colors:
+            self.randomize_colors()
         self._target_position = self.sample_goal()['state_desired_goal']
         if self.randomize_position_on_reset:
             self._position = self._sample_position(
                 self.obs_range.low,
                 self.obs_range.high,
             )
-
+        if self.initial_pass:
+            self.white_passed = True
+        self.initial_pass = True
         return self._get_obs()
 
     def _position_inside_wall(self, pos):
@@ -151,14 +200,26 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
         return pos
 
     def _get_obs(self):
-        return dict(
-            observation=self._position.copy(),
-            desired_goal=self._target_position.copy(),
-            achieved_goal=self._position.copy(),
-            state_observation=self._position.copy(),
-            state_desired_goal=self._target_position.copy(),
-            state_achieved_goal=self._position.copy(),
-        )
+        obs = self._position.copy()
+        if self.use_env_labels:
+            return dict(
+                observation=obs,
+                label = ohe,
+                desired_goal=self._target_position.copy(),
+                achieved_goal=self._position.copy(),
+                state_observation=self._position.copy(),
+                state_desired_goal=self._target_position.copy(),
+                state_achieved_goal=self._position.copy(),
+            )
+        else:
+            return dict(
+                observation=obs,
+                desired_goal=self._target_position.copy(),
+                achieved_goal=self._position.copy(),
+                state_observation=self._position.copy(),
+                state_desired_goal=self._target_position.copy(),
+                state_achieved_goal=self._position.copy(),
+            )
 
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
@@ -277,11 +338,12 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
                 self.target_radius,
                 Color('green'),
             )
-        drawer.draw_solid_circle(
-            self._position,
-            self.ball_radius,
-            self.object_colors[0],
-        )
+        if not self.include_white:
+            drawer.draw_solid_circle(
+                self._position,
+                self.ball_radius,
+                self.object_colors[0],
+            )
 
         for wall in self.walls:
             drawer.draw_segment(
@@ -454,13 +516,61 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
             wall_shape="",
             wall_thickness=1.0,
             inner_wall_max_dist=1,
+            change_walls=False,
             **kwargs
     ):
         self.quick_init(locals())
         super().__init__(**kwargs)
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
+        self.wall_shapes = ["right", "left", "bottom", "top"]
         self.wall_thickness = wall_thickness
+        self.change_walls = change_walls
+
+        if self.change_walls:
+            self.randomize_walls()
+        else:
+            self.fixed_wall(wall_shape)
+
+    def randomize_walls(self):
+        self.walls = []
+        random.shuffle(self.wall_shapes)
+        for w in self.wall_shapes[:3]:
+            if np.random.uniform() < 0.333:
+                self.add_wall(w)
+
+    def add_wall(self, wall):
+        if wall == "right":
+            # Right wall
+            self.walls.append(VerticalWall(
+                self.ball_radius,
+                self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "left":# Left wall
+            self.walls.append(VerticalWall(
+                self.ball_radius,
+                -self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "bottom":# Bottom wall
+            self.walls.append(HorizontalWall(
+                self.ball_radius,
+                self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+        if wall == "top":
+            self.walls.append(HorizontalWall(
+                self.ball_radius,
+                -self.inner_wall_max_dist,
+                -self.inner_wall_max_dist,
+                self.inner_wall_max_dist,
+            ))
+
+    def fixed_wall(self, wall_shape):
         if wall_shape == "u":
             self.walls = [
                 # Right wall
@@ -579,17 +689,63 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
         if wall_shape == "none":
             self.walls = []
 
+    # def reset(self):
+    #     if self.change_colors:
+    #         if self.fixed_colors:
+    #             self.color_index = (self.color_index + 1) % 10
+    #             self.pm_color = self.colors[self.color_index]
+    #         else:
+    #             rgbs = np.random.randint(0, 256, (1, 3))
+    #             rgb = map(int, rgbs[0, :])
+    #             self.pm_color = Color(*rgb, 255)
+    #     else:
+    #         pm_color = Color('blue')
+    #     if self.change_walls:
+    #         self.randomize_walls()
+    #     if self.randomize_position_on_reset:
+    #         self._position = self._sample_position(
+    #             self.obs_range.low,
+    #             self.obs_range.high)
+    #     self._target_position = self.sample_goal()['state_desired_goal']
+    #     return self._get_obs()
+
+    def reset(self):
+        if self.white_passed:
+            self.include_white = False
+        if self.change_colors:
+            self.randomize_colors()
+        if self.change_walls:
+            self.randomize_walls()
+        self._target_position = self.sample_goal()['state_desired_goal']
+        if self.randomize_position_on_reset:
+            self._position = self._sample_position(
+                self.obs_range.low,
+                self.obs_range.high,
+            )
+        if self.initial_pass:
+            self.white_passed = True
+        self.initial_pass = True
+        return self._get_obs()
+
 
 if __name__ == "__main__":
     import gym
-    import matplotlib.pyplot as plt
-
-    e = Point2DEnv(
+    import cv2
+    e = Multiobj2DEnv(
         render_onscreen=True,
         show_goal=False,
+        fixed_colors=True,
+        num_colors=7
     )
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in
+
+    e.reset()
     for i in range(1000):
-        e.reset()
-        for j in range(5):
-            e.step(np.random.rand(2))
-            e.render()
+        img = e.get_image(100, 100)
+        if i % 20 == 0:
+            print('reset')
+            e.reset()
+        cv2.imshow('im', img)
+        cv2.waitKey(10)
+

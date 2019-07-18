@@ -28,8 +28,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
     ):
-        """
 
+        """
         :param wrapped_env:
         :param imsize:
         :param init_camera:
@@ -72,7 +72,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         # Flattened past image queue
         # init camera
         if init_camera is not None:
-            sim = self._wrapped_env.initialize_camera(init_camera)
+            self._wrapped_env.initialize_camera(init_camera)
             # viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
             # init_camera(viewer.cam)
             # sim.add_render_context(viewer)
@@ -239,6 +239,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         return goals
 
     def compute_rewards(self, actions, obs):
+        if self.reward_type=='wrapped_env':
+            return self.wrapped_env.compute_rewards(actions, obs)
         achieved_goals = obs['achieved_goal']
         desired_goals = obs['desired_goal']
         dist = np.linalg.norm(achieved_goals - desired_goals, axis=1)
@@ -246,8 +248,6 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             return -dist
         elif self.reward_type=='image_sparse':
             return -(dist > self.threshold).astype(float)
-        elif self.reward_type=='wrapped_env':
-            return self.wrapped_env.compute_rewards(actions, obs)
         else:
             raise NotImplementedError()
 
