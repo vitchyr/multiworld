@@ -14,6 +14,10 @@ matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from mujoco_py.builder import MujocoException
 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+
 
 class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def __init__(
@@ -786,9 +790,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                       imsize=84,
                       draw_state=True, draw_goal=False, draw_subgoals=False,
                       state=None, goal=None, subgoals=None):
-        import matplotlib
-        matplotlib.use('agg')
-        import matplotlib.pyplot as plt
         if extent is None:
             x_bounds = np.array([self.hand_space.low[1] - 0.05, self.hand_space.high[1] + 0.05])
             y_bounds = np.array([self.hand_space.low[2] - 0.05, self.hand_space.high[2] + 0.05])
@@ -798,8 +799,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
-        ax.set_ylim(ax.get_ylim()[::-1])
-        ax.set_xlim(ax.get_xlim()[::-1])
+        ax.set_ylim(ax.get_ylim()[::])
+        ax.set_xlim(ax.get_xlim()[::])
         DPI = fig.get_dpi()
         fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
 
@@ -811,52 +812,55 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         ax.vlines(x=hand_high[1], ymin=hand_low[2], ymax=hand_high[2], linestyles='dotted', color='black')
         ax.hlines(y=hand_high[2], xmin=hand_low[1], xmax=hand_high[1], linestyles='dotted', color='black')
 
-        # puck_low, puck_high = self.puck_space.low, self.puck_space.high
-        puck_low, puck_high = hand_low, hand_high
-        # TODO
-        ax.vlines(x=puck_low[1], ymin=puck_low[2], ymax=puck_high[2], linestyles='dotted', color='black')
-        ax.hlines(y=puck_low[2], xmin=puck_low[1], xmax=puck_high[1], linestyles='dotted', color='black')
-        ax.vlines(x=puck_high[1], ymin=puck_low[2], ymax=puck_high[2], linestyles='dotted', color='black')
-        ax.hlines(y=puck_high[2], xmin=puck_low[1], xmax=puck_high[1], linestyles='dotted', color='black')
+        ax.vlines(x=hand_low[1]- 0.05, ymin=hand_low[2]- 0.05, ymax=hand_high[2]+ 0.05, color='black')
+        ax.hlines(y=hand_low[2]- 0.05, xmin=hand_low[1]- 0.05, xmax=hand_high[1]+ 0.05, color='black')
+        ax.vlines(x=hand_high[1]+ 0.05, ymin=hand_low[2]- 0.05, ymax=hand_high[2]+ 0.05, color='black')
+        ax.hlines(y=hand_high[2]+ 0.05, xmin=hand_low[1]- 0.05, xmax=hand_high[1]+ 0.05, color='black')
 
         if draw_state:
             if state is not None:
                 hand_pos = state[1:3]
-                puck_pos = state[4:6]
-                puck2_pos = state[7:9]
+                obj_pos = state[4:6]
+                if self.two_obj:
+                    obj2_pos = state[7:9]
             else:
                 hand_pos = self.get_endeff_pos()[1:3]
-                puck_pos = self.get_obj_pos(obj_id=0)[1:3]
-                puck2_pos = self.get_obj_pos(obj_id=1)[1:3]
-            hand = plt.Circle(hand_pos, 0.025 * marker_factor, color='red')
+                obj_pos = self.get_obj_pos(obj_id=0)[1:3]
+                if self.two_obj:
+                    obj2_pos = self.get_obj_pos(obj_id=1)[1:3]
+            hand = plt.Circle(hand_pos, 0.025 * marker_factor, color='green')
             ax.add_artist(hand)
-            puck = plt.Circle(puck_pos, 0.025 * marker_factor, color='blue')
-            ax.add_artist(puck)
-            puck2 = plt.Circle(puck2_pos, 0.025 * marker_factor, color='green')
-            ax.add_artist(puck2)
+            obj = plt.Circle(obj_pos, 0.025 * marker_factor, color='blue')
+            ax.add_artist(obj)
+            if self.two_obj:
+                obj2 = plt.Circle(obj2_pos, 0.025 * marker_factor, color='red')
+                ax.add_artist(obj2)
         if draw_goal:
-            hand = plt.Circle(self._state_goal[1:3], 0.03 * marker_factor, color='orange')
+            hand = plt.Circle(self._state_goal[1:3], 0.02 * marker_factor, color='yellowgreen')
             ax.add_artist(hand)
-            puck = plt.Circle(self._state_goal[4:6], 0.03 * marker_factor, color='cyan')
-            ax.add_artist(puck)
-            puck2 = plt.Circle(self._state_goal[7:9], 0.03 * marker_factor, color='yellowgreen')
-            ax.add_artist(puck2)
+            obj = plt.Circle(self._state_goal[4:6], 0.02 * marker_factor, color='cyan')
+            ax.add_artist(obj)
+            if self.two_obj:
+                obj2 = plt.Circle(self._state_goal[7:9], 0.02 * marker_factor, color='orange')
+                ax.add_artist(obj2)
         if draw_subgoals:
             if self.subgoals is not None:
                 subgoals = self.subgoals.reshape((-1, self.observation_space.spaces['state_observation'].low.size))
                 for subgoal in subgoals[:1]:
                     hand = plt.Circle(subgoal[1:3], 0.015 * marker_factor, color='orange')
                     ax.add_artist(hand)
-                    puck = plt.Circle(subgoal[4:6], 0.015 * marker_factor, color='cyan')
-                    ax.add_artist(puck)
-                    puck2 = plt.Circle(subgoal[7:9], 0.015 * marker_factor, color='yellowgreen')
-                    ax.add_artist(puck2)
+                    obj = plt.Circle(subgoal[4:6], 0.015 * marker_factor, color='cyan')
+                    ax.add_artist(obj)
+                    if self.two_obj:
+                        obj2 = plt.Circle(subgoal[7:9], 0.015 * marker_factor, color='yellowgreen')
+                        ax.add_artist(obj2)
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         fig.subplots_adjust(bottom=0)
         fig.subplots_adjust(top=1)
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
+        ax.axis('off')
 
         # ax.imshow(
         #     vals,
