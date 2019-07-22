@@ -32,6 +32,7 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
             model_path='pointmass_u_wall_big.xml',
             reset_low=None,
             reset_high=None,
+            v_func_heatmap_bounds=(-2.5, 0.0),
             *args,
             **kwargs
     ):
@@ -85,6 +86,8 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('proprio_desired_goal', self.goal_space),
             ('proprio_achieved_goal', self.obs_space),
         ])
+
+        self.v_func_heatmap_bounds = v_func_heatmap_bounds
 
         self._state_goal = None
         self.reset()
@@ -288,9 +291,14 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
+        if self.v_func_heatmap_bounds is not None:
+            vmin = self.v_func_heatmap_bounds[0]
+            vmax = self.v_func_heatmap_bounds[1]
+        else:
+            vmin, vmax = None, None
         return self.get_image_plt(
             v_vals,
-            vmin=-2.5, vmax=0.0,
+            vmin=vmin, vmax=vmax,
             draw_state=True, draw_goal=True,
         )
 
