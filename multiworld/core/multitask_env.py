@@ -47,7 +47,7 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
         goals = self.sample_goals(1)
         return self.unbatchify_dict(goals, 0)
 
-    def compute_reward(self, action, obs):
+    def compute_reward(self, action, obs, prev_obs=None):
         if action is not None:
             actions = action[None]
         else:
@@ -55,7 +55,11 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
         next_obs = {
             k: v[None] for k, v in obs.items()
         }
-        return self.compute_rewards(actions, next_obs)[0]
+        if prev_obs is not None:
+            prev_obs = {
+                k: v[None] for k, v in prev_obs.items()
+            }
+        return self.compute_rewards(actions, next_obs, prev_obs=prev_obs)[0]
 
     def get_diagnostics(self, *args, **kwargs):
         """

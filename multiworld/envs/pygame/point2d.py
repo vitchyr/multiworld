@@ -215,7 +215,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_achieved_goal=self._position.copy(),
         )
 
-    def compute_rewards(self, actions, obs):
+    def compute_rewards(self, actions, obs, prev_obs=None):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=-1)
