@@ -13,7 +13,9 @@
         <!--<material name='MatPlane' texture="texplane" shininess="1" texrepeat="1 1" specular="1"  reflectance="0" />-->
 
         <!--<texture name="texplane" type="2d" builtin="flat" rgb1="1.0 1.0 1.0" rgb2="1.0 1.0 1.0" width="100" height="100" />-->
-        <texture name="texplane" type="2d" builtin="checker" rgb1="0.3 0.3 0.3" rgb2="1 1 1" width="100" height="100" />
+
+        <!--<texture name="texplane" type="2d" builtin="checker" rgb1="0.3 0.3 0.3" rgb2="1 1 1" width="100" height="100" />-->
+        <texture name="texplane" type="2d" builtin="checker" rgb1="0.55 0.67 0.80" rgb2="1 1 1" width="100" height="100" />
         <material name='MatPlane' texture="texplane" shininess="0" texrepeat="8 8" specular="0.6" reflectance="0" />
 
         <!--<material name='geom' texture="texgeom" texuniform="true" />-->

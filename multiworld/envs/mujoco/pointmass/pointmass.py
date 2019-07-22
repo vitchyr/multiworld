@@ -248,21 +248,21 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
         return statistics
 
     def viewer_setup(self):
-        self.viewer.cam.trackbodyid = 0
-        self.viewer.cam.lookat[0] = 0.0
-        self.viewer.cam.lookat[1] = 0.0
-        self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 12.5
-        self.viewer.cam.elevation = -90
-        self.viewer.cam.azimuth = 270
-
         # self.viewer.cam.trackbodyid = 0
         # self.viewer.cam.lookat[0] = 0.0
-        # self.viewer.cam.lookat[1] = 0.75
+        # self.viewer.cam.lookat[1] = 0.0
         # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 11.5
-        # self.viewer.cam.elevation = -65
+        # self.viewer.cam.distance = 12.5
+        # self.viewer.cam.elevation = -90
         # self.viewer.cam.azimuth = 270
+
+        self.viewer.cam.trackbodyid = 0
+        self.viewer.cam.lookat[0] = 0.0
+        self.viewer.cam.lookat[1] = 0.75
+        self.viewer.cam.lookat[2] = 0.5
+        self.viewer.cam.distance = 11.5
+        self.viewer.cam.elevation = -65
+        self.viewer.cam.azimuth = 270
 
     def get_image_v(self, agent, qf, vf, obs, tau=None):
         nx, ny = (50, 50)
