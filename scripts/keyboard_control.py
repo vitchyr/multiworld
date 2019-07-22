@@ -54,36 +54,31 @@ char_to_action = {
 import gym
 import multiworld
 import pygame
-# env_kwargs = dict(
-#     sample_realistic_goals=True,
-#     hand_low=(-0.20, 0.50),
-#     hand_high=(0.20, 0.70),
-#     puck_low=(-0.20, 0.50),
-#     puck_high=(0.20, 0.70),
-#     fix_reset=0.075,
-#     heavy_puck=False,  # [True, False],
-#     wall=True,
-#     action_scale=0.02,
-#     reward_type='vectorized_state_distance'
-# )
-# env = SawyerPushAndReachXYEnv(**env_kwargs)
-# env = gym.make("SawyerPushAndReachArenaTestEnvBig-v0")
 
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
 env_kwargs = dict(
-    frame_skip=100,
-    action_scale=0.15,
-    ball_low=(-2, -0.5),
-    ball_high=(2, 1),
-    goal_low=(-4, 2),
-    goal_high=(4, 4),
-    model_path='pointmass_u_wall_big.xml',
+    hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
+    hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
+    num_goals_presampled=1,
+    two_obj=True,  # True
+    reset_p=(0.0, 1.0, 0.0),
+    goal_p=(0.0, 0.0, 1.0),
+
+    # fixed_reset=(0.0, 0.67, 0.06, 0.0, 0.60, 0.015, 0.0, 0.55, 0.015),
+    action_scale=.02, #.02
+    # frame_skip=500, #100
+
+    structure='2d',
+    snap_obj_to_axis=False,
+    hide_state_markers=True,
 )
-env = PointmassEnv(**env_kwargs)
+env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
 
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
 action = np.zeros(10)
+gripped_closed = False
 while True:
     done = False
     if not lock_action:
@@ -100,9 +95,9 @@ while True:
             elif new_action == 'reset':
                 done = True
             elif new_action == 'close':
-                action[3] = 1
+                gripped_closed = True
             elif new_action == 'open':
-                action[3] = -1
+                gripped_closed = False
             elif new_action == 'put obj in hand':
                 print("putting obj in hand")
                 env.put_obj_in_hand()
@@ -112,10 +107,22 @@ while True:
             else:
                 action = np.zeros(3)
 
-            env.step(action[:2])
-            if done:
-                obs = env.reset()
-    # env.step(action[:2])
-    # if done:
-    #     obs = env.reset()
+            if gripped_closed:
+                action[2] = 1
+                # action[2] = 1
+            else:
+                action[2] = -1
+
+                    # if closed_gripper:
+            # print(action[:len(env.action_space.low)])
+            env.step(action[:len(env.action_space.low)])
+    if done:
+        obs = env.reset()
+        # print("reset")
     env.render()
+
+# for i in range(1000):
+#     if i % 10 == 0:
+#         env.reset()
+#     env.step(np.array([1, 0, -1]))
+#     env.render()
