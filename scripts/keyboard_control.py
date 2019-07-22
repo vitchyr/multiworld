@@ -56,23 +56,34 @@ import multiworld
 import pygame
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
+# env_kwargs = dict(
+#     hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
+#     hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
+#     num_goals_presampled=1,
+#     two_obj=True,  # True
+#     reset_p=(0.0, 1.0, 0.0),
+#     goal_p=(0.0, 0.0, 1.0),
+#
+#     # fixed_reset=(0.0, 0.67, 0.06, 0.0, 0.60, 0.015, 0.0, 0.55, 0.015),
+#     action_scale=.02, #.02
+#     # frame_skip=500, #100
+#
+#     structure='2d',
+#     snap_obj_to_axis=False,
+#     hide_state_markers=True,
+# )
+# env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
+
 env_kwargs = dict(
-    hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
-    hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
-    num_goals_presampled=1,
-    two_obj=True,  # True
-    reset_p=(0.0, 1.0, 0.0),
-    goal_p=(0.0, 0.0, 1.0),
-
-    # fixed_reset=(0.0, 0.67, 0.06, 0.0, 0.60, 0.015, 0.0, 0.55, 0.015),
-    action_scale=.02, #.02
-    # frame_skip=500, #100
-
-    structure='2d',
-    snap_obj_to_axis=False,
-    hide_state_markers=True,
+    frame_skip=100,
+    action_scale=0.15,
+    ball_low=(-2, -0.5),
+    ball_high=(2, 1),
+    goal_low=(-4, 2),
+    goal_high=(4, 4),
+    model_path='pointmass_u_wall_big.xml',
 )
-env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
+env = PointmassEnv(**env_kwargs)
 
 NDIM = env.action_space.low.size
 lock_action = False
