@@ -23,13 +23,13 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
             self,
             reward_type='dense',
             norm_order=2,
-            action_scale=1.0,
-            frame_skip=3,
+            action_scale=0.15,
+            frame_skip=100,
             ball_low=(-4.0, -4.0),
             ball_high=(4.0, 4.0),
             goal_low=(-4.0, -4.0),
             goal_high=(4.0, 4.0),
-            model_path='pointmass.xml',
+            model_path='pointmass_u_wall_big.xml',
             reset_low=None,
             reset_high=None,
             *args,
@@ -92,7 +92,7 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
     def step(self, velocities):
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         ob = self._get_obs()
-        action = ob["state_observation"] + velocities
+        action = velocities
 
         self.do_simulation(action, self.frame_skip)
 
@@ -245,21 +245,21 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
         return statistics
 
     def viewer_setup(self):
-        # self.viewer.cam.trackbodyid = 0
-        # self.viewer.cam.lookat[0] = 0.0
-        # self.viewer.cam.lookat[1] = 0.0
-        # self.viewer.cam.lookat[2] = 0.5
-        # self.viewer.cam.distance = 12.5
-        # self.viewer.cam.elevation = -90
-        # self.viewer.cam.azimuth = 270
-
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.lookat[0] = 0.0
-        self.viewer.cam.lookat[1] = 0.75
+        self.viewer.cam.lookat[1] = 0.0
         self.viewer.cam.lookat[2] = 0.5
-        self.viewer.cam.distance = 11.5
-        self.viewer.cam.elevation = -65
+        self.viewer.cam.distance = 12.5
+        self.viewer.cam.elevation = -90
         self.viewer.cam.azimuth = 270
+
+        # self.viewer.cam.trackbodyid = 0
+        # self.viewer.cam.lookat[0] = 0.0
+        # self.viewer.cam.lookat[1] = 0.75
+        # self.viewer.cam.lookat[2] = 0.5
+        # self.viewer.cam.distance = 11.5
+        # self.viewer.cam.elevation = -65
+        # self.viewer.cam.azimuth = 270
 
     def get_image_v(self, agent, qf, vf, obs, tau=None):
         nx, ny = (50, 50)
@@ -288,7 +288,11 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
-        return self.get_image_plt(v_vals, vmin=-2.5, vmax=0.0)
+        return self.get_image_plt(
+            v_vals,
+            vmin=-2.5, vmax=0.0,
+            draw_state=True, draw_goal=True,
+        )
 
     def get_image_plt(
             self,

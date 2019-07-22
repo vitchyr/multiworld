@@ -71,7 +71,7 @@ import pygame
 
 env_kwargs = dict(
     frame_skip=100,
-    action_scale=0.3,
+    action_scale=0.15,
     ball_low=(-2, -0.5),
     ball_high=(2, 1),
     goal_low=(-4, 2),
@@ -111,7 +111,11 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
-    if done:
-        obs = env.reset()
+
+            env.step(action[:2])
+            if done:
+                obs = env.reset()
+    # env.step(action[:2])
+    # if done:
+    #     obs = env.reset()
     env.render()

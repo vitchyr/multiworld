@@ -73,8 +73,8 @@
     </worldbody>
 
     <actuator>
-        <position ctrllimited="true" ctrlrange="-10000 10000" joint="xmove" kp="5"  user="1"/>
-        <position ctrllimited="true" ctrlrange="-10000 10000" joint="ymove" kp="5"  user="1"/>
+        <velocity ctrllimited="true" ctrlrange="-10000 10000" joint="xmove" kv="1000"  user="1"/>
+        <velocity ctrllimited="true" ctrlrange="-10000 10000" joint="ymove" kv="1000"  user="1"/>
     </actuator>
 
 </mujoco>
