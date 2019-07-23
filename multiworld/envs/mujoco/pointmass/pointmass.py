@@ -32,7 +32,7 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
             model_path='pointmass_u_wall_big.xml',
             reset_low=None,
             reset_high=None,
-            v_func_heatmap_bounds=(-2.5, 0.0),
+            v_func_heatmap_bounds=(-2.0, 0.0),
             *args,
             **kwargs
     ):
@@ -263,6 +263,13 @@ class PointmassEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.viewer.cam.distance = 11.5
         self.viewer.cam.elevation = -65
         self.viewer.cam.azimuth = 270
+
+    def get_states_sweep(self, nx, ny):
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+        states = np.stack((xv, yv), axis=2).reshape((-1, 2))
+        return states
 
     def get_image_v(self, agent, qf, vf, obs, tau=None):
         nx, ny = (50, 50)
