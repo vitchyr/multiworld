@@ -74,6 +74,10 @@ if __name__ == '__main__':
         ],
         reward_type='xy_dense',
     )
+    import gym
+    from multiworld.envs.mujoco import register_custom_envs
+    register_custom_envs()
+    env = gym.make('AntMazeEnv-v0')
     env.reset()
     i = 0
     while True:
