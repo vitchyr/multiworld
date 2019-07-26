@@ -29,7 +29,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             indicator_threshold=0.02,
 
             fix_goal=False,
-            fixed_goal=(0.15, 0.6, 0.055, -0.15, 0.6),
+            fixed_goal=None,
             goal_low=None,
             goal_high=None,
             hard_goals=False,
@@ -47,6 +47,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
             fixed_reset=None,
             hide_state_markers=True,
+
+            test_mode_case_num=None,
             **kwargs
     ):
         self.quick_init(locals())
@@ -85,7 +87,6 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
         self.subgoals = None
         self.fix_goal = fix_goal
-        self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
 
         self.hide_goal_markers = hide_goal_markers
@@ -157,9 +158,27 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if fixed_reset is not None:
             fixed_reset = np.array(fixed_reset)
         self.fixed_reset = fixed_reset
+        if fixed_goal is not None:
+            fixed_goal = np.array(fixed_goal)
+        self.fixed_goal = fixed_goal
         self.reset_p = reset_p
         self.goal_p = goal_p
-        self.reset()
+
+        self.test_mode_case_num = test_mode_case_num
+        if self.test_mode_case_num == 1:
+            self.fixed_reset = np.array([0.0, 0.50, 0.05, 0.0, 0.50, 0.015, 0.0, 0.70, 0.015])
+            self.fixed_goal = np.array([0.0, 0.50, 0.10, 0.0, 0.70, 0.03, 0.0, 0.70, 0.015])
+        elif self.test_mode_case_num == 2:
+            self.fixed_reset = np.array([0.0, 0.50, 0.05, 0.0, 0.50, 0.015, 0.0, 0.70, 0.015])
+            self.fixed_goal = np.array([0.0, 0.70, 0.10, 0.0, 0.50, 0.015, 0.0, 0.50, 0.03])
+
+        if presampled_goals is not None:
+            self.reset()
+        else:
+            self.num_goals_presampled = 1
+            self.reset()
+            self._presampled_goals = None
+            self.num_goals_presampled = num_goals_presampled
 
     def set_xyz_action(self, action):
         action = np.clip(action, -1, 1)
@@ -498,6 +517,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def _sample_realistic_ee(self, mode='goal'):
         if mode == 'reset' and self.fixed_reset is not None:
             return self.fixed_reset[0:3]
+        if mode == 'goal' and self.fixed_goal is not None:
+            return self.fixed_goal[0:3]
         return np.random.uniform(self.hand_space.low, self.hand_space.high)
 
     def _sample_realistic_obj(self, type='ground', ee=None, mode='goal'):
@@ -508,6 +529,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 return self.fixed_reset[3:9]
             else:
                 return self.fixed_reset[3:6]
+
+        if mode == 'goal' and self.fixed_goal is not None:
+            if self.two_obj:
+                return self.fixed_goal[3:9]
+            else:
+                return self.fixed_goal[3:6]
 
         # choose first obj to set
         if self.two_obj:
