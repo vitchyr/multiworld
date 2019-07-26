@@ -41,7 +41,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             reward_type="dense",
             norm_order=2,
             action_scale=1.0,
-            target_radius=0.60,
+            target_radius=0.50,
             boundary_dist=4,
             ball_radius=0.50,
             walls=[],
@@ -135,6 +135,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         distance_to_target = np.linalg.norm(
             self._position - self._target_position
         )
+        below_wall = self._position[1] >= 2.0
         is_success = distance_to_target < 1.0
         is_success_2 = distance_to_target < 1.5
         is_success_3 = distance_to_target < 1.75
@@ -150,6 +151,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'is_success': is_success,
             'is_success_2': is_success_2,
             'is_success_3': is_success_3,
+            'below_wall': below_wall,
         }
         done = False
         return ob, reward, done, info
@@ -230,6 +232,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         statistics = OrderedDict()
         for stat_name in [
             'distance_to_target',
+            'below_wall',
             'is_success',
             'is_success_2',
             'is_success_3',
@@ -520,6 +523,7 @@ class Point2DWallEnv(Point2DEnv):
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
         self.wall_thickness = wall_thickness
+
         if wall_shape == "u":
             self.walls = [
                 # Right wall
