@@ -420,3 +420,11 @@ def normalize_image(image):
 def unormalize_image(image):
     assert image.dtype != np.uint8
     return np.uint8(image * 255.0)
+
+def get_image_presampled_goals(image_env, num_goals_presampled):
+    import time
+    print("sampling image goals from image_env:", num_goals_presampled)
+    t = time.time()
+    image_goals = image_env.sample_goals(num_goals_presampled)
+    print("total time:", time.time() - t)
+    return image_goals
