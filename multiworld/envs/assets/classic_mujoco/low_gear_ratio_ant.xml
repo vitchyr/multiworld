@@ -33,7 +33,8 @@
           <geom fromto="0.0 0.0 0.0 -0.2 -0.2 0.0" name="back_leg_geom" size="0.08" type="capsule"/>
           <body pos="-0.2 -0.2 0">
             <joint axis="-1 1 0" name="ankle_3" pos="0.0 0.0 0.0" range="-70 -30" type="hinge"/>
-            <geom fromto="0.0 0.0 0.0 -0.4 -0.4 0.0" name="third_ankle_geom" size="0.08" type="capsule"/>
+            <geom fromto="0.0 0.0 0.0 -0.4 -0.4 0.0" name="third_ankle_geom" size="0.08" type="capsule"
+            rgba="0.8 0.3 0 1"/>
           </body>
         </body>
       </body>
@@ -44,12 +45,10 @@
           <geom fromto="0.0 0.0 0.0 0.2 -0.2 0.0" name="rightback_leg_geom" size="0.08" type="capsule"/>
           <body pos="0.2 -0.2 0">
             <joint axis="1 1 0" name="ankle_4" pos="0.0 0.0 0.0" range="30 70" type="hinge"/>
-            <geom fromto="0.0 0.0 0.0 0.4 -0.4 0.0" name="fourth_ankle_geom" size="0.08" type="capsule"/>
+            <geom fromto="0.0 0.0 0.0 0.4 -0.4 0.0" name="fourth_ankle_geom" size="0.08" type="capsule"
+                rgba="0.8 0.3 0 1"/>
           </body>
         </body>
       </body>
     </body>
-    <!--By default, this goal will be hidden under the floor-->
-    <site name="goal" rgba="0 1 1 0.5" pos="0. 0. -1" size="0.5" />
-    <site name="origin" rgba="1 0 0 0.5" pos="0. 0. 0." size="0.1" />
 </mujoco>

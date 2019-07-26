@@ -52,9 +52,13 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
             actions = action[None]
         else:
             actions = None
-        next_obs = {
-            k: v[None] for k, v in obs.items()
-        }
+        if obs is None:
+            import ipdb; ipdb.set_trace()
+        next_obs = {}
+        for k, v in obs.items():
+            if v is None:
+                continue
+            next_obs[k] = v[None]
         return self.compute_rewards(actions, next_obs)[0]
 
     def get_diagnostics(self, *args, **kwargs):
