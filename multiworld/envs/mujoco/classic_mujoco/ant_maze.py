@@ -26,13 +26,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             ant_high=list([1.60, 1.60]),
             goal_low=list([-1.60, -1.60]),
             goal_high=list([1.60, 1.60]),
-            model_path='classic_mujoco/normal_gear_ratio_ant.xml',
             *args,
             **kwargs):
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,
-                           model_path=get_asset_full_path(model_path),
+                           model_path=get_asset_full_path('classic_mujoco/normal_gear_ratio_ant.xml'),
                            frame_skip=frame_skip,
                            **kwargs)
 
@@ -190,8 +189,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return self._get_obs()
 
     def _reset_ant(self):
-        qpos = self.init_qpos
-        qvel = np.zeros_like(self.init_qvel)
+        qpos = self.init_qpos + self.np_random.uniform(size=self.model.nq, low=-.1, high=.1)
+        pos_low = np.array([-2, -2, 0.25])
+        pos_high = np.array([2, 2, 1.75])
+        qpos[:3] = np.random.uniform(pos_low, pos_high)
+
+        quat_low = np.array([-1, -1, -1, -1])
+        quat_high = np.array([1, 1, 1, 1])
+        qpos[3:7] = np.random.uniform(quat_low, quat_high)
+
+        hip_and_leg_low = np.deg2rad([-30, 30, -30, -70, -30, -70, -30, 30])
+        hip_and_leg_high = np.deg2rad([30, 70, 30, -30, 30, -30, 30, 70])
+        qpos[-8:] = np.random.uniform(hip_and_leg_low, hip_and_leg_high)
+        qvel = self.init_qvel + self.np_random.randn(self.model.nv) * .1
         self.set_state(qpos, qvel)
 
     def set_goal(self, goal):
@@ -278,12 +288,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.viewer.cam.distance = self.model.stat.extent * 0.5
 
 if __name__ == '__main__':
-    env = AntEnv(
-        model_path='classic_mujoco/ant_maze.xml',
-    )
+    env = AntEnv()
     env.reset()
-    while True:
+    for _ in range(100):
         env.render()
-        action = env.action_space.sample()
-        action = np.zeros_like(action)
-        env.step(action)
+        env.step(env.action_space.sample())

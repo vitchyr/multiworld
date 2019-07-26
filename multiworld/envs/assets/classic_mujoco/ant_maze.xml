@@ -2,9 +2,9 @@
 <mujoco model="antmaze">
     <compiler angle="degree" coordinate="local" inertiafromgeom="true"/>
     <option integrator="RK4" timestep="0.01"/>
-    <custom>
-        <numeric data="0.0 0.0 0.55 1.0 0.0 0.0 0.0 0.0 1.0 0.0 -1.0 0.0 -1.0 0.0 1.0" name="init_qpos"/>
-    </custom>
+    <!--<custom>-->
+        <!--<numeric data="0.0 0.0 0.55 1.0 0.0 0.0 0.0 0.0 1.0 0.0 -1.0 0.0 -1.0 0.0 1.0" name="init_qpos"/>-->
+    <!--</custom>-->
     <default>
         <joint armature="1" damping="1" limited="true"/>
         <geom conaffinity="0" condim="3" density="5.0" friction="1 0.5 0.5" margin="0.01" rgba="0.8 0.6 0.4 1"/>
@@ -19,11 +19,25 @@
     <worldbody>
         <include file="low_gear_ratio_ant.xml"></include>
 
-        <body name="innerwall" pos="0 0 0">
+        <!--<body name="innerwall" pos="6 6 0">-->
+            <!--<geom type="box" pos="0 0 0" size="4 4 1"-->
+                  <!--rgba=".1 .1 .9 1" contype="2" conaffinity="2" />-->
+        <!--</body>-->
+        <!--<body name="outerwall" pos="6 6 0">-->
+            <!--<geom type="box" pos="0 9 0" size="10 1 1"-->
+                  <!--rgba=".1 .1 .9 1" contype="2" conaffinity="2" />-->
+            <!--<geom type="box" pos="0 -9 0" size="10 1 1"-->
+                  <!--rgba=".1 .1 .9 1" contype="2" conaffinity="2" />-->
+            <!--<geom type="box" pos="9 0 0" size="1 9 1"-->
+                  <!--rgba=".1 .1 .9 1" contype="2" conaffinity="2" />-->
+            <!--<geom type="box" pos="-9 0 0" size="1 9 1"-->
+                  <!--rgba=".1 .1 .9 1" contype="2" conaffinity="2" />-->
+        <!--</body>-->
+        <body name="innerwall" pos="2 2 0">
             <geom type="box" pos="0 0 0" size="1 1 1"
                   rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
         </body>
-        <body name="outerwall" pos="0 0 0">
+        <body name="outerwall" pos="2 2 0">
             <geom type="box" pos="0 4 0" size="5 1 1"
                   rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
             <geom type="box" pos="0 -4 0" size="5 1 1"
