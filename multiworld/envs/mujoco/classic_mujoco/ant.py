@@ -286,3 +286,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         # self.viewer.cam.distance = 6.5
         # self.viewer.cam.elevation = -90
         self.viewer.cam.distance = self.model.stat.extent * 0.5
+
+if __name__ == '__main__':
+    env = AntEnv()
+    env.reset()
+    for _ in range(100):
+        env.render()
+        env.step(env.action_space.sample())

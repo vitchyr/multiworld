@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mujoco model="antmaze">
+    <compiler angle="degree" coordinate="local" inertiafromgeom="true"/>
+    <option integrator="RK4" timestep="0.01"/>
+    <custom>
+        <numeric data="0.0 0.0 0.55 1.0 0.0 0.0 0.0 0.0 1.0 0.0 -1.0 0.0 -1.0 0.0 1.0" name="init_qpos"/>
+    </custom>
+    <default>
+        <joint armature="1" damping="1" limited="true"/>
+        <geom conaffinity="0" condim="3" density="5.0" friction="1 0.5 0.5" margin="0.01" rgba="0.8 0.6 0.4 1"/>
+    </default>
+    <asset>
+        <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
+        <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+        <texture builtin="checker" height="100" name="texplane" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/>
+        <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+        <material name="geom" texture="texgeom" texuniform="true"/>
+    </asset>
+    <worldbody>
+        <include file="low_gear_ratio_ant.xml"></include>
+
+        <body name="innerwall" pos="0 0 0">
+            <geom type="box" pos="0 0 0" size="1 1 1"
+                  rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
+        </body>
+        <body name="outerwall" pos="0 0 0">
+            <geom type="box" pos="0 4 0" size="5 1 1"
+                  rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
+            <geom type="box" pos="0 -4 0" size="5 1 1"
+                  rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
+            <geom type="box" pos="4 0 0" size="1 3 1"
+                  rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
+            <geom type="box" pos="-4 0 0" size="1 3 1"
+                  rgba=".1 .1 .9 1" contype="2" conaffinity="2" />
+        </body>
+    </worldbody>
+    <actuator>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_4" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_4" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_1" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_1" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_2" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_2" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_3" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_3" gear="30"/>
+    </actuator>
+</mujoco>
