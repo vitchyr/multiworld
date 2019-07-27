@@ -14,13 +14,13 @@
         <site name="start" rgba="1 0 0 0.5" pos="-3 -3 0." size="0.1" />
     </worldbody>
     <actuator>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_4" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_4" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_1" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_1" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_2" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_2" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_3" gear="30"/>
-        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_3" gear="30"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_4" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_4" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_1" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_1" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_2" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_2" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="hip_3" gear="90"/>
+        <motor ctrllimited="true" ctrlrange="-1.0 1.0" joint="ankle_3" gear="90"/>
     </actuator>
 </mujoco>

@@ -22,7 +22,7 @@ def register_custom_envs():
         id='AntCrossMazeEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '6032b78',
+            'git-commit-hash': '14880b1',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -49,10 +49,175 @@ def register_custom_envs():
         id='AntMazeEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '6032b78',
+            'git-commit-hash': '14880b1',
             'author': 'vitchyr'
         },
         kwargs=dict(
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+        ),
+    )
+    register(
+        id='AntCrossMaze30Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30.xml',
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            fixed_goal=[3, 3],
+        ),
+    )
+    register(
+        id='AntCrossMaze90Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear90.xml',
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            fixed_goal=[3, 3],
+        ),
+    )
+    register(
+        id='AntCrossMaze150Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear150.xml',
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            fixed_goal=[3, 3],
+        ),
+    )
+    register(
+        id='AntMaze30Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30.xml',
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+        ),
+    )
+    register(
+        id='AntMaze90Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear90.xml',
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+        ),
+    )
+    register(
+        id='AntMaze150Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear150.xml',
             goal_low=[-4, -4],
             goal_high=[4, 4],
             goal_is_xy=True,
