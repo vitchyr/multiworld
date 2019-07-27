@@ -146,7 +146,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._state_goal = None
 
         self.test_mode_case_num = test_mode_case_num
-        assert self.test_mode_case_num in [None, 1, 2, 3, 4]
+        assert self.test_mode_case_num in [None, 1, 2, 3, 4, 5]
         if self.test_mode_case_num is not None:
             self.fix_reset = True
             self.fix_goal = True
@@ -162,6 +162,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         elif self.test_mode_case_num == 4:
             self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
             self.fixed_goal = np.array([0.20, 0.50, -0.20, 0.70])
+        elif self.test_mode_case_num == 5:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.20, 0.50, 0.20, 0.70])
 
         self.reward_type = reward_type
         self.norm_order = norm_order
