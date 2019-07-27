@@ -101,14 +101,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.do_simulation(np.array(action), self.frame_skip)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
-        # state, goal = ob['state_observation'], ob['state_desired_goal']
-        # full_state_diff = np.linalg.norm(state - goal)
-        # info = {
-        #     'full_state_diff': full_state_diff,
-        # }
-        # if self.vel_in_state:
-        #     info['velocity_diff'] = np.linalg.norm(state[-4:-1] - goal[-4:-1])
-        #     info['angular_velocity_diff'] = np.linalg.norm(state[-1] - goal[-1])
         info = {}
         done = False
         self._cur_obs = ob
