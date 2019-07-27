@@ -19,6 +19,33 @@ def register_custom_envs():
     Ant tasks
     """
     register(
+        id='AntCrossMazeEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '21f0cd6',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.5, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            fixed_goal=[3, 3],
+        ),
+    )
+    register(
         id='AntMazeEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
