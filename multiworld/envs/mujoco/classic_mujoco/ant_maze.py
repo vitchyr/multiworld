@@ -16,11 +16,16 @@ from multiworld.envs.env_util import (
 
 
 class AntMazeEnv(AntEnv):
-    def __init__(self, *args, **kwargs):
+    def __init__(
+            self,
+            *args,
+            model_path='classic_mujoco/ant_maze.xml',
+            **kwargs
+    ):
         self.quick_init(locals())
         super().__init__(
             *args,
-            model_path='classic_mujoco/ant_maze.xml',
+            model_path=model_path,
             **kwargs
         )
 
@@ -41,6 +46,7 @@ class AntMazeEnv(AntEnv):
             goals[(0 >= goals) * (goals > -1.5)] -= 1.5
         return goals
 
+
 if __name__ == '__main__':
     env = AntMazeEnv(
         goal_low=[-4, -4],
@@ -51,8 +57,8 @@ if __name__ == '__main__':
     import gym
     from multiworld.envs.mujoco import register_custom_envs
     register_custom_envs()
-    env = gym.make('AntMazeEnv-v0')
-    # env = gym.make('AntCrossMazeEnv-v0')
+    # env = gym.make('AntMaze150Env-v0')
+    env = gym.make('AntCrossMaze150Env-v0')
     env.reset()
     i = 0
     while True:
@@ -64,5 +70,5 @@ if __name__ == '__main__':
         print(reward, np.linalg.norm(env.sim.data.get_body_xpos('torso')[:2]
                                      - env._xy_goal) )
         # print(env.sim.data.qpos)
-        if i % 20 == 0:
+        if i % 50 == 0:
             env.reset()
