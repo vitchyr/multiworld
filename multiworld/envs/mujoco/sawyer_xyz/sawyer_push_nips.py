@@ -58,6 +58,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             indicator_threshold_2=0.08,
             indicator_threshold_3=0.12,
+
+            test_mode_case_num=None,
     ):
         self.quick_init(locals())
 
@@ -142,6 +144,24 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
+
+        self.test_mode_case_num = test_mode_case_num
+        assert self.test_mode_case_num in [None, 1, 2, 3, 4]
+        if self.test_mode_case_num is not None:
+            self.fix_reset = True
+            self.fix_goal = True
+        if self.test_mode_case_num == 1:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([-0.20, 0.50, 0.20, 0.70])
+        elif self.test_mode_case_num == 2:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.15, 0.65, 0.20, 0.70])
+        elif self.test_mode_case_num == 3:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.20, 0.70, -0.20, 0.70])
+        elif self.test_mode_case_num == 4:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.20, 0.50, -0.20, 0.70])
 
         self.reward_type = reward_type
         self.norm_order = norm_order
