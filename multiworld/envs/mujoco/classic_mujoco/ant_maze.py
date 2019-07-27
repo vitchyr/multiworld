@@ -23,7 +23,8 @@ class AntMazeEnv(AntEnv):
             model_path='classic_mujoco/ant_maze.xml',
             **kwargs
         )
-    def sample_goals(self, batch_size):
+
+    def _sample_random_goal_vectors(self, batch_size):
         assert self.goal_is_xy
         goals = np.random.uniform(
             self.goal_space.low,
@@ -38,46 +39,20 @@ class AntMazeEnv(AntEnv):
             goals[(0 <= goals) * (goals < 1.5)] += 1.5
             goals[(0 >= goals) * (goals > -0.5)] -= 2
             goals[(0 >= goals) * (goals > -1.5)] -= 1.5
-            goals_dict = {
-                'xy_desired_goal': goals,
-            }
-        else:
-            if self.two_frames:
-                goals_dict = {
-                    'desired_goal': np.concatenate((goals, goals), axis=1),
-                    'state_desired_goal': np.concatenate((goals, goals), axis=1),
-                }
-            else:
-                goals_dict = {
-                    'desired_goal': goals,
-                    'state_desired_goal': goals,
-                }
-
-        return goals_dict
+        return goals
 
 if __name__ == '__main__':
     env = AntMazeEnv(
         goal_low=[-4, -4],
         goal_high=[4, 4],
         goal_is_xy=True,
-        init_qpos=[
-            -3, -3, 0.5, 1,
-            0, 0, 0,
-            0,
-            1.,
-            0.,
-            -1.,
-            0.,
-            -1.,
-            0.,
-            1.,
-        ],
         reward_type='xy_dense',
     )
     import gym
     from multiworld.envs.mujoco import register_custom_envs
     register_custom_envs()
     env = gym.make('AntMazeEnv-v0')
+    env = gym.make('AntCrossMazeEnv-v0')
     env.reset()
     i = 0
     while True:
@@ -86,5 +61,5 @@ if __name__ == '__main__':
         action = env.action_space.sample()
         # action = np.zeros_like(action)
         env.step(action)
-        if i % 10 == 0:
+        if i % 200 == 0:
             env.reset()

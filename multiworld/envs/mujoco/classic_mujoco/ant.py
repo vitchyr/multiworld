@@ -23,6 +23,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             model_path='classic_mujoco/normal_gear_ratio_ant.xml',
             goal_is_xy=False,
             init_qpos=None,
+            fixed_goal=None,
             *args,
             **kwargs):
         self.quick_init(locals())
@@ -41,6 +42,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.reward_type = reward_type
         self.norm_order = norm_order
         self.goal_is_xy = goal_is_xy
+        self.fixed_goal = fixed_goal
 
         self.ant_low, self.ant_high = np.array(ant_low), np.array(ant_high)
         goal_low, goal_high = np.array(goal_low), np.array(goal_high)
@@ -164,15 +166,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             }
 
     def sample_goals(self, batch_size):
-        goals = np.random.uniform(
-            self.goal_space.low,
-            self.goal_space.high,
-            size=(batch_size, self.goal_space.low.size),
-        )
-        if self.two_frames:
-            goals = goals[:,:int(self.goal_space.low.size/2)]
-
-        print(self.goal_space.low, self.goal_space.high)
+        if self.fixed_goal is not None:
+            goals = np.array(self.fixed_goal)[None].repeat(batch_size, axis=0)
+        else:
+            goals = self._sample_random_goal_vectors(batch_size)
         if self.goal_is_xy:
             goals_dict = {
                 'xy_desired_goal': goals,
@@ -190,6 +187,18 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 }
 
         return goals_dict
+
+    def _sample_random_goal_vectors(self, batch_size):
+        goals = np.random.uniform(
+            self.goal_space.low,
+            self.goal_space.high,
+            size=(batch_size, self.goal_space.low.size),
+        )
+        if self.two_frames:
+            goals = goals[:,:int(self.goal_space.low.size/2)]
+
+        print(self.goal_space.low, self.goal_space.high)
+        return goals
 
     def compute_rewards(self, actions, obs):
         if self.reward_type == 'xy_dense':
