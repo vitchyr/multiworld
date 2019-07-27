@@ -52,7 +52,7 @@ if __name__ == '__main__':
     from multiworld.envs.mujoco import register_custom_envs
     register_custom_envs()
     env = gym.make('AntMazeEnv-v0')
-    env = gym.make('AntCrossMazeEnv-v0')
+    # env = gym.make('AntCrossMazeEnv-v0')
     env.reset()
     i = 0
     while True:
@@ -60,6 +60,9 @@ if __name__ == '__main__':
         env.render()
         action = env.action_space.sample()
         # action = np.zeros_like(action)
-        env.step(action)
-        if i % 200 == 0:
+        _, reward, *_ = env.step(action)
+        print(reward, np.linalg.norm(env.sim.data.get_body_xpos('torso')[:2]
+                                     - env._xy_goal) )
+        # print(env.sim.data.qpos)
+        if i % 20 == 0:
             env.reset()

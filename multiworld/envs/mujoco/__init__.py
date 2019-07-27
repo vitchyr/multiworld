@@ -22,7 +22,7 @@ def register_custom_envs():
         id='AntCrossMazeEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '21f0cd6',
+            'git-commit-hash': '6032b78',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -30,7 +30,7 @@ def register_custom_envs():
             goal_high=[4, 4],
             goal_is_xy=True,
             init_qpos=[
-                -3, -3, 0.5, 1,
+                -3, -3, 0.565, 1,
                 0, 0, 0,
                 0,
                 1.,
@@ -49,7 +49,7 @@ def register_custom_envs():
         id='AntMazeEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '21f0cd6',
+            'git-commit-hash': '6032b78',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -57,7 +57,7 @@ def register_custom_envs():
             goal_high=[4, 4],
             goal_is_xy=True,
             init_qpos=[
-                -3, -3, 0.5, 1,
+                -3, -3, 0.565, 1,
                 0, 0, 0,
                 0,
                 1.,
