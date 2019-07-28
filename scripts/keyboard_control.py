@@ -60,12 +60,18 @@ env_kwargs = dict(
     hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
     hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
     num_goals_presampled=1,
-    two_obj=True,  # True
-    reset_p=(0.0, 1.0, 0.0),
-    goal_p=(0.0, 0.0, 1.0),
 
-    # fixed_reset=(0.0, 0.50, 0.05, 0.0, 0.50, 0.015, 0.0, 0.70, 0.015),
-    fixed_reset=(0.0, 0.70, 0.10, 0.0, 0.50, 0.015, 0.0, 0.50, 0.03),
+    # two_obj=True,  # True
+    # reset_p=(0.0, 0.0, 1.0),
+    # goal_p=(0.0, 0.0, 1.0),
+    # fixed_reset=(0.0, 0.70, 0.10, 0.0, 0.50, 0.015, 0.0, 0.50, 0.03),
+
+    two_obj=False,  # True
+    reset_p=(0.5, 0.5),
+    goal_p=(1.0, 0.0),
+    # fixed_reset=(0.0, 0.70, 0.10, 0.0, 0.50, 0.015),
+
+    structure='2d_wall_tall',
     # action_scale=.02, #.02
     # frame_skip=500, #100
 
