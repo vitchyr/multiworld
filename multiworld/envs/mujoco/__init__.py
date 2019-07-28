@@ -1295,6 +1295,64 @@ def register_soroush_envs():
         },
     )
 
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v3',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.010,
+        )
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v3',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v3,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v4',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0075,
+        )
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v4',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v4,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
     """
     Wheeled Car
     """
@@ -1552,6 +1610,32 @@ def create_image_84_sawyer_pnr_arena_test_env_big_v2():
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
 
     wrapped_env = gym.make('SawyerPushAndReachArenaTestEnvBig-v2')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v3():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v3')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v4():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v4')
     return ImageEnv(
         wrapped_env,
         84,
