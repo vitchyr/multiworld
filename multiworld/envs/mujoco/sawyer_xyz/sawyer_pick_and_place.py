@@ -58,7 +58,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             1: '2',
         }
 
-        assert structure in ['2d', '3d', 'wall']
+        assert structure in ['2d', '3d', '2d_wall_short', '2d_wall_tall']
         self.structure = structure
         self.two_obj = two_obj
         self.hard_goals = hard_goals
@@ -151,8 +151,17 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         self.eval_pickups = 0
         self.cur_mode = 'train'
 
-        self.obj_radius = 0.018 #0.020
-        self.ee_radius = 0.053 #0.065
+        self.obj_radius = np.array([0.018, 0.016]) #0.020
+        self.ee_radius = np.array([0.053, 0.058]) #0.065
+        if self.structure == '2d_wall_short':
+            self.wall_radius = np.array([0.03, 0.02])
+            self.wall_center = np.array([0.0, 0.60, 0.02])
+        elif self.structure == '2d_wall_tall':
+            self.wall_radius = np.array([0.03, 0.04])
+            self.wall_center = np.array([0.0, 0.60, 0.04])
+        else:
+            self.wall_radius = None
+            self.wall_center = None
         # self.obj_radius = 0.020
         # self.ee_radius = 0.065
         if fixed_reset is not None:
@@ -196,12 +205,14 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     @property
     def model_name(self):
-        if self.structure == 'wall':
-            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_wall.xml')
-        elif self.structure == '3d':
+        if self.structure == '3d':
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_3d.xml')
         elif self.structure == '2d':
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d.xml')
+        elif self.structure == '2d_wall_short':
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d_wall_short.xml')
+        elif self.structure == '2d_wall_tall':
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d_wall_tall.xml')
 
     def train(self):
         self.cur_mode = 'train'
@@ -368,7 +379,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 )
 
     def _set_obj_xyz(self, pos, obj_id, set_vel_to_zero=True):
-        if self.structure in ['wall', '3d']:
+        if self.structure in ['3d']:
             qpos = self.data.qpos.flat.copy()
             qvel = self.data.qvel.flat.copy()
             obj_name = 'objjoint' + self.obj_id[obj_id]
@@ -379,7 +390,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             if set_vel_to_zero:
                 qvel[qvel_obj_start:qvel_obj_end] = 0
             self.set_state(qpos, qvel)
-        elif self.structure in ['2d']:
+        elif self.structure in ['2d', '2d_wall_tall', '2d_wall_short']:
             qpos = self.data.qpos.flat.copy()
             qvel = self.data.qvel.flat.copy()
             obj_name = 'objjoint_y' + self.obj_id[obj_id]
@@ -519,7 +530,12 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return self.fixed_reset[0:3]
         if mode == 'goal' and self.fixed_goal is not None:
             return self.fixed_goal[0:3]
-        return np.random.uniform(self.hand_space.low, self.hand_space.high)
+
+        ee = np.random.uniform(self.hand_space.low, self.hand_space.high)
+        while self._ee_wall_collision(ee):
+            ee = np.random.uniform(self.hand_space.low, self.hand_space.high)
+
+        return ee
 
     def _sample_realistic_obj(self, type='ground', ee=None, mode='goal'):
         assert type in ['ground', 'stacked', 'air']
@@ -598,6 +614,17 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
                 self.hand_and_obj_space.high[start_idx:end_idx]
             )
             obj_xyz[2] = 0.015
+            if 'wall' in self.structure:
+                while (self.wall_radius[0]) \
+                        < np.abs(obj_xyz[1] - self.wall_center[1]) \
+                        <= (self.wall_radius[0] + self.obj_radius[0]):
+                    obj_xyz = np.random.uniform(
+                        self.hand_and_obj_space.low[start_idx:end_idx],
+                        self.hand_and_obj_space.high[start_idx:end_idx]
+                    )
+                    obj_xyz[2] = 0.015
+                if np.abs(obj_xyz[1] - self.wall_center[1]) < (self.wall_radius[0]):
+                    obj_xyz[2] = 0.015 + self.wall_center[2] + self.wall_radius[1]
         elif type == 'stacked':
             obj_xyz = np.copy(other_obj)
             obj_xyz[1] += np.random.normal(0.0, 0.003)
@@ -617,14 +644,31 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return np.array([1])
 
     def _obj_obj_collision(self, obj0, obj1, mode='goal'):
-        dist = np.linalg.norm(obj0 - obj1, ord=np.inf)
+        # dist = np.linalg.norm(obj0 - obj1, ord=np.inf)
+        # if mode == 'reset':
+        #     return dist <= (self.obj_radius + self.obj_radius + 0.03) # extra room for robot to pick up both objs
+        # else:
+        #     return dist <= (self.obj_radius + self.obj_radius)
+        diff = np.abs(obj0 - obj1)[-2:]
         if mode == 'reset':
-            return dist <= (self.obj_radius + self.obj_radius + 0.03) # extra room for robot to pick up both objs
+            return np.all(diff < (self.obj_radius + self.obj_radius + np.array([0.03, 0])))
         else:
-            return dist <= (self.obj_radius + self.obj_radius)
+            return np.all(diff < (self.obj_radius + self.obj_radius))
+
     def _ee_obj_collision(self, ee, obj):
-        dist = np.linalg.norm(ee - obj, ord=np.inf)
-        return dist <= (self.ee_radius + self.obj_radius)
+        # dist = np.linalg.norm(ee - obj, ord=np.inf)
+        # return dist <= (self.ee_radius + self.obj_radius)
+        diff = np.abs(ee - obj)[-2:]
+        return np.all(diff < self.ee_radius + self.obj_radius)
+
+    def _ee_wall_collision(self, ee):
+        # dist = np.linalg.norm(ee - obj, ord=np.inf)
+        # return dist <= (self.ee_radius + self.obj_radius)
+        if 'wall' in self.structure:
+            diff = np.abs(ee - self.wall_center)[-2:]
+            return np.all(diff < self.ee_radius + self.wall_radius)
+        else:
+            return False
 
     """
     Multitask functions
