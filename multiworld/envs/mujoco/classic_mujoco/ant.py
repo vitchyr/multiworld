@@ -27,7 +27,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             init_xy_mode='corner',
             *args,
             **kwargs):
-        assert init_xy_mode in {'corner', 'sample-from-goal-space'}
+        assert init_xy_mode in {'corner', 'sample-uniformly-xy-space'}
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,
@@ -102,7 +102,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._xy_goal = None
         self._prev_obs = None
         self._cur_obs = None
-        self.reset()
 
     def step(self, action):
         self._prev_obs = self._cur_obs
@@ -188,15 +187,17 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return goals_dict
 
     def _sample_random_goal_vectors(self, batch_size):
+        goals = self._sample_uniform_xy(batch_size)
+        if self.two_frames:
+            goals = goals[:, :int(self.goal_space.low.size/2)]
+        return goals
+
+    def _sample_uniform_xy(self, batch_size):
         goals = np.random.uniform(
             self.goal_space.low,
             self.goal_space.high,
             size=(batch_size, self.goal_space.low.size),
         )
-        if self.two_frames:
-            goals = goals[:,:int(self.goal_space.low.size/2)]
-
-        print(self.goal_space.low, self.goal_space.high)
         return goals
 
     def compute_rewards(self, actions, obs):
@@ -230,8 +231,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def _reset_ant(self):
         qpos = self.init_qpos
         qvel = np.zeros_like(self.init_qvel)
-        if self.init_xy_mode == 'sample-from-goal-space':
-            xy_start = self.sample_goal()['xy_desired_goal']
+        if self.init_xy_mode == 'sample-uniformly-xy-space':
+            xy_start = self._sample_uniform_xy(1)[0]
             qpos[:2] = xy_start
         self.set_state(qpos, qvel)
 

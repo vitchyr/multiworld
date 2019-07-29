@@ -213,7 +213,7 @@ def register_custom_envs():
         id='DebugAntMaze30BottomLeftRandomizeInitEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '14880b1',
+            'git-commit-hash': '26e9926',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -234,14 +234,14 @@ def register_custom_envs():
                 1.,
             ],
             reward_type='xy_dense',
-            init_xy_mode='sample-from-goal-space',
+            init_xy_mode='sample-uniformly-xy-space',
         ),
     )
     register(
         id='DebugAntMaze60BottomLeftRandomizeInitEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '14880b1',
+            'git-commit-hash': '26e9926',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -262,14 +262,14 @@ def register_custom_envs():
                 1.,
             ],
             reward_type='xy_dense',
-            init_xy_mode='sample-from-goal-space',
+            init_xy_mode='sample-uniformly-xy-space',
         ),
     )
     register(
         id='DebugAntMaze90BottomLeftRandomizeInitEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
-            'git-commit-hash': '14880b1',
+            'git-commit-hash': '26e9926',
             'author': 'vitchyr'
         },
         kwargs=dict(
@@ -290,7 +290,94 @@ def register_custom_envs():
                 1.,
             ],
             reward_type='xy_dense',
-            init_xy_mode='sample-from-goal-space',
+            init_xy_mode='sample-uniformly-xy-space',
+        ),
+    )
+    register(
+        id='DebugAntMaze30BottomLeftRandomInitGoalsPreset1Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '26e9926',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30.xml',
+            goal_low=[-4, -4],
+            goal_high=[-1, -1],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            init_xy_mode='sample-uniformly-xy-space',
+            goal_sampling_strategy='preset1'
+        ),
+    )
+    register(
+        id='DebugAntMaze60BottomLeftRandomInitGoalsPreset1Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '26e9926',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear60.xml',
+            goal_low=[-4, -4],
+            goal_high=[-1, -1],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            init_xy_mode='sample-uniformly-xy-space',
+            goal_sampling_strategy='preset1'
+        ),
+    )
+    register(
+        id='DebugAntMaze90BottomLeftRandomInitGoalsPreset1Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '26e9926',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear90.xml',
+            goal_low=[-4, -4],
+            goal_high=[-1, -1],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='xy_dense',
+            init_xy_mode='sample-uniformly-xy-space',
+            goal_sampling_strategy='preset1'
         ),
     )
     register(
