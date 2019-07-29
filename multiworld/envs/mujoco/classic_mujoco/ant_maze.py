@@ -59,6 +59,7 @@ if __name__ == '__main__':
     register_custom_envs()
     # env = gym.make('AntMaze150Env-v0')
     env = gym.make('AntCrossMaze150Env-v0')
+    env = gym.make('DebugAntMaze30BottomLeftEnv-v0')
     env.reset()
     i = 0
     while True:
@@ -70,5 +71,5 @@ if __name__ == '__main__':
         print(reward, np.linalg.norm(env.sim.data.get_body_xpos('torso')[:2]
                                      - env._xy_goal) )
         # print(env.sim.data.qpos)
-        if i % 50 == 0:
+        if i % 5 == 0:
             env.reset()
