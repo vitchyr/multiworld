@@ -101,7 +101,7 @@ def sawyer_pick_and_place_camera_v1(camera):
     camera.azimuth = 180
     camera.trackbodyid = 0
 
-def sawyer_pick_and_place_camera_v2(camera):
+def sawyer_pick_and_place_1obj_camera(camera):
     camera.lookat[0] = 0.0
     camera.lookat[1] = .60
     camera.lookat[2] = .08
