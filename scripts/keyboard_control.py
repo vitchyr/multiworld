@@ -69,7 +69,7 @@ env_kwargs = dict(
     two_obj=False,  # True
     reset_p=(0.5, 0.5),
     goal_p=(1.0, 0.0),
-    fixed_reset=(0.0, 0.675, 0.05, 0.0, 0.725, 0.015),
+    # fixed_reset=(0.0, 0.675, 0.05, 0.0, 0.725, 0.015),
 
     structure='2d_wall_tall',
     # action_scale=.02, #.02
