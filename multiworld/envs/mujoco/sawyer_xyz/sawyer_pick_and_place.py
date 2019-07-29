@@ -479,6 +479,15 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
     def set_to_goal(self, goal):
         ### WILL NOT WORK FOR AIR GOALS
         state_goal = goal['state_desired_goal']
+
+        if 'wall' in self.structure:
+            self.data.set_mocap_pos('mocap', np.array([0.0, 0.60, 0.15]))
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
+            try:
+                self.do_simulation(np.array([-1]), self.frame_skip)
+            except MujocoException as e:
+                print("Inside set_to_goal:", e)
+
         for _ in range(1):  # 10
             self.data.set_mocap_pos('mocap', state_goal[:3])
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
