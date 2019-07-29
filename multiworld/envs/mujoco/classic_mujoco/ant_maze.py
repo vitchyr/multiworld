@@ -1,18 +1,6 @@
-import abc
 import numpy as np
-from gym.spaces import Box, Dict
 
-from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.classic_mujoco.ant import AntEnv
-from multiworld.envs.mujoco.mujoco_env import MujocoEnv
-from multiworld.core.multitask_env import MultitaskEnv
-from multiworld.envs.env_util import get_asset_full_path
-
-from collections import OrderedDict
-from multiworld.envs.env_util import (
-    get_stat_in_paths,
-    create_stats_ordered_dict,
-)
 
 
 class AntMazeEnv(AntEnv):
@@ -59,7 +47,7 @@ if __name__ == '__main__':
     register_custom_envs()
     # env = gym.make('AntMaze150Env-v0')
     env = gym.make('AntCrossMaze150Env-v0')
-    env = gym.make('DebugAntMaze30BottomLeftEnv-v0')
+    env = gym.make('DebugAntMaze90BottomLeftRandomizeInitEnv-v0')
     env.reset()
     i = 0
     while True:
@@ -68,8 +56,8 @@ if __name__ == '__main__':
         action = env.action_space.sample()
         # action = np.zeros_like(action)
         _, reward, *_ = env.step(action)
-        print(reward, np.linalg.norm(env.sim.data.get_body_xpos('torso')[:2]
-                                     - env._xy_goal) )
+        # print(reward, np.linalg.norm(env.sim.data.get_body_xpos('torso')[:2]
+        #                              - env._xy_goal) )
         # print(env.sim.data.qpos)
-        if i % 5 == 0:
+        if i % 50 == 0:
             env.reset()

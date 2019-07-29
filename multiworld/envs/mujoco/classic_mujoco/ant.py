@@ -24,8 +24,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             goal_is_xy=False,
             init_qpos=None,
             fixed_goal=None,
+            init_xy_mode='corner',
             *args,
             **kwargs):
+        assert init_xy_mode in {'corner', 'sample-from-goal-space'}
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,
@@ -43,6 +45,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.norm_order = norm_order
         self.goal_is_xy = goal_is_xy
         self.fixed_goal = fixed_goal
+        self.init_xy_mode = init_xy_mode
 
         self.ant_low, self.ant_high = np.array(ant_low), np.array(ant_high)
         goal_low, goal_high = np.array(goal_low), np.array(goal_high)
@@ -227,6 +230,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def _reset_ant(self):
         qpos = self.init_qpos
         qvel = np.zeros_like(self.init_qvel)
+        if self.init_xy_mode == 'sample-from-goal-space':
+            xy_start = self.sample_goal()['xy_desired_goal']
+            qpos[:2] = xy_start
         self.set_state(qpos, qvel)
 
     def _set_goal(self, goal):
@@ -265,6 +271,7 @@ if __name__ == '__main__':
             1.,
         ],
         reward_type='xy_dense',
+        randomize_init_xy=True,
     )
     env.reset()
     i = 0
