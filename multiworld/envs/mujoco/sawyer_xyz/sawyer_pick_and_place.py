@@ -157,7 +157,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             self.wall_radius = np.array([0.03, 0.02])
             self.wall_center = np.array([0.0, 0.60, 0.02])
         elif self.structure == '2d_wall_tall':
-            self.wall_radius = np.array([0.03, 0.04])
+            self.wall_radius = np.array([0.015, 0.04])
             self.wall_center = np.array([0.0, 0.60, 0.04])
         else:
             self.wall_radius = None
@@ -180,6 +180,9 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         elif self.test_mode_case_num == 2:
             self.fixed_reset = np.array([0.0, 0.50, 0.05, 0.0, 0.50, 0.015, 0.0, 0.70, 0.015])
             self.fixed_goal = np.array([0.0, 0.70, 0.10, 0.0, 0.50, 0.015, 0.0, 0.50, 0.03])
+        elif self.test_mode_case_num == 3:
+            self.fixed_reset = np.array([0.0, 0.60, 0.05, 0.0, 0.50, 0.015, 0.0, 0.70, 0.015])
+            self.fixed_goal = np.array([0.0, 0.60, 0.05, 0.0, 0.70, 0.015, 0.0, 0.50, 0.015])
 
         if presampled_goals is not None:
             self.reset()
@@ -481,7 +484,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         state_goal = goal['state_desired_goal']
 
         if 'wall' in self.structure:
-            self.data.set_mocap_pos('mocap', np.array([0.0, 0.60, 0.15]))
+            self.data.set_mocap_pos('mocap', np.array([0.0, 0.60, 0.30]))
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
             try:
                 self.do_simulation(np.array([-1]), self.frame_skip)
@@ -510,6 +513,15 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
 
     def _reset_ee(self):
         new_mocap_pos_xy = self._sample_realistic_ee(mode='reset')
+
+        if 'wall' in self.structure:
+            self.data.set_mocap_pos('mocap', [0.0, 0.60, 0.30])
+            self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
+            try:
+                self.do_simulation(None, self.frame_skip)
+            except MujocoException as e:
+                print("Inside _reset_ee:", e)
+
         for _ in range(1): #10
             self.data.set_mocap_pos('mocap', new_mocap_pos_xy)
             self.data.set_mocap_quat('mocap', np.array([0, 0, 1, 0]))
@@ -675,7 +687,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         # return dist <= (self.ee_radius + self.obj_radius)
         if 'wall' in self.structure:
             diff = np.abs(ee - self.wall_center)[-2:]
-            return np.all(diff < self.ee_radius + self.wall_radius)
+            return np.all(diff < self.ee_radius + self.wall_radius + np.array([0.015, 0.0]))
         else:
             return False
 
