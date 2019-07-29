@@ -107,6 +107,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = {}
+        if self.reward_type == 'xy_dense':
+            info['xy-distance'] = -reward
         done = False
         self._cur_obs = ob
         return ob, reward, done, info
