@@ -58,7 +58,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             1: '2',
         }
 
-        assert structure in ['2d', '3d', '2d_wall_short', '2d_wall_tall']
+        assert structure in ['2d', '3d', '2d_wall_short', '2d_wall_tall', '2d_wall_tall_dark']
         self.structure = structure
         self.two_obj = two_obj
         self.hard_goals = hard_goals
@@ -156,7 +156,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
         if self.structure == '2d_wall_short':
             self.wall_radius = np.array([0.03, 0.02])
             self.wall_center = np.array([0.0, 0.60, 0.02])
-        elif self.structure == '2d_wall_tall':
+        elif self.structure in ['2d_wall_tall', '2d_wall_tall_dark']:
             self.wall_radius = np.array([0.015, 0.04])
             self.wall_center = np.array([0.0, 0.60, 0.04])
         else:
@@ -216,6 +216,8 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d_wall_short.xml')
         elif self.structure == '2d_wall_tall':
             return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d_wall_tall.xml')
+        elif self.structure == '2d_wall_tall_dark':
+            return get_asset_full_path('sawyer_xyz/sawyer_pick_and_place_2d_wall_tall_dark.xml')
 
     def train(self):
         self.cur_mode = 'train'
@@ -393,7 +395,7 @@ class SawyerPickAndPlaceEnv(MultitaskEnv, SawyerXYZEnv):
             if set_vel_to_zero:
                 qvel[qvel_obj_start:qvel_obj_end] = 0
             self.set_state(qpos, qvel)
-        elif self.structure in ['2d', '2d_wall_tall', '2d_wall_short']:
+        elif self.structure in ['2d', '2d_wall_short', '2d_wall_tall', '2d_wall_tall_dark']:
             qpos = self.data.qpos.flat.copy()
             qvel = self.data.qvel.flat.copy()
             obj_name = 'objjoint_y' + self.obj_id[obj_id]
