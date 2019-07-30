@@ -61,9 +61,9 @@ if __name__ == '__main__':
     import gym
     from multiworld.envs.mujoco import register_custom_envs
     register_custom_envs()
-    # env = gym.make('AntMaze150Env-v0')
-    env = gym.make('AntCrossMaze150Env-v0')
-    env = gym.make('DebugAntMaze30BottomLeftRandomInitGoalsPreset1Env-v0')
+    env = gym.make('AntMaze150RandomInitEnv-v0')
+    # env = gym.make('AntCrossMaze150Env-v0')
+    # env = gym.make('DebugAntMaze30BottomLeftRandomInitGoalsPreset1Env-v0')
     env.reset()
     i = 0
     while True:
