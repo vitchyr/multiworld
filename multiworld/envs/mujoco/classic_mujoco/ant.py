@@ -120,7 +120,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         flat_obs = qpos
         if self.vel_in_state:
             flat_obs = flat_obs + list(self.sim.data.qvel.flat)
-        flat_obs = np.array(flat_obs)
 
         xy = self.sim.data.get_body_xpos('torso')[:2]
         ob = dict(
@@ -138,9 +137,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         if self.two_frames:
             if self._prev_obs is None:
                 self._prev_obs = ob
-            frames = self.merge_frames(self._prev_obs, ob)
-            return frames
+            ob = self.merge_frames(self._prev_obs, ob)
 
+        # Make sure a copy of the observation is used to avoid aliasing bugs.
+        ob = {k: np.array(v) for k, v in ob.items()}
         return ob
 
     def merge_frames(self, dict1, dict2):
