@@ -272,7 +272,6 @@ if __name__ == '__main__':
             1.,
         ],
         reward_type='xy_dense',
-        randomize_init_xy=True,
     )
     env.reset()
     i = 0
