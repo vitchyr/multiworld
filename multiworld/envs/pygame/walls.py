@@ -50,7 +50,8 @@ class Wall(object, metaclass=abc.ABCMeta):
         ]
         self.min_dist = min_dist
         self.thickness = thickness
-        self.epsilon_from_wall = epsilon_from_wall
+        # self.epsilon_from_wall = epsilon_from_wall
+        self.epsilon_from_wall = 0
         self.max_x = max_x
         self.min_x = min_x
         self.max_y = max_y
