@@ -122,6 +122,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         }
         done = False
         self._cur_obs = ob
+        if len(self.init_qpos) > 15 and self.viewer is not None:
+            qpos = self.sim.data.qpos
+            qpos[15:] = self._full_state_goal[:15]
+            qvel = self.sim.data.qvel
+            self.set_state(qpos, qvel)
         return ob, reward, done, info
 
     def _get_obs(self):
@@ -263,10 +268,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self._xy_goal = goal['xy_desired_goal']
         else:
             self._xy_goal = goal['state_desired_goal'][:2]
-        site_xpos = self.sim.data.site_xpos
-        goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
-        site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
-        self.model.site_pos[:] = site_xpos
         if not self.goal_is_xy:
             if self.two_frames:
                 self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
@@ -274,13 +275,16 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self._full_state_goal = goal['state_desired_goal']
         self._prev_obs = None
         self._cur_obs = None
-        # if len(self.init_qpos) > 15:
-        #     qpos = self.init_qpos
-        #     qvel = np.zeros_like(self.init_qvel)
-        #     if self.init_xy_mode == 'sample-uniformly-xy-space':
-        #         xy_start = self._sample_uniform_xy(1)[0]
-        #         qpos[:2] = xy_start
-        #     self.set_state(qpos, qvel)
+        if len(self.init_qpos) > 15:
+            qpos = self.init_qpos
+            qpos[15:] = self._full_state_goal[:15]
+            qvel = self.sim.data.qvel
+            self.set_state(qpos, qvel)
+        else:
+            site_xpos = self.sim.data.site_xpos
+            goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
+            site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
+            self.model.site_pos[:] = site_xpos
 
 
 if __name__ == '__main__':

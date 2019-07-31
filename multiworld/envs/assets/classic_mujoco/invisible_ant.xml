@@ -34,7 +34,7 @@
           <body pos="-0.2 -0.2 0">
             <joint axis="-1 1 0" name="invis_ankle_3" pos="0.0 0.0 0.0" range="-70 -30" type="hinge"/>
             <geom fromto="0.0 0.0 0.0 -0.4 -0.4 0.0" name="invis_third_ankle_geom" size="0.08" type="capsule"
-                rgba="0.9 0.7 0.7 0.2" contype="1" conaffinity="0"/>
+                rgba="1.0 0.4 0.4 0.4" contype="1" conaffinity="0"/>
           </body>
         </body>
       </body>
@@ -46,7 +46,7 @@
           <body pos="0.2 -0.2 0">
             <joint axis="1 1 0" name="invis_ankle_4" pos="0.0 0.0 0.0" range="30 70" type="hinge"/>
             <geom fromto="0.0 0.0 0.0 0.4 -0.4 0.0" name="invis_fourth_ankle_geom" size="0.08" type="capsule"
-                rgba="0.9 0.7 0.7 0.2" contype="1" conaffinity="0"/>
+                rgba="1.0 0.4 0.4 0.4" contype="1" conaffinity="0"/>
           </body>
         </body>
       </body>

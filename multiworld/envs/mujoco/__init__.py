@@ -190,8 +190,8 @@ def register_custom_envs():
             'author': 'vitchyr'
         },
         kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
-            model_path='classic_mujoco/ant_maze_gear30.xml',
+            model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
+            # model_path='classic_mujoco/ant_maze_gear30.xml',
             goal_low=[-4, -4],
             goal_high=[4, 4],
             goal_is_xy=False,
@@ -221,8 +221,8 @@ def register_custom_envs():
             'author': 'vitchyr'
         },
         kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
-            model_path='classic_mujoco/ant_maze_gear30.xml',
+            model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
+            # model_path='classic_mujoco/ant_maze_gear30.xml',
             goal_low=[-4, -4],
             goal_high=[4, 4],
             goal_is_xy=False,
