@@ -86,7 +86,8 @@ if __name__ == '__main__':
     env = gym.make(
         # 'AntMaze30RandomInitFS20Env-v0',
         # 'AntMaze30RandomInitEnv-v0',
-        'AntMazeSmall30RandomInitFS10Env-v0',
+        # 'AntMazeSmall30RandomInitFS10Env-v0',
+        'AntMazeSmall30RandomInitFs5Dt3Env-v0',
     )
     env.reset()
     i = 0

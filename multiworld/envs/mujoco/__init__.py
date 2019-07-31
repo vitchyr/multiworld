@@ -566,6 +566,72 @@ def register_custom_envs():
         ),
     )
     register(
+        id='AntMazeSmall30RandomInitFs5Dt3Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
+            goal_low=[-3, -3],
+            goal_high=[3, 3],
+            goal_is_xy=True,
+            frame_skip=5,
+            init_qpos=[
+                -2, -2, 0.565, 1,
+                0, 0, 0,
+                0, 1., 0., -1., 0., -1., 0., 1.,
+            ],
+            init_xy_mode='sample-uniformly-xy-space',
+            reward_type='xy_dense',
+        ),
+    )
+    register(
+        id='AntMazeSmall30RandomInitFs10Dt3Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
+            goal_low=[-3, -3],
+            goal_high=[3, 3],
+            goal_is_xy=True,
+            frame_skip=10,
+            init_qpos=[
+                -2, -2, 0.565, 1,
+                0, 0, 0,
+                0, 1., 0., -1., 0., -1., 0., 1.,
+            ],
+            init_xy_mode='sample-uniformly-xy-space',
+            reward_type='xy_dense',
+        ),
+    )
+    register(
+        id='AntMazeSmall30RandomInitFs20Dt3Env-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
+            goal_low=[-3, -3],
+            goal_high=[3, 3],
+            goal_is_xy=True,
+            frame_skip=20,
+            init_qpos=[
+                -2, -2, 0.565, 1,
+                0, 0, 0,
+                0, 1., 0., -1., 0., -1., 0., 1.,
+            ],
+            init_xy_mode='sample-uniformly-xy-space',
+            reward_type='xy_dense',
+        ),
+    )
+    register(
         id='AntMaze90RandomInitEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
