@@ -27,7 +27,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             init_xy_mode='corner',
             *args,
             **kwargs):
-        assert init_xy_mode in {'corner', 'sample-uniformly-xy-space'}
+        assert init_xy_mode in {
+            'corner',
+            'sample-uniformly-xy-space',
+            'sample-from-goal-space',  # soon to be deprecated
+        }
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,
