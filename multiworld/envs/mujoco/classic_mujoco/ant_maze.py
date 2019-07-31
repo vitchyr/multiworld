@@ -29,6 +29,7 @@ class AntMazeEnv(AntEnv):
         )
         assert goal_sampling_strategy in {'uniform', 'preset1', 'presampled'}
         self.goal_sampling_strategy = goal_sampling_strategy
+        self.presampled_goal_key = presampled_goal_key
         if self.goal_sampling_strategy == 'presampled':
             assert presampled_goal_paths is not None
             if not osp.exists(presampled_goal_paths):
@@ -36,6 +37,8 @@ class AntMazeEnv(AntEnv):
                     presampled_goal_paths
                 )
             self.presampled_goals = np.load(presampled_goal_paths)
+            if presampled_goal_key == 'qpos_observation':
+                self.presampled_goals = self.presampled_goals[:15]
         else:
             self.presampled_goals = None
 
@@ -96,7 +99,8 @@ if __name__ == '__main__':
         # 'AntMazeSmall30RandomInitFS10Env-v0',
         # 'AntMazeSmall30RandomInitFs5Dt3Env-v0',
         # 'AntMaze30RandomInitNoVelEnv-v0',
-        'AntMaze30StateEnv-v0',
+        # 'AntMaze30StateEnv-v0',
+        'AntMaze30QposRandomInitFS20Env-v0',
     )
     env.reset()
     i = 0

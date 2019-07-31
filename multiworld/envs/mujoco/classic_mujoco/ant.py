@@ -22,6 +22,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             goal_high=list([1.60, 1.60]),
             model_path='classic_mujoco/normal_gear_ratio_ant.xml',
             goal_is_xy=False,
+            goal_is_qpos=False,
             init_qpos=None,
             fixed_goal=None,
             init_xy_mode='corner',
@@ -32,6 +33,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'sample-uniformly-xy-space',
             'sample-from-goal-space',  # soon to be deprecated
         }
+        assert not goal_is_xy or not goal_is_qpos
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
         MujocoEnv.__init__(self,
@@ -48,6 +50,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.reward_type = reward_type
         self.norm_order = norm_order
         self.goal_is_xy = goal_is_xy
+        self.goal_is_qpos = goal_is_qpos
         self.fixed_goal = fixed_goal
         self.init_xy_mode = init_xy_mode
 
@@ -99,11 +102,17 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 ('xy_desired_goal', self.goal_space),
                 ('xy_achieved_goal', self.goal_space),
             ]
+        if self.goal_is_qpos:
+            spaces += [
+                ('qpos_desired_goal', self.goal_space),
+                ('qpos_achieved_goal', self.goal_space),
+            ]
 
         self.observation_space = Dict(spaces)
 
         self._full_state_goal = None
         self._xy_goal = None
+        self._qpos_goal = None
         self._prev_obs = None
         self._cur_obs = None
 
@@ -117,6 +126,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self.numpy_batchify_dict(ob)
             ),
             'full-state-distance': self._compute_state_distances(
+                self.numpy_batchify_dict(ob)
+            ),
+            'qpos-distance': self._compute_qpos_distances(
                 self.numpy_batchify_dict(ob)
             ),
         }
@@ -146,6 +158,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             xy_observation=xy,
             xy_desired_goal=self._xy_goal,
             xy_achieved_goal=xy,
+            qpos_desired_goal=self._qpos_goal,
+            qpos_achieved_goal=qpos,
         )
 
         if self.two_frames:
@@ -219,6 +233,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             r = - self._compute_xy_distances(obs)
         elif self.reward_type == 'dense':
             r = - self._compute_state_distances(obs)
+        elif self.reward_type == 'qpos_dense':
+            r = - self._compute_qpos_distances(obs)
         elif self.reward_type == 'vectorized_dense':
             r = - self._compute_vectorized_state_distances(obs)
         else:
@@ -238,6 +254,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         goals = desired_goals
         diff = ant_pos - goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
+
+    def _compute_qpos_distances(self, obs):
+        achieved_goals = obs['qpos_achieved_goal']
+        desired_goals = obs['qpos_desired_goal']
+        return np.linalg.norm(
+            achieved_goals - desired_goals, ord=self.norm_order, axis=1
+        )
 
     def _compute_vectorized_state_distances(self, obs):
         achieved_goals = obs['state_achieved_goal']
@@ -273,6 +296,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
             else:
                 self._full_state_goal = goal['state_desired_goal']
+            if self.goal_is_qpos:
+                self._qpos_goal = self._full_state_goal[:15]
         self._prev_obs = None
         self._cur_obs = None
         if len(self.init_qpos) > 15:
