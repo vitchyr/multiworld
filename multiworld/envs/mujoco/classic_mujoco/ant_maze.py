@@ -100,7 +100,9 @@ if __name__ == '__main__':
         # 'AntMazeSmall30RandomInitFs5Dt3Env-v0',
         # 'AntMaze30RandomInitNoVelEnv-v0',
         # 'AntMaze30StateEnv-v0',
-        'AntMaze30QposRandomInitFS20Env-v0',
+        # 'AntMaze30QposRandomInitFS20Env-v0',
+        # 'AntMazeSmall30RandomInitFs10Dt3Env-v0',
+        'AntMazeQposRewSmall30RandomInitFs5Dt3Env-v0',
     )
     env.reset()
     i = 0

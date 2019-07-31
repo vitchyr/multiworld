@@ -27,7 +27,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             fixed_goal=None,
             init_xy_mode='corner',
             terminate_when_unhealthy=False,
-            healthy_z_range=(0.2, 1.0),
+            healthy_z_range=(0.2, 0.9),
             *args,
             **kwargs):
         assert init_xy_mode in {
