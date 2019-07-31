@@ -183,6 +183,33 @@ def register_custom_envs():
         ),
     )
     register(
+        id='AntMaze30StateEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            model_path='classic_mujoco/ant_maze_gear30.xml',
+            goal_low=[-4, -4],
+            goal_high=[4, 4],
+            goal_is_xy=True,
+            init_qpos=[
+                -3, -3, 0.565, 1,
+                0, 0, 0,
+                0,
+                1.,
+                0.,
+                -1.,
+                0.,
+                -1.,
+                0.,
+                1.,
+            ],
+            reward_type='dense',
+        ),
+    )
+    register(
         id='DebugAntMaze30BottomLeftEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={

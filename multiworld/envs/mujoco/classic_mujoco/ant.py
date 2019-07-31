@@ -112,9 +112,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.do_simulation(np.array(action), self.frame_skip)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
-        info = {}
-        if self.reward_type == 'xy_dense':
-            info['xy-distance'] = -reward
+        info = {
+            'xy-distance': self._compute_xy_distance(ob),
+            'full-state-distance': self._compute_state_distance(ob),
+        }
         done = False
         self._cur_obs = ob
         return ob, reward, done, info
@@ -206,23 +207,36 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def compute_rewards(self, actions, obs):
         if self.reward_type == 'xy_dense':
-            achieved_goals = obs['xy_achieved_goal']
-            desired_goals = obs['xy_desired_goal']
-            diff = achieved_goals - desired_goals
-            r = -np.linalg.norm(diff, ord=self.norm_order, axis=1)
+            r = - self._compute_xy_distance(obs)
+        elif self.reward_type == 'dense':
+            r = - self._compute_state_distance(obs)
+        elif self.reward_type == 'vectorized_dense':
+            r = - self._compute_vectorized_state_distance(obs)
         else:
-            achieved_goals = obs['state_achieved_goal']
-            desired_goals = obs['state_desired_goal']
-            ant_pos = achieved_goals
-            goals = desired_goals
-            diff = ant_pos - goals
-            if self.reward_type == 'dense':
-                r = -np.linalg.norm(diff, ord=self.norm_order, axis=1)
-            elif self.reward_type == 'vectorized_dense':
-                r = -np.abs(diff)
-            else:
-                raise NotImplementedError("Invalid/no reward type.")
+            raise NotImplementedError("Invalid/no reward type.")
         return r
+
+    def _compute_xy_distance(self, obs):
+        achieved_goals = obs['xy_achieved_goal']
+        desired_goals = obs['xy_desired_goal']
+        diff = achieved_goals - desired_goals
+        return np.linalg.norm(diff, ord=self.norm_order, axis=1)
+
+    def _compute_state_distance(self, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        ant_pos = achieved_goals
+        goals = desired_goals
+        diff = ant_pos - goals
+        return np.linalg.norm(diff, ord=self.norm_order, axis=1)
+
+    def _compute_vectorized_state_distance(self, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        ant_pos = achieved_goals
+        goals = desired_goals
+        diff = ant_pos - goals
+        return np.abs(diff)
 
     def reset_model(self):
         self._reset_ant()
