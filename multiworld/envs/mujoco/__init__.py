@@ -1353,6 +1353,72 @@ def register_soroush_envs():
         },
     )
 
+    register(
+        id='SawyerPickAndPlaceOneObjTallWallTrainEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': 'db29c69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(0.0, 0.45, 0.05),
+            hand_high=(0.0, 0.75, 0.20),
+            structure='2d_wall_tall',
+            reward_type='state_distance',
+            hide_state_markers=True,
+            two_obj=False,
+            reset_p=(0.5, 0.5),
+            goal_p=(0.5, 0.5),
+            num_goals_presampled=10000,
+            action_scale=0.02,
+        )
+    )
+
+    register(
+        id='SawyerPickAndPlaceOneObjTallWallTrainEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': 'db29c69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(0.0, 0.45, 0.05),
+            hand_high=(0.0, 0.75, 0.20),
+            structure='2d_wall_tall',
+            reward_type='state_distance',
+            hide_state_markers=True,
+            two_obj=False,
+            reset_p=(0.5, 0.5),
+            goal_p=(0.5, 0.5),
+            num_goals_presampled=10000,
+            action_scale=0.012,
+        )
+    )
+
+    register(
+        id='SawyerPickAndPlaceOneObjTallWallTrainEnv-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': 'db29c69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(0.0, 0.45, 0.05),
+            hand_high=(0.0, 0.75, 0.20),
+            structure='2d_wall_tall',
+            reward_type='state_distance',
+            hide_state_markers=True,
+            two_obj=False,
+            reset_p=(0.5, 0.5),
+            goal_p=(0.5, 0.5),
+            num_goals_presampled=10000,
+            action_scale=0.0085,
+        )
+    )
+
     """
     Wheeled Car
     """
