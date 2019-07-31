@@ -26,6 +26,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             init_qpos=None,
             fixed_goal=None,
             init_xy_mode='corner',
+            terminate_when_unhealthy=False,
+            healthy_z_range=(0.2, 1.0),
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -53,6 +55,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.goal_is_qpos = goal_is_qpos
         self.fixed_goal = fixed_goal
         self.init_xy_mode = init_xy_mode
+        self.terminate_when_unhealthy = terminate_when_unhealthy
+        self._healthy_z_range = healthy_z_range
 
         self.ant_low, self.ant_high = np.array(ant_low), np.array(ant_high)
         goal_low, goal_high = np.array(goal_low), np.array(goal_high)
@@ -133,7 +137,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self.numpy_batchify_dict(ob)
             ),
         }
-        done = False
+        if self.terminate_when_unhealthy:
+            done = not self.is_healthy
+        else:
+            done = False
         self._cur_obs = ob
         if len(self.init_qpos) > 15 and self.viewer is not None:
             qpos = self.sim.data.qpos
@@ -141,6 +148,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             qvel = self.sim.data.qvel
             self.set_state(qpos, qvel)
         return ob, reward, done, info
+
+    @property
+    def is_healthy(self):
+        state = self.state_vector()
+        min_z, max_z = self._healthy_z_range
+        is_healthy = (np.isfinite(state).all() and min_z <= state[2] <= max_z)
+        return is_healthy
 
     def _get_obs(self):
         qpos = list(self.sim.data.qpos.flat)[:15]
@@ -251,14 +265,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def _compute_state_distances(self, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
+        if desired_goals.shape == (1,):
+            return -1000
         ant_pos = achieved_goals
         goals = desired_goals
+        # import ipdb; ipdb.set_trace()
         diff = ant_pos - goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
     def _compute_qpos_distances(self, obs):
         achieved_goals = obs['qpos_achieved_goal']
         desired_goals = obs['qpos_desired_goal']
+        if desired_goals.shape == (1,):
+            return -1000
         return np.linalg.norm(
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
