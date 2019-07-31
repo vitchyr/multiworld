@@ -36,6 +36,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             init_xy_mode='corner',
             terminate_when_unhealthy=False,
             healthy_z_range=(0.2, 0.9),
+            health_reward=10,
             goal_sampling_strategy='uniform',
             presampled_goal_paths='',
             *args,
@@ -66,6 +67,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.fixed_goal = fixed_goal
         self.init_xy_mode = init_xy_mode
         self.terminate_when_unhealthy = terminate_when_unhealthy
+        self._healthy_reward = health_reward
         self._healthy_z_range = healthy_z_range
 
         self.model_path = model_path
@@ -162,6 +164,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         }
         if self.terminate_when_unhealthy:
             done = not self.is_healthy
+            reward += self._healthy_reward
         else:
             done = False
         self._cur_obs = ob
@@ -225,12 +228,20 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                                                   self._qpos_goal)),
             }
         else:
-            return {
+            goal_dict = {
                 'desired_goal': self._full_state_goal,
                 'state_desired_goal': self._full_state_goal,
                 'xy_desired_goal': self._xy_goal,
                 'qpos_desired_goal': self._qpos_goal,
             }
+            copied_goal_dict = {}
+            for k, v in goal_dict.items():
+                if goal_dict[k] is not None:
+                    copied_goal_dict[k] = v.copy()
+                else:
+                    copied_goal_dict[k] = v
+            return copied_goal_dict
+
 
     def sample_goals(self, batch_size):
         if self.fixed_goal or self.two_frames:
@@ -255,10 +266,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             raise NotImplementedError(self.goal_sampling_strategy)
         goals_dict = {
-            'desired_goal': state_goals,
-            'xy_desired_goal': xy_goals,
-            'qpos_desired_goal': qpos_goals,
-            'state_desired_goal': state_goals,
+            'desired_goal': state_goals.copy(),
+            'xy_desired_goal': xy_goals.copy(),
+            'qpos_desired_goal': qpos_goals.copy(),
+            'state_desired_goal': state_goals.copy(),
         }
 
         return goals_dict
@@ -335,13 +346,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def _set_goal(self, goal):
         if self.goal_is_xy:
-            self._xy_goal = goal['xy_desired_goal']
+            self._xy_goal = goal['xy_desired_goal'].copy()
         else:
-            self._xy_goal = goal['state_desired_goal'][:2]
+            self._xy_goal = goal['state_desired_goal'][:2].copy()
         if self.goal_is_qpos:
-            self._qpos_goal = goal['qpos_desired_goal']
+            self._qpos_goal = goal['qpos_desired_goal'].copy()
         else:
-            self._qpos_goal = goal['state_desired_goal'][:15]
+            self._qpos_goal = goal['state_desired_goal'][:15].copy()
 
         if self.goal_is_xy:
             self._full_state_goal = goal.get('state_desired_goal', None)
@@ -349,9 +360,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             if self.two_frames:
                 self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
             else:
-                self._full_state_goal = goal['state_desired_goal']
+                self._full_state_goal = goal['state_desired_goal'].copy()
             if self.goal_is_qpos:
-                self._qpos_goal = self._full_state_goal[:15]
+                self._qpos_goal = self._full_state_goal[:15].copy()
+        if self._full_state_goal is not None:
+            self._full_state_goal = self._full_state_goal.copy()
         self._prev_obs = None
         self._cur_obs = None
         if len(self.init_qpos) > 15:
