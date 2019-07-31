@@ -293,7 +293,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             objects["object%d" % i] = b[i+1]
         info = dict(
             hand_distance=hand_distance,
-            success=float(hand_distance + sum(object_distances.values()) < 0.06),
+            hand_success=float(hand_distance < 0.03),
+            puck_success=float(object_distances["current_object_distance"] < 0.03),
+            success=float((hand_distance < 0.03) and (object_distances["current_object_distance"] < 0.03)),
             **object_distances,
             **touch_distances,
             **objects,
