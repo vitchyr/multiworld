@@ -267,10 +267,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
         site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
         self.model.site_pos[:] = site_xpos
-        if self.two_frames:
-            self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
-        else:
-            self._full_state_goal = goal['state_desired_goal']
+        if not self.goal_is_xy:
+            if self.two_frames:
+                self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
+            else:
+                self._full_state_goal = goal['state_desired_goal']
         self._prev_obs = None
         self._cur_obs = None
         # if len(self.init_qpos) > 15:
