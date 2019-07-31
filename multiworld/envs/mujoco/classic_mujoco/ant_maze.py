@@ -1,5 +1,7 @@
+import os.path as osp
 import numpy as np
 
+from multiworld.envs.env_util import get_asset_full_path
 from multiworld.envs.mujoco.classic_mujoco.ant import AntEnv
 
 PRESET1 = np.array([
@@ -29,15 +31,20 @@ class AntMazeEnv(AntEnv):
         self.goal_sampling_strategy = goal_sampling_strategy
         if self.goal_sampling_strategy == 'presampled':
             assert presampled_goal_paths is not None
+            if not osp.exists(presampled_goal_paths):
+                presampled_goal_paths = get_asset_full_path(
+                    presampled_goal_paths
+                )
             self.presampled_goals = np.load(presampled_goal_paths)
         else:
             self.presampled_goals = None
 
     def _sample_random_goal_vectors(self, batch_size):
-        assert self.goal_is_xy
         if self.goal_sampling_strategy == 'uniform':
+            assert self.goal_is_xy
             goals = self._sample_uniform_xy(batch_size)
         elif self.goal_sampling_strategy == 'preset1':
+            assert self.goal_is_xy
             goals = PRESET1[
                 np.random.randint(PRESET1.shape[0], size=batch_size), :
             ]
@@ -53,9 +60,9 @@ class AntMazeEnv(AntEnv):
 
     def _sample_uniform_xy(self, batch_size):
         goals = np.random.uniform(
-            self.goal_space.low,
-            self.goal_space.high,
-            size=(batch_size, self.goal_space.low.size),
+            self.goal_space.low[:2],
+            self.goal_space.high[:2],
+            size=(batch_size, 2),
         )
         if 'small' in self.model_path:
             goals[(0 <= goals) * (goals < 0.5)] += 1
@@ -88,7 +95,8 @@ if __name__ == '__main__':
         # 'AntMaze30RandomInitEnv-v0',
         # 'AntMazeSmall30RandomInitFS10Env-v0',
         # 'AntMazeSmall30RandomInitFs5Dt3Env-v0',
-        'AntMaze30RandomInitNoVelEnv-v0',
+        # 'AntMaze30RandomInitNoVelEnv-v0',
+        'AntMaze30StateEnv-v0',
     )
     env.reset()
     i = 0

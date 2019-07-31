@@ -42,7 +42,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             assert reward_type.startswith('xy')
 
         if init_qpos is not None:
-            self.init_qpos = np.array(init_qpos)
+            self.init_qpos[:len(init_qpos)] = np.array(init_qpos)
 
         self.action_space = Box(-np.ones(8), np.ones(8), dtype=np.float32)
         self.reward_type = reward_type
@@ -113,18 +113,22 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = {
-            'xy-distance': self._compute_xy_distance(ob),
-            'full-state-distance': self._compute_state_distance(ob),
+            'xy-distance': self._compute_xy_distances(
+                self.numpy_batchify_dict(ob)
+            ),
+            'full-state-distance': self._compute_state_distances(
+                self.numpy_batchify_dict(ob)
+            ),
         }
         done = False
         self._cur_obs = ob
         return ob, reward, done, info
 
     def _get_obs(self):
-        qpos = list(self.sim.data.qpos.flat)
+        qpos = list(self.sim.data.qpos.flat)[:15]
         flat_obs = qpos
         if self.vel_in_state:
-            flat_obs = flat_obs + list(self.sim.data.qvel.flat)
+            flat_obs = flat_obs + list(self.sim.data.qvel.flat[:14])
 
         xy = self.sim.data.get_body_xpos('torso')[:2]
         ob = dict(
@@ -199,30 +203,30 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def _sample_uniform_xy(self, batch_size):
         goals = np.random.uniform(
-            self.goal_space.low,
-            self.goal_space.high,
-            size=(batch_size, self.goal_space.low.size),
+            self.goal_space.low[:2],
+            self.goal_space.high[:2],
+            size=(batch_size, 2),
         )
         return goals
 
     def compute_rewards(self, actions, obs):
         if self.reward_type == 'xy_dense':
-            r = - self._compute_xy_distance(obs)
+            r = - self._compute_xy_distances(obs)
         elif self.reward_type == 'dense':
-            r = - self._compute_state_distance(obs)
+            r = - self._compute_state_distances(obs)
         elif self.reward_type == 'vectorized_dense':
-            r = - self._compute_vectorized_state_distance(obs)
+            r = - self._compute_vectorized_state_distances(obs)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
 
-    def _compute_xy_distance(self, obs):
+    def _compute_xy_distances(self, obs):
         achieved_goals = obs['xy_achieved_goal']
         desired_goals = obs['xy_desired_goal']
         diff = achieved_goals - desired_goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
-    def _compute_state_distance(self, obs):
+    def _compute_state_distances(self, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         ant_pos = achieved_goals
@@ -230,7 +234,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         diff = ant_pos - goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
-    def _compute_vectorized_state_distance(self, obs):
+    def _compute_vectorized_state_distances(self, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         ant_pos = achieved_goals
@@ -257,18 +261,25 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def _set_goal(self, goal):
         if self.goal_is_xy:
             self._xy_goal = goal['xy_desired_goal']
-            site_xpos = self.sim.data.site_xpos
-            goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
-            site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
-            self.model.site_pos[:] = site_xpos
-
         else:
-            if self.two_frames:
-                self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
-            else:
-                self._full_state_goal = goal['state_desired_goal']
+            self._xy_goal = goal['state_desired_goal'][:2]
+        site_xpos = self.sim.data.site_xpos
+        goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
+        site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
+        self.model.site_pos[:] = site_xpos
+        if self.two_frames:
+            self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
+        else:
+            self._full_state_goal = goal['state_desired_goal']
         self._prev_obs = None
         self._cur_obs = None
+        # if len(self.init_qpos) > 15:
+        #     qpos = self.init_qpos
+        #     qvel = np.zeros_like(self.init_qvel)
+        #     if self.init_xy_mode == 'sample-uniformly-xy-space':
+        #         xy_start = self._sample_uniform_xy(1)[0]
+        #         qpos[:2] = xy_start
+        #     self.set_state(qpos, qvel)
 
 
 if __name__ == '__main__':

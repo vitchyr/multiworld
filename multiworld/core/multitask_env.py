@@ -1,6 +1,7 @@
 import gym
 import abc
 from collections import OrderedDict
+import numpy as np
 
 
 class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
@@ -91,7 +92,7 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
         return new_d
 
     @staticmethod
-    def batchify_dict(batch_dict, i):
+    def numpy_batchify_dict(batch_dict):
         """
         :param batch_dict: A batch dict is a dict whose values are batch.
         :return: the dictionary returns a dict whose values are just elements of
@@ -99,5 +100,5 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
         """
         new_d = {}
         for k in batch_dict.keys():
-            new_d[k] = batch_dict[k][i]
+            new_d[k] = np.array([batch_dict[k]])
         return new_d
