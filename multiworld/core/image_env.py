@@ -146,12 +146,12 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
     def _update_info(self, info, obs):
         achieved_goal = obs['image_achieved_goal']
         desired_goal = obs['image_desired_goal'] #self._img_goal
-        image_dist = np.linalg.norm(achieved_goal-desired_goal)
-        image_success = (image_dist<self.threshold).astype(float)-1
-        info['image_dist'] = image_dist
-        info['image_success'] = image_success
-        # info['image_dist'] = 0
-        # info['image_success'] = 0
+        # image_dist = np.linalg.norm(achieved_goal-desired_goal)
+        # image_success = (image_dist<self.threshold).astype(float)-1
+        # info['image_dist'] = image_dist
+        # info['image_success'] = image_success
+        info['image_dist'] = 0
+        info['image_success'] = 0
 
     def reset(self):
         obs = self.wrapped_env.reset()

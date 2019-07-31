@@ -1,4 +1,5 @@
 import abc
+import copy
 import numpy as np
 from gym.spaces import Box, Dict
 
@@ -93,12 +94,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             ('state_desired_goal', self.goal_space),
             ('state_achieved_goal', self.goal_space),
         ]
-        if self.goal_is_xy:
-            spaces += [
-                ('xy_observation', self.obs_space),
-                ('xy_desired_goal', self.goal_space),
-                ('xy_achieved_goal', self.goal_space),
-            ]
+        # if self.goal_is_xy:
+        #     spaces += [
+        #         ('xy_observation', self.obs_space),
+        #         ('xy_desired_goal', self.goal_space),
+        #         ('xy_achieved_goal', self.goal_space),
+        #     ]
+        xy_obs_space = Box(self.ant_low, self.ant_high, dtype=np.float32)
+        xy_goal_space = Box(goal_low, goal_high, dtype=np.float32)
+        spaces += [
+            ('xy_observation', xy_obs_space),
+            ('xy_desired_goal', xy_goal_space),
+            ('xy_achieved_goal', xy_goal_space),
+        ]
 
         self.observation_space = Dict(spaces)
 
@@ -281,6 +289,25 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         #         xy_start = self._sample_uniform_xy(1)[0]
         #         qpos[:2] = xy_start
         #     self.set_state(qpos, qvel)
+
+    def set_to_goal(self, goal):
+        state_goal = goal['state_desired_goal']
+        qpos = state_goal[0:15]
+        qvel = state_goal[15:29]
+        self.set_state(qpos, qvel)
+        self._prev_obs = None
+        self._cur_obs = None
+
+    def get_env_state(self):
+        state = self.sim.get_state()
+        goal = self._full_state_goal
+        return copy.deepcopy(state), copy.deepcopy(goal)
+
+    def set_env_state(self, state_and_goal):
+        state, goal = state_and_goal
+        self.sim.set_state(state)
+        self._full_state_goal = goal
+        self.sim.forward()
 
 
 if __name__ == '__main__':
