@@ -6,6 +6,14 @@ from multiworld.core.serializable import Serializable
 from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_asset_full_path
+import os.path as osp
+from multiworld.envs.env_util import get_asset_full_path
+
+PRESET1 = np.array([
+    [-3, 0],
+    [0, -3],
+])
+
 
 
 class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
@@ -28,6 +36,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             init_xy_mode='corner',
             terminate_when_unhealthy=False,
             healthy_z_range=(0.2, 0.9),
+            goal_sampling_strategy='uniform',
+            presampled_goal_paths='',
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -57,6 +67,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.init_xy_mode = init_xy_mode
         self.terminate_when_unhealthy = terminate_when_unhealthy
         self._healthy_z_range = healthy_z_range
+
+        self.model_path = model_path
+        assert goal_sampling_strategy in {'uniform', 'preset1', 'presampled'}
+        self.goal_sampling_strategy = goal_sampling_strategy
+        if self.goal_sampling_strategy == 'presampled':
+            assert presampled_goal_paths is not None
+            if not osp.exists(presampled_goal_paths):
+                presampled_goal_paths = get_asset_full_path(
+                    presampled_goal_paths
+                )
+            self.presampled_goals = np.load(presampled_goal_paths)
+        else:
+            self.presampled_goals = None
 
         self.ant_low, self.ant_high = np.array(ant_low), np.array(ant_high)
         goal_low, goal_high = np.array(goal_low), np.array(goal_high)
@@ -198,42 +221,47 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 'desired_goal': np.concatenate((self._full_state_goal, self._full_state_goal)),
                 'state_desired_goal': np.concatenate((self._full_state_goal, self._full_state_goal)),
                 'xy_desired_goal': np.concatenate((self._xy_goal, self._xy_goal)),
+                'qpos_desired_goal': np.concatenate((self._qpos_goal,
+                                                  self._qpos_goal)),
             }
         else:
             return {
                 'desired_goal': self._full_state_goal,
                 'state_desired_goal': self._full_state_goal,
                 'xy_desired_goal': self._xy_goal,
+                'qpos_desired_goal': self._qpos_goal,
             }
 
     def sample_goals(self, batch_size):
-        if self.fixed_goal is not None:
-            goals = np.array(self.fixed_goal)[None].repeat(batch_size, axis=0)
+        if self.fixed_goal or self.two_frames:
+            raise NotImplementedError()
+        state_goals = None
+        qpos_goals = None
+        if self.goal_sampling_strategy == 'uniform':
+            assert self.goal_is_xy
+            xy_goals = self._sample_uniform_xy(batch_size)
+        elif self.goal_sampling_strategy == 'preset1':
+            assert self.goal_is_xy
+            xy_goals = PRESET1[
+                np.random.randint(PRESET1.shape[0], size=batch_size), :
+            ]
+        elif self.goal_sampling_strategy == 'presampled':
+            idxs = np.random.randint(
+                self.presampled_goals.shape[0], size=batch_size,
+            )
+            state_goals = self.presampled_goals[idxs, :]
+            xy_goals = state_goals[:, 2]
+            qpos_goals = state_goals[:, 15]
         else:
-            goals = self._sample_random_goal_vectors(batch_size)
-        if self.goal_is_xy:
-            goals_dict = {
-                'xy_desired_goal': goals,
-            }
-        else:
-            if self.two_frames:
-                goals_dict = {
-                    'desired_goal': np.concatenate((goals, goals), axis=1),
-                    'state_desired_goal': np.concatenate((goals, goals), axis=1),
-                }
-            else:
-                goals_dict = {
-                    'desired_goal': goals,
-                    'state_desired_goal': goals,
-                }
+            raise NotImplementedError(self.goal_sampling_strategy)
+        goals_dict = {
+            'desired_goal': state_goals,
+            'xy_desired_goal': xy_goals,
+            'qpos_desired_goal': qpos_goals,
+            'state_desired_goal': state_goals,
+        }
 
         return goals_dict
-
-    def _sample_random_goal_vectors(self, batch_size):
-        goals = self._sample_uniform_xy(batch_size)
-        if self.two_frames:
-            goals = goals[:, :int(self.goal_space.low.size/2)]
-        return goals
 
     def _sample_uniform_xy(self, batch_size):
         goals = np.random.uniform(
@@ -269,7 +297,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             return -1000
         ant_pos = achieved_goals
         goals = desired_goals
-        # import ipdb; ipdb.set_trace()
         diff = ant_pos - goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
@@ -311,7 +338,14 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self._xy_goal = goal['xy_desired_goal']
         else:
             self._xy_goal = goal['state_desired_goal'][:2]
-        if not self.goal_is_xy:
+        if self.goal_is_qpos:
+            self._qpos_goal = goal['qpos_desired_goal']
+        else:
+            self._qpos_goal = goal['state_desired_goal'][:15]
+
+        if self.goal_is_xy:
+            self._full_state_goal = goal.get('state_desired_goal', None)
+        else:
             if self.two_frames:
                 self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
             else:
