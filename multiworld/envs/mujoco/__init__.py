@@ -1371,7 +1371,7 @@ def register_soroush_envs():
             reset_p=(0.5, 0.5),
             goal_p=(0.5, 0.5),
             num_goals_presampled=10000,
-            action_scale=0.02,
+            action_scale=0.015,
         )
     )
 
