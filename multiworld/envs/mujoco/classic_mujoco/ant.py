@@ -261,8 +261,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self.presampled_goals.shape[0], size=batch_size,
             )
             state_goals = self.presampled_goals[idxs, :]
-            xy_goals = state_goals[:, 2]
-            qpos_goals = state_goals[:, 15]
+            xy_goals = state_goals[:, :2]
+            qpos_goals = state_goals[:, :15]
         else:
             raise NotImplementedError(self.goal_sampling_strategy)
         goals_dict = {
