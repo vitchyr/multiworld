@@ -677,6 +677,33 @@ def register_custom_envs():
         ),
     )
     register(
+        id='AntMazeXyRewSmall30RandomInitFs5Dt3NoTermEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
+            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
+            goal_low=[-3, -3],
+            goal_high=[3, 3],
+            goal_is_xy=True,
+            goal_is_qpos=False,
+            frame_skip=5,
+            init_qpos=[
+                -2, -2, 0.565, 1,
+                0, 0, 0,
+                0, 1., 0., -1., 0., -1., 0., 1.,
+            ],
+            init_xy_mode='sample-uniformly-xy-space',
+            goal_sampling_strategy='presampled',
+            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
+            reward_type='xy_dense',
+            terminate_when_unhealthy=False,
+        ),
+    )
+    register(
         id='AntMazeXyRewSmall30RandomInitFs5Dt3Env-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
@@ -701,6 +728,33 @@ def register_custom_envs():
             presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
             reward_type='xy_dense',
             terminate_when_unhealthy=True,
+        ),
+    )
+    register(
+        id='AntMazeQposRewSmall30Fs5Dt3NoTermEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '14880b1',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
+            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
+            goal_low=[-3, -3],
+            goal_high=[3, 3],
+            goal_is_xy=False,
+            goal_is_qpos=True,
+            frame_skip=5,
+            init_qpos=[
+                -2, -2, 0.565, 1,
+                0, 0, 0,
+                0, 1., 0., -1., 0., -1., 0., 1.,
+            ],
+            init_xy_mode='corner',
+            goal_sampling_strategy='presampled',
+            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
+            reward_type='qpos_dense',
+            terminate_when_unhealthy=False,
         ),
     )
     register(

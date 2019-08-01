@@ -328,9 +328,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         diff = ant_pos - goals
         return np.abs(diff)
 
-    def reset_model(self):
+    def reset_model(self, goal=None):
+        if goal is None:
+            goal = self.sample_goal()
         self._reset_ant()
-        self._set_goal(self.sample_goal())
+        self._set_goal(goal)
         self.sim.forward()
         self._prev_obs = None
         self._cur_obs = None
@@ -345,26 +347,47 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.set_state(qpos, qvel)
 
     def _set_goal(self, goal):
-        if self.goal_is_xy:
-            self._xy_goal = goal['xy_desired_goal'].copy()
+        if 'state_desired_goal' in goal:
+            self._full_state_goal = goal['state_desired_goal']
+            self._qpos_goal = self._full_state_goal[:15]
+            self._xy_goal = self._qpos_goal[:2]
+            if 'qpos_desired_goal' in goal:
+                assert (self._qpos_goal == goal['qpos_desired_goal']).all()
+            if 'xy_desired_goal' in goal:
+                assert (self._xy_goal == goal['xy_desired_goal']).all()
+        elif 'qpos_desired_goal' in goal:
+            self._full_state_goal = None
+            self._qpos_goal = goal['qpos_desired_goal']
+            self._xy_goal = self._qpos_goal[:2]
+            if 'xy_desired_goal' in goal:
+                assert (self._xy_goal == goal['xy_desired_goal']).all()
+        elif 'xy_desired_goal' in goal:
+            self._full_state_goal = None
+            self._qpos_goal = None
+            self._xy_goal = goal['xy_desired_goal']
         else:
-            self._xy_goal = goal['state_desired_goal'][:2].copy()
-        if self.goal_is_qpos:
-            self._qpos_goal = goal['qpos_desired_goal'].copy()
-        else:
-            self._qpos_goal = goal['state_desired_goal'][:15].copy()
+            raise ValueError("C'mon, you gotta give me some goal!")
 
-        if self.goal_is_xy:
-            self._full_state_goal = goal.get('state_desired_goal', None)
-        else:
-            if self.two_frames:
-                self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
-            else:
-                self._full_state_goal = goal['state_desired_goal'].copy()
-            if self.goal_is_qpos:
-                self._qpos_goal = self._full_state_goal[:15].copy()
-        if self._full_state_goal is not None:
-            self._full_state_goal = self._full_state_goal.copy()
+        # if self.goal_is_xy:
+        #     self._xy_goal = goal['xy_desired_goal'].copy()
+        # else:
+        #     self._xy_goal = goal['state_desired_goal'][:2].copy()
+        # if self.goal_is_qpos:
+        #     self._qpos_goal = goal['qpos_desired_goal'].copy()
+        # else:
+        #     self._qpos_goal = goal['state_desired_goal'][:15].copy()
+        #
+        # if self.goal_is_xy:
+        #     self._full_state_goal = goal.get('state_desired_goal', None)
+        # else:
+        #     if self.two_frames:
+        #         self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
+        #     else:
+        #         self._full_state_goal = goal['state_desired_goal'].copy()
+        #     if self.goal_is_qpos:
+        #         self._qpos_goal = self._full_state_goal[:15].copy()
+        # if self._full_state_goal is not None:
+        #     self._full_state_goal = self._full_state_goal.copy()
         self._prev_obs = None
         self._cur_obs = None
         if len(self.init_qpos) > 15:
