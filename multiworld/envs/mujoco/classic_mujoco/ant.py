@@ -13,6 +13,11 @@ PRESET1 = np.array([
     [-3, 0],
     [0, -3],
 ])
+DEFAULT_GOAL = [-2., -2., 0.565, 1., 0., 0., 0., 0.,
+                1., 0., -1., 0., -1., 0., 1., -3.,
+                -3., 0.75, 1., 0., 0., 0., 0., 0.,
+                0., 0., 0., 0., 0., 0.]
+
 
 
 
@@ -151,17 +156,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.do_simulation(np.array(action), self.frame_skip)
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
-        info = {
-            'xy-distance': self._compute_xy_distances(
+        info = {}
+        if self._full_state_goal is not None:
+            info['full-state-distance'] = self._compute_state_distances(
                 self.numpy_batchify_dict(ob)
-            ),
-            'full-state-distance': self._compute_state_distances(
+            )
+        if self._qpos_goal is not None:
+            info['qpos-distance'] = self._compute_qpos_distances(
                 self.numpy_batchify_dict(ob)
-            ),
-            'qpos-distance': self._compute_qpos_distances(
+            )
+        if self._xy_goal is not None:
+            info['xy-distance'] = self._compute_xy_distances(
                 self.numpy_batchify_dict(ob)
-            ),
-        }
+            )
         if self.terminate_when_unhealthy:
             done = not self.is_healthy
             reward += self._healthy_reward
@@ -241,7 +248,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 else:
                     copied_goal_dict[k] = v
             return copied_goal_dict
-
 
     def sample_goals(self, batch_size):
         if self.fixed_goal or self.two_frames:
@@ -367,7 +373,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self._xy_goal = goal['xy_desired_goal']
         else:
             raise ValueError("C'mon, you gotta give me some goal!")
-
+        assert self._xy_goal is not None
         # if self.goal_is_xy:
         #     self._xy_goal = goal['xy_desired_goal'].copy()
         # else:
@@ -390,9 +396,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         #     self._full_state_goal = self._full_state_goal.copy()
         self._prev_obs = None
         self._cur_obs = None
-        if len(self.init_qpos) > 15:
+        if len(self.init_qpos) > 15 and self._qpos_goal is not None:
             qpos = self.init_qpos
-            qpos[15:] = self._full_state_goal[:15]
+            qpos[15:] = self._qpos_goal
             qvel = self.sim.data.qvel
             self.set_state(qpos, qvel)
         else:
