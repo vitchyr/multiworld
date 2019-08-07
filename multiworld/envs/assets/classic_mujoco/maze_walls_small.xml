@@ -1,27 +1,53 @@
 <mujoco>
+    <!--<body name="walls" pos="0 0 0">-->
+        <!--&lt;!&ndash; size = walls pos / 2&ndash;&gt;-->
+        <!--<body name="innerwall" pos="0 0 0">-->
+            <!--<geom type="box" pos="0 0 0" size="1.25 1.25 1"-->
+                  <!--rgba=".12 .4 .9 0.5"-->
+                  <!--contype="3" conaffinity="3" />-->
+        <!--</body>-->
+        <!--<body name="outerwall" pos="0 0 0">-->
+            <!--&lt;!&ndash; pos = 1 + 3*(inner wall size) &ndash;&gt;-->
+            <!--&lt;!&ndash; size = 3*(inner wall size) &ndash;&gt;-->
+            <!--<geom type="box" pos="0 4.5 0" size="5.5 1 1"-->
+                  <!--rgba=".12 .4 .9 0.5"-->
+                  <!--contype="2" conaffinity="3" />-->
+            <!--<geom type="box" pos="0 -4.5 0" size="5.5 1 1"-->
+                  <!--rgba=".12 .4 .9 0.5"-->
+                  <!--contype="2" conaffinity="3" />-->
+            <!--&lt;!&ndash; pos = 1 + 3*(inner wall size) &ndash;&gt;-->
+            <!--&lt;!&ndash; size = 2 + 3*(inner wall size) &ndash;&gt;-->
+            <!--<geom type="box" pos="4.5 0 0" size="1 5.5 1"-->
+                  <!--rgba=".12 .4 .9 0.5"-->
+                  <!--contype="2" conaffinity="3" />-->
+            <!--<geom type="box" pos="-4.5 0 0" size="1 5.5 1"-->
+                  <!--rgba=".12 .4 .9 0.5"-->
+                  <!--contype="2" conaffinity="3" />-->
+        <!--</body>-->
+    <!--</body>-->
     <body name="walls" pos="0 0 0">
         <!-- size = walls pos / 2-->
         <body name="innerwall" pos="0 0 0">
             <geom type="box" pos="0 0 0" size="1.25 1.25 1"
-                  rgba=".12 .4 .9 0.5"
+                  rgba=".12 .4 .9 1"
                   contype="3" conaffinity="3" />
         </body>
         <body name="outerwall" pos="0 0 0">
             <!-- pos = 1 + 3*(inner wall size) -->
             <!-- size = 3*(inner wall size) -->
-            <geom type="box" pos="0 4.5 0" size="5.5 1 1"
-                  rgba=".12 .4 .9 0.5"
+            <geom type="box" pos="0 4.5 0" size="3.5 1 1"
+                  rgba=".12 .4 .9 1"
                   contype="2" conaffinity="3" />
-            <geom type="box" pos="0 -4.5 0" size="5.5 1 1"
-                  rgba=".12 .4 .9 0.5"
+            <geom type="box" pos="0 -4.5 0" size="3.5 1 1"
+                  rgba=".12 .4 .9 1"
                   contype="2" conaffinity="3" />
             <!-- pos = 1 + 3*(inner wall size) -->
             <!-- size = 2 + 3*(inner wall size) -->
             <geom type="box" pos="4.5 0 0" size="1 5.5 1"
-                  rgba=".12 .4 .9 0.5"
+                  rgba=".12 .4 .9 1"
                   contype="2" conaffinity="3" />
             <geom type="box" pos="-4.5 0 0" size="1 5.5 1"
-                  rgba=".12 .4 .9 0.5"
+                  rgba=".12 .4 .9 1"
                   contype="2" conaffinity="3" />
         </body>
     </body>

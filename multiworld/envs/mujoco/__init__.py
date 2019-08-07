@@ -742,8 +742,8 @@ def register_custom_envs():
             model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
             goal_low=[-3, -3],
             goal_high=[3, 3],
-            goal_is_xy=False,
-            goal_is_qpos=True,
+            goal_is_xy=True,
+            goal_is_qpos=False,
             frame_skip=5,
             init_qpos=[
                 -2, -2, 0.565, 1,
