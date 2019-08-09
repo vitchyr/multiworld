@@ -10,6 +10,10 @@ from multiworld.envs.env_util import get_asset_full_path
 import os.path as osp
 from multiworld.envs.env_util import get_asset_full_path
 
+from collections import OrderedDict
+
+from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
+
 PRESET1 = np.array([
     [-3, 0],
     [0, -3],
@@ -188,6 +192,27 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             qvel = self.sim.data.qvel
             self.set_state(qpos, qvel)
         return ob, reward, done, info
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'full-state-distance',
+            'qpos-distance',
+            'xy-distance',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+            ))
+        return statistics
 
     @property
     def is_healthy(self):

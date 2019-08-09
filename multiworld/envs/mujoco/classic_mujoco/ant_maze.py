@@ -12,6 +12,7 @@ class AntMazeEnv(AntEnv):
             size=(batch_size, 2),
         )
         if 'small' in self.model_path:
+            print(goals, (0 <= goals) * (goals < 0.5), goals[(0 <= goals) * (goals < 0.5)])
             goals[(0 <= goals) * (goals < 0.5)] += 1
             goals[(0 <= goals) * (goals < 1.25)] += 1
             goals[(0 >= goals) * (goals > -0.5)] -= 1
