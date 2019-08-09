@@ -185,6 +185,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             reward += self._healthy_reward
         else:
             done = False
+
+        info['is_not_healthy'] = int(not self.is_healthy)
+
         self._cur_obs = ob
         if len(self.init_qpos) > 15 and self.viewer is not None:
             qpos = self.sim.data.qpos
@@ -199,6 +202,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'full-state-distance',
             'qpos-distance',
             'xy-distance',
+            'is_not_healthy',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)

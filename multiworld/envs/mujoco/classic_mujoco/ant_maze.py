@@ -5,23 +5,51 @@ from multiworld.envs.mujoco.classic_mujoco.ant import AntEnv
 
 class AntMazeEnv(AntEnv):
 
+    def _collision_idx(self, pos):
+        bad_pos_idx = []
+        for i in range(len(pos)):
+            if 'small' in self.model_path:
+                if (-2.00 <= pos[i][0] <= 2.00) and (-2.00 <= pos[i][1] <= 2.00):
+                    bad_pos_idx.append(i)
+                elif (2.75 <= pos[i][0]) or (pos[i][0] <= -2.75):
+                    bad_pos_idx.append(i)
+                elif (2.75 <= pos[i][1]) or (pos[i][1] <= -2.75):
+                    bad_pos_idx.append(i)
+            else:
+                raise NotImplementedError
+
+        return bad_pos_idx
+
     def _sample_uniform_xy(self, batch_size):
         goals = np.random.uniform(
             self.goal_space.low[:2],
             self.goal_space.high[:2],
             size=(batch_size, 2),
         )
-        if 'small' in self.model_path:
-            print(goals, (0 <= goals) * (goals < 0.5), goals[(0 <= goals) * (goals < 0.5)])
-            goals[(0 <= goals) * (goals < 0.5)] += 1
-            goals[(0 <= goals) * (goals < 1.25)] += 1
-            goals[(0 >= goals) * (goals > -0.5)] -= 1
-            goals[(0 >= goals) * (goals > -1.25)] -= 1
-        else:
-            goals[(0 <= goals) * (goals < 0.5)] += 2
-            goals[(0 <= goals) * (goals < 1.5)] += 1.5
-            goals[(0 >= goals) * (goals > -0.5)] -= 2
-            goals[(0 >= goals) * (goals > -1.5)] -= 1.5
+
+        bad_goals_idx = self._collision_idx(goals)
+        goals = np.delete(goals, bad_goals_idx, axis=0)
+        while len(bad_goals_idx) > 0:
+            new_goals = np.random.uniform(
+                self.goal_space.low[:2],
+                self.goal_space.high[:2],
+                size=(len(bad_goals_idx), 2),
+            )
+
+            bad_goals_idx = self._collision_idx(new_goals)
+            new_goals = np.delete(new_goals, bad_goals_idx, axis=0)
+            goals = np.concatenate((goals, new_goals))
+
+        # if 'small' in self.model_path:
+        #     goals[(0 <= goals) * (goals < 0.5)] += 1
+        #     goals[(0 <= goals) * (goals < 1.25)] += 1
+        #     goals[(0 >= goals) * (goals > -0.5)] -= 1
+        #     goals[(0 >= goals) * (goals > -1.25)] -= 1
+        # else:
+        #     goals[(0 <= goals) * (goals < 0.5)] += 2
+        #     goals[(0 <= goals) * (goals < 1.5)] += 1.5
+        #     goals[(0 >= goals) * (goals > -0.5)] -= 2
+        #     goals[(0 >= goals) * (goals > -1.5)] -= 1.5
         return goals
 
 
