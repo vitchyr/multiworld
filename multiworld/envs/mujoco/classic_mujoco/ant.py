@@ -338,8 +338,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return r
 
     def _compute_xy_distances(self, obs):
-        achieved_goals = obs['xy_achieved_goal']
-        desired_goals = obs['xy_desired_goal']
+        # achieved_goals = obs['xy_achieved_goal']
+        # desired_goals = obs['xy_desired_goal']
+        achieved_goals = obs['state_achieved_goal'][:,:2]
+        desired_goals = obs['state_desired_goal'][:,:2]
+
         diff = achieved_goals - desired_goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
@@ -354,8 +357,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
     def _compute_qpos_distances(self, obs):
-        achieved_goals = obs['qpos_achieved_goal']
-        desired_goals = obs['qpos_desired_goal']
+        # achieved_goals = obs['qpos_achieved_goal']
+        # desired_goals = obs['qpos_desired_goal']
+        achieved_goals = obs['state_achieved_goal'][:,:15]
+        desired_goals = obs['state_desired_goal'][:,:15]
         if desired_goals.shape == (1,):
             return -1000
         return np.linalg.norm(
@@ -378,6 +383,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.sim.forward()
         self._prev_obs = None
         self._cur_obs = None
+
+        site_xpos = self.sim.data.site_xpos
+        start_xpos = np.concatenate((self.sim.data.qpos.flat[:2], np.array([0.5])))
+        site_xpos[self.sim.model.site_name2id('start')] = start_xpos
+        self.model.site_pos[:] = site_xpos
+
         return self._get_obs()
 
     def _reset_ant(self):
