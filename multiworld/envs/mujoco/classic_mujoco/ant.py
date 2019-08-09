@@ -8,7 +8,7 @@ from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_asset_full_path
 import os.path as osp
-from multiworld.envs.env_util import get_asset_full_path
+from railrl.misc.asset_loader import load_local_or_remote_file
 
 from collections import OrderedDict
 
@@ -85,11 +85,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.goal_sampling_strategy = goal_sampling_strategy
         if self.goal_sampling_strategy == 'presampled':
             assert presampled_goal_paths is not None
-            if not osp.exists(presampled_goal_paths):
-                presampled_goal_paths = get_asset_full_path(
-                    presampled_goal_paths
-                )
-            self.presampled_goals = np.load(presampled_goal_paths)
+            # if not osp.exists(presampled_goal_paths):
+            #     presampled_goal_paths = get_asset_full_path(
+            #         presampled_goal_paths
+            #     )
+            # self.presampled_goals = np.load(presampled_goal_paths)
+            self.presampled_goals = load_local_or_remote_file(presampled_goal_paths)
         else:
             self.presampled_goals = None
 
