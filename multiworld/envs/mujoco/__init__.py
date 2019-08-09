@@ -16,967 +16,6 @@ def register_custom_envs():
     LOGGER.info("Registering multiworld mujoco gym environments")
 
     """
-    Ant tasks
-    """
-    register(
-        id='AntCrossMazeEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            fixed_goal=[3, 3],
-        ),
-    )
-    register(
-        id='AntMazeEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntCrossMaze30Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            fixed_goal=[3, 3],
-        ),
-    )
-    register(
-        id='AntCrossMaze90Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear90.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            fixed_goal=[3, 3],
-        ),
-    )
-    register(
-        id='AntCrossMaze150Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear150.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            fixed_goal=[3, 3],
-        ),
-    )
-    register(
-        id='AntMaze30Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze30StateRandomInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
-            # model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=False,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='dense',
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMaze30RandomInitEnv-v0-states.npy',
-        ),
-    )
-    register(
-        id='AntMaze30StateRandomInitFS20Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
-            # model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=False,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='dense',
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMaze30RandomInitEnv-v0-states.npy',
-            frame_skip=20,
-        ),
-    )
-    register(
-        id='AntMaze30StateRandomInitXYRewFS20Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
-            # model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=False,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMaze30RandomInitEnv-v0-states.npy',
-            frame_skip=20,
-        ),
-    )
-    register(
-        id='AntMaze30QposRandomInitFS20Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '6e99832',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
-            # model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=False,
-            goal_is_qpos=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            reward_type='qpos_dense',
-        ),
-    )
-    register(
-        id='DebugAntMaze30BottomLeftEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='DebugAntMaze30BottomLeftRandomizeInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-        ),
-    )
-    register(
-        id='DebugAntMaze60BottomLeftRandomizeInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear60.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-        ),
-    )
-    register(
-        id='DebugAntMaze90BottomLeftRandomizeInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear90.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-        ),
-    )
-    register(
-        id='DebugAntMaze30BottomLeftRandomInitGoalsPreset1Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='preset1'
-        ),
-    )
-    register(
-        id='DebugAntMaze60BottomLeftRandomInitGoalsPreset1Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear60.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='preset1'
-        ),
-    )
-    register(
-        id='DebugAntMaze90BottomLeftRandomInitGoalsPreset1Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear90.xml',
-            goal_low=[-4, -4],
-            goal_high=[-1, -1],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='preset1'
-        ),
-    )
-    register(
-        id='AntMaze90Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear90.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze150Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear150.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0,
-                1.,
-                0.,
-                -1.,
-                0.,
-                -1.,
-                0.,
-                1.,
-            ],
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze30RandomInitNoVelEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-            vel_in_state=False,
-        ),
-    )
-    register(
-        id='AntMaze30RandomInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze30RandomInitFS20Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            frame_skip=20,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze30RandomInitFS10Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            frame_skip=10,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMazeSmall30RandomInitFS10Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_small.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            frame_skip=10,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMazeSmall30RandomInitFS5Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_small.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMazeSmall30RandomInitFS20Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_small.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            frame_skip=20,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMazeXyRewSmall30RandomInitFs5Dt3NoTermEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            goal_is_qpos=False,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='xy_dense',
-            terminate_when_unhealthy=False,
-        ),
-    )
-    register(
-        id='AntMazeXyRewSmall30RandomInitFs5Dt3Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            goal_is_qpos=False,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='xy_dense',
-            terminate_when_unhealthy=True,
-        ),
-    )
-    register(
-        id='AntMazeXyRewSmall30Fs5Dt3NoTermEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            goal_is_qpos=False,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='corner',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='xy_dense',
-            terminate_when_unhealthy=False,
-        ),
-    )
-    register(
-        id='AntMazeQposRewSmall30Fs5Dt3NoTermEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=False,
-            goal_is_qpos=True,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='corner',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='qpos_dense',
-            terminate_when_unhealthy=False,
-        ),
-    )
-    register(
-        id='AntMazeQposRewSmall30Fs5Dt3Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=False,
-            goal_is_qpos=True,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='corner',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='qpos_dense',
-            terminate_when_unhealthy=True,
-        ),
-    )
-    register(
-        id='AntMazeQposRewSmall30RandomInitFs5Dt3Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=False,
-            goal_is_qpos=True,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            goal_sampling_strategy='presampled',
-            presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='qpos_dense',
-            terminate_when_unhealthy=True,
-        ),
-    )
-    register(
-        id='AntMazeSmall30RandomInitFs5Dt3Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            frame_skip=5,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-            terminate_when_unhealthy=True,
-        ),
-    )
-    register(
-        id='AntMazeSmall30RandomInitFs10Dt3Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            frame_skip=10,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMazeSmall30RandomInitFs20Dt3Env-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
-            goal_is_xy=True,
-            frame_skip=20,
-            init_qpos=[
-                -2, -2, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze90RandomInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear90.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-    register(
-        id='AntMaze150RandomInitEnv-v0',
-        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
-        tags={
-            'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            model_path='classic_mujoco/ant_maze_gear150.xml',
-            goal_low=[-4, -4],
-            goal_high=[4, 4],
-            goal_is_xy=True,
-            init_qpos=[
-                -3, -3, 0.565, 1,
-                0, 0, 0,
-                0, 1., 0., -1., 0., -1., 0., 1.,
-            ],
-            init_xy_mode='sample-uniformly-xy-space',
-            reward_type='xy_dense',
-        ),
-    )
-
-    """
     Reaching tasks
     """
     register(
@@ -1332,14 +371,212 @@ def register_custom_envs():
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
+            obj_low=(-0.1, 0.55, 0.00),
             hand_high=(0.0, 0.65, 0.2),
             action_scale=0.02,
             hide_goal_markers=True,
             num_goals_presampled=1000,
+            reward_type='vectorized_state_distance',
         )
 
     )
 
+    """
+    Pick and Place
+    """
+    register(
+        id='SawyerPickupEnvYZ-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.02),
+            hand_high=(0.0, 0.65, 0.15),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=500,
+            # p_obj_in_hand=0.5,
+            # reward_type='vectorized_state_distance',
+        )
+    )
+    """
+    Pick and Place
+    """
+    register(
+        id='SawyerPickupEnvYZOracle-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.02),
+            hand_high=(0.0, 0.65, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=500,
+            oracle_reset_prob=.3,
+            # p_obj_in_hand=0.5,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBig-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.5, 0.02),
+            hand_high=(0.0, 0.7, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=500,
+            oracle_reset_prob=.4,
+            # p_obj_in_hand=0.5,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggest-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=2000,
+            oracle_reset_prob=.4,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggest-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=3000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+    register(
+        id='SawyerPickupEnvYZOracleBiggestTelescope-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=3000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='telescoping_vectorized_state_distance',
+        )
+    )
+    register(
+        id='Image84SawyerPickupEnvYZOracleBiggest-v1',
+        entry_point=create_image_84_sawyer_pickup_big_v0,
+        tags={
+            'git-commit-hash': 'f773062',
+            'author': 'steven'
+        },
+    )
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggest-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+            oracle_reset_prob=0.5,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            reward_type='vectorized_state_distance',
+        )
+    )
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggestHard-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.01,
+            hide_goal_markers=True,
+            num_goals_presampled=200,
+            oracle_reset_prob=1.0,
+            p_obj_in_hand=0.5,
+            hard_goals=True,
+            random_init=True,
+            # reward_type='vectorized_state_distance',
+        )
+    )
+
+
+    register(
+        id='SawyerPickupEnvYZOracleBiggestNoWall-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': '30f23f7',
+            'author': 'steven',
+        },
+        kwargs=dict(
+            hand_low=(-0.1, 0.43, 0.02),
+            hand_high=(0.0, 0.77, 0.2),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=2000,
+            oracle_reset_prob=.8,
+            p_obj_in_hand=0.5,
+            random_init=True,
+            structure='none',
+            reward_type='vectorized_state_distance',
+        )
+    )
     register_soroush_envs()
 
 def create_image_84_wheeled_car_env_v0():
@@ -1460,7 +697,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1478,7 +715,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1496,7 +733,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1518,7 +755,7 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTrainEnvSmall-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_small_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush'
         },
     )
@@ -1526,17 +763,35 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTestEnvSmall-v0',
         entry_point=create_image_84_sawyer_pnr_test_env_small_v0,
         tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachTrainEnvSmallVect-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_small_vect_v0,
+        tags={
             'git-commit-hash': '352248b',
             'author': 'Soroush'
         },
     )
 
     register(
+        id='Image84SawyerPushAndReachTrainEnvBigVect-v0',
+        entry_point=create_image_84_sawyer_pnr_train_env_big_vect_v0,
+        tags={
+            'git-commit-hash': '352248b',
+            'author': 'Soroush'
+        },
+    )
+
+
+    register(
         id='SawyerPushAndReachTrainEnvBig-v0',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1554,7 +809,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1572,7 +827,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1591,7 +846,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1613,7 +868,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush',
         },
         kwargs=dict(
@@ -1632,10 +887,26 @@ def register_soroush_envs():
     )
 
     register(
+        id='Image48SawyerPushAndReachTrainEnvBig-v0',
+        entry_point=create_image_48_sawyer_pnr_train_env_big_v0,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
         id='Image84SawyerPushAndReachTrainEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_train_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image48SawyerPushAndReachTestEnvBig-v0',
+        entry_point=create_image_48_sawyer_pnr_test_env_big_v0,
+        tags={
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush'
         },
     )
@@ -1643,9 +914,509 @@ def register_soroush_envs():
         id='Image84SawyerPushAndReachTestEnvBig-v0',
         entry_point=create_image_84_sawyer_pnr_test_env_big_v0,
         tags={
-            'git-commit-hash': '352248b',
+            'git-commit-hash': 'e5c11ac',
             'author': 'Soroush'
         },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectPuckRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_puck_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTestEnvBig-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTestEnvBigVectRew-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v0',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v0,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTestEnvBig-v0',
+        entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v0,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectRew-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectPuckRew-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_puck_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTestEnvBig-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTestEnvBigVectRew-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.015,
+        )
+    )
+
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v1',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v1,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTestEnvBig-v1',
+        entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v1,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0125,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectRew-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0125,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBigVectPuckRew-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='vectorized_puck_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0125,
+        )
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTestEnvBig-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0125,
+        )
+    )
+    register(
+        id='SawyerPushAndReachArenaTestEnvBigVectRew-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            reset_low=(0.15, 0.65, -0.15, 0.55),
+            reset_high=(0.20, 0.70, -0.10, 0.60),
+            goal_low=(-0.20, 0.50, 0.15, 0.65),
+            goal_high=(-0.15, 0.55, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='vectorized_state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0125,
+        )
+    )
+
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v2',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v2,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTestEnvBig-v2',
+        entry_point=create_image_84_sawyer_pnr_arena_test_env_big_v2,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v3',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.010,
+        )
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v3',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v3,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPushAndReachArenaTrainEnvBig-v4',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            fix_reset=0.075,
+            sample_realistic_goals=True,
+            reward_type='state_distance',
+            invisible_boundary_wall=True,
+            action_scale=0.0075,
+        )
+    )
+    register(
+        id='Image84SawyerPushAndReachArenaTrainEnvBig-v4',
+        entry_point=create_image_84_sawyer_pnr_arena_train_env_big_v4,
+        tags={
+            'git-commit-hash': 'e5c11ac',
+            'author': 'Soroush'
+        },
+    )
+
+    register(
+        id='SawyerPickAndPlaceOneObjTallWallTrainEnv-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': 'db29c69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(0.0, 0.45, 0.05),
+            hand_high=(0.0, 0.75, 0.20),
+            structure='2d_wall_tall',
+            reward_type='state_distance',
+            hide_state_markers=True,
+            two_obj=False,
+            reset_p=(0.5, 0.5),
+            goal_p=(0.5, 0.5),
+            num_goals_presampled=10000,
+            action_scale=0.015,
+        )
+    )
+
+    register(
+        id='SawyerPickAndPlaceOneObjTallWallTrainEnv-v1',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': 'db29c69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(0.0, 0.45, 0.05),
+            hand_high=(0.0, 0.75, 0.20),
+            structure='2d_wall_tall',
+            reward_type='state_distance',
+            hide_state_markers=True,
+            two_obj=False,
+            reset_p=(0.5, 0.5),
+            goal_p=(0.5, 0.5),
+            num_goals_presampled=10000,
+            action_scale=0.012,
+        )
+    )
+
+    register(
+        id='SawyerPickAndPlaceOneObjTallWallTrainEnv-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        tags={
+            'git-commit-hash': 'db29c69',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(0.0, 0.45, 0.05),
+            hand_high=(0.0, 0.75, 0.20),
+            structure='2d_wall_tall',
+            reward_type='state_distance',
+            hide_state_markers=True,
+            two_obj=False,
+            reset_p=(0.5, 0.5),
+            goal_p=(0.5, 0.5),
+            num_goals_presampled=10000,
+            action_scale=0.0085,
+        )
     )
 
     """
@@ -1729,6 +1500,7 @@ def create_image_84_sawyer_pnr_train_env_small_v0():
         transpose=True,
         normalize=True,
     )
+
 def create_image_84_sawyer_pnr_test_env_small_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm
@@ -1741,6 +1513,18 @@ def create_image_84_sawyer_pnr_test_env_small_v0():
         transpose=True,
         normalize=True,
     )
+def create_image_48_sawyer_pnr_train_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
 def create_image_84_sawyer_pnr_train_env_big_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
@@ -1749,6 +1533,61 @@ def create_image_84_sawyer_pnr_train_env_big_v0():
     return ImageEnv(
         wrapped_env,
         84,
+        init_camera=sawyer_pusher_camera_tdm,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pickup_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pick_and_place_camera
+
+    wrapped_env = gym.make('SawyerPickupEnvYZOracleBiggest-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pick_and_place_camera,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+
+
+def create_image_84_sawyer_pnr_train_env_big_vect_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvBigVectRew-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+
+def create_image_84_sawyer_pnr_train_env_small_vect_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTrainEnvSmallVectRew-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance',
+    )
+def create_image_48_sawyer_pnr_test_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachTestEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        48,
         init_camera=sawyer_pusher_camera_tdm_v4,
         transpose=True,
         normalize=True,
@@ -1758,6 +1597,111 @@ def create_image_84_sawyer_pnr_test_env_big_v0():
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
 
     wrapped_env = gym.make('SawyerPushAndReachTestEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance'
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance'
+    )
+def create_image_84_sawyer_pnr_arena_test_env_big_v0():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTestEnvBig-v0')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance'
+    )
+def create_image_84_sawyer_pnr_arena_test_env_big_v1():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTestEnvBig-v1')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+        reward_type='vectorized_state_distance'
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v2():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v2')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+def create_image_84_sawyer_pnr_arena_test_env_big_v2():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTestEnvBig-v2')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v3():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v3')
+    return ImageEnv(
+        wrapped_env,
+        84,
+        init_camera=sawyer_pusher_camera_tdm_v4,
+        transpose=True,
+        normalize=True,
+    )
+
+def create_image_84_sawyer_pnr_arena_train_env_big_v4():
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm_v4
+
+    wrapped_env = gym.make('SawyerPushAndReachArenaTrainEnvBig-v4')
     return ImageEnv(
         wrapped_env,
         84,

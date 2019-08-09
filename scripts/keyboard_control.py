@@ -12,7 +12,6 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_door_hook import SawyerDoorHookEnv
 
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import \
     SawyerPickAndPlaceEnv
-from multiworld.envs.pygame import register_custom_envs
 # from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env import \
 #     SawyerPushAndReachXYEnv, SawyerPushAndReachXYZEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
@@ -24,10 +23,10 @@ from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_and_reach_env_two_pucks impor
 import pygame
 from pygame.locals import QUIT, KEYDOWN
 
-register_custom_envs()
-
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_reach import SawyerReachXYEnv, \
     SawyerReachXYZEnv
+
+from multiworld.envs.mujoco.pointmass.pointmass import PointmassEnv
 
 pygame.init()
 screen = pygame.display.set_mode((400, 300))
@@ -55,25 +54,49 @@ char_to_action = {
 import gym
 import multiworld
 import pygame
+
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import SawyerPickAndPlaceEnvYZ
 env_kwargs = dict(
-    norm_order=2,
-    sample_realistic_goals=True,
-    hand_low=(-0.20, 0.50),
-    hand_high=(0.20, 0.70),
-    puck_low=(-0.20, 0.50),
-    puck_high=(0.20, 0.70),
-    fix_reset=0.075,
-    square_puck=False,  # [True, False],
-    heavy_puck=False,  # [True, False],
-    num_mocap_calls_for_reset=250,  # [10, 250],
-    reward_type='vectorized_state_distance'
+    hand_low=(0.0, 0.45, 0.05), #(0.0, 0.43, 0.05), #(-0.1, 0.43, 0.02),
+    hand_high=(0.0, 0.75, 0.20), #(0.0, 0.77, 0.2), #(0.0, 0.77, 0.2),
+    num_goals_presampled=1,
+
+    # two_obj=True,  # True
+    # reset_p=(0.0, 0.0, 1.0),
+    # goal_p=(0.0, 0.0, 1.0),
+    # fixed_reset=(0.0, 0.70, 0.10, 0.0, 0.50, 0.015, 0.0, 0.50, 0.03),
+
+    two_obj=False,  # True
+    reset_p=(0.5, 0.5),
+    goal_p=(1.0, 0.0),
+    # fixed_reset=(0.0, 0.675, 0.05, 0.0, 0.725, 0.015),
+
+    structure='2d_wall_tall',
+    # action_scale=.02, #.02
+    # frame_skip=500, #100
+
+    # structure='2d',
+    # snap_obj_to_axis=False,
+    # hide_state_markers=True,
 )
-# env = SawyerPushAndReachXYEnv(**env_kwargs)
-env = gym.make('Point2DFixedGoalEnv-v0')
+env = SawyerPickAndPlaceEnvYZ(**env_kwargs)
+
+# env_kwargs = dict(
+#     frame_skip=100,
+#     action_scale=0.15,
+#     ball_low=(-2, -0.5),
+#     ball_high=(2, 1),
+#     goal_low=(-4, 2),
+#     goal_high=(4, 4),
+#     model_path='pointmass_u_wall_big.xml',
+# )
+# env = PointmassEnv(**env_kwargs)
+
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
 action = np.zeros(10)
+gripped_closed = False
 while True:
     done = False
     if not lock_action:
@@ -90,9 +113,9 @@ while True:
             elif new_action == 'reset':
                 done = True
             elif new_action == 'close':
-                action[3] = 1
+                gripped_closed = True
             elif new_action == 'open':
-                action[3] = -1
+                gripped_closed = False
             elif new_action == 'put obj in hand':
                 print("putting obj in hand")
                 env.put_obj_in_hand()
@@ -101,7 +124,23 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
+
+            if gripped_closed:
+                action[2] = 1
+                # action[2] = 1
+            else:
+                action[2] = -1
+
+                    # if closed_gripper:
+            # print(action[:len(env.action_space.low)])
+            env.step(action[:len(env.action_space.low)])
     if done:
         obs = env.reset()
+        # print("reset")
     env.render()
+
+# for i in range(1000):
+#     if i % 10 == 0:
+#         env.reset()
+#     env.step(np.array([1, 0, -1]))
+#     env.render()

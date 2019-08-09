@@ -1,0 +1,82 @@
+<mujoco model='pointmass_u_wall_big'>
+    <compiler inertiafromgeom='true' coordinate='local' angle='radian' settotalmass='14' />
+    <default>
+        <geom contype='1' conaffinity='0' condim='3' friction='.4 .4 .4' rgba='0.8 0.6 .4 1' solimp='0.0 0.8 0.01' solref='0.02 1' />
+    </default>
+    <size nstack='300000' nuser_geom='1' />
+    <option timestep='0.01' gravity='0 0 -9.81' />
+    <asset>
+        <!--<texture type="skybox" builtin="gradient" width="100" height="100" rgb1="1 1 1" rgb2="0 0 0" />-->
+        <!--<texture name="texgeom" type="cube" builtin="flat" mark="cross" width="127" height="1278" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" markrgb="1 1 1" random="0.01" />-->
+
+        <!--<texture name="texplane" type="2d" file="../texture/light_wood.png" width="10" height="10" />-->
+        <!--<material name='MatPlane' texture="texplane" shininess="1" texrepeat="1 1" specular="1"  reflectance="0" />-->
+
+        <!--<texture name="texplane" type="2d" builtin="flat" rgb1="1.0 1.0 1.0" rgb2="1.0 1.0 1.0" width="100" height="100" />-->
+
+        <!--<texture name="texplane" type="2d" builtin="checker" rgb1="0.3 0.3 0.3" rgb2="1 1 1" width="100" height="100" />-->
+        <texture name="texplane" type="2d" builtin="checker" rgb1="0.55 0.67 0.80" rgb2="1 1 1" width="100" height="100" />
+        <material name='MatPlane' texture="texplane" shininess="0" texrepeat="8 8" specular="0.6" reflectance="0" />
+
+        <!--<material name='geom' texture="texgeom" texuniform="true" />-->
+
+        <texture name="wood" file="../texture/wood.png" type="cube"/>
+        <material shininess=".1" name="wood" texture="wood" specular="0.4"/>
+
+        <!--<texture name="real_door" file="../texture/real_door.png" type="cube"/>-->
+        <!--<material shininess=".1" name="real_door" texture="real_door" specular=".4"/>-->
+
+        <texture name="darkwood" file="../texture/darkwood.png" type="cube"/>
+        <material shininess=".1" name="darkwood" texture="darkwood" specular="0.4"/>
+
+        <!--<texture name="granite" file="../texture/granite.png" type="cube"/>-->
+        <!--<material shininess=".1" name="granite" texture="granite" specular="0.4"/>-->
+
+        <!--<texture name="light_wood" file="../texture/light_wood.png" type="cube"/>-->
+        <!--<material shininess=".1" name="light_wood" texture="light_wood" specular="0.4"/>-->
+
+        <!--<texture name="light_wood_v2" file="../texture/light_wood_v2.png" type="cube"/>-->
+        <!--<material shininess=".1" name="light_wood_v2" texture="light_wood_v2" specular="0.4"/>-->
+
+    </asset>
+    <worldbody>
+        <!--<light directional="true" cutoff="100" exponent="1" diffuse=".2 .2 .2" specular=".2 .2 .2" ambient=".2 .2 .2" pos="0 0 100.0" dir="-0 0 -0.1" />-->
+        <light directional="true"/>
+
+        <!--<light directional="true" cutoff="100" exponent="1" diffuse=".3 .3 .3" specular=".3 .3 .3" ambient=".3 .3 .3" pos="0 0 2.0" dir="-0 0 -0.1" />-->
+
+        <geom name='floor' material="MatPlane" pos='0 0 0' size='10 10 10' type='plane' conaffinity='1' condim='3' />
+        <!--<geom name='floor' material="MatPlane" pos='0 0 0' size='40 40 40' type='plane' conaffinity='1' rgba='0.8 0.9 0.8 1' condim='3' />-->
+
+        <!--<geom name='left_wall' pos='-5.0 0 0.5' size='0.5 5.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+        <!--<geom name='right_wall' pos='5.0 0 0.5' size='0.5 5.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+        <!--<geom name='front_wall' pos='0 5.0 0.5' size='5.5 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+        <!--<geom name='back_wall' pos='0 -5.0 0.5' size='5.5 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+<!---->
+        <!--<geom name='uwall_bottom' pos='0 1 0.5' size='2.5 0.5 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+        <!--<geom name='uwall_right' pos='2.0 -0.5 0.5' size='0.5 2.0 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+        <!--<geom name='uwall_left' pos='-2.0 -0.5 0.5' size='0.5 2.0 0.5' type='box' conaffinity='1' rgba='1 0 0 1' condim='1' contype='1' />-->
+
+        <geom name='left_wall' pos='-5.0 0 0.5' size='0.5 5.5 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+        <geom name='right_wall' pos='5.0 0 0.5' size='0.5 5.5 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+        <geom name='front_wall' pos='0 5.0 0.5' size='4.5 0.5 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+        <geom name='back_wall' pos='0 -5.0 0.5' size='4.5 0.5 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+
+        <geom name='uwall_bottom' pos='0 1 0.5' size='1.5 0.5 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+        <geom name='uwall_right' pos='2.0 -0.5 0.5' size='0.5 2.0 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+        <geom name='uwall_left' pos='-2.0 -0.5 0.5' size='0.5 2.0 0.5' type='box' conaffinity='1' material="wood" condim='1' contype='1' />
+
+        <body name='pointmass' pos='0 0 0'>
+            <geom name='pointmass' type='sphere' pos ='0 0 0.5' rgba="0 0 1 1" size='0.5' />
+
+            <joint name="xmove" type="slide"  pos="0 0 0" axis="1 0 0"/>
+            <joint name="ymove" type="slide"  pos="0 0 0" axis="0 1 0"/>
+        </body>
+    </worldbody>
+
+    <actuator>
+        <velocity ctrllimited="true" ctrlrange="-10000 10000" joint="xmove" kv="1000"  user="1"/>
+        <velocity ctrllimited="true" ctrlrange="-10000 10000" joint="ymove" kv="1000"  user="1"/>
+    </actuator>
+
+</mujoco>

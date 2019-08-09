@@ -224,7 +224,10 @@
             <!--<joint name="puckjoint-z" type="slide" limited='false' pos="0 0 0"-->
                    <!--axis="0 0 1"-->
             <!--/>-->
-            <inertial pos="0 0 0" mass="500.1" diaginertia="100000 100000 100000"/>
+
+            <!--<inertial pos="0 0 0" mass="500.1" diaginertia="100000 100000 100000"/>-->
+            <inertial pos="0 0 0" mass="100.1" diaginertia="10000000 10000000 10000000"/>
+
             <!--type="box"-->
             <!--size="0.02 0.02 0.02"-->
             <geom name="puckbox"

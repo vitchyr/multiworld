@@ -7,6 +7,7 @@ from pygame import Color
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict
+from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import (
@@ -16,10 +17,13 @@ from multiworld.envs.env_util import (
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 from multiworld.envs.pygame.walls import VerticalWall, HorizontalWall
 
+from railrl.pythonplusplus import identity
+
 import matplotlib
-# matplotlib.use('agg')
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
+from railrl.torch import pytorch_util as ptu
 
 
 class Point2DEnv(MultitaskEnv, Serializable):
@@ -35,12 +39,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
             render_size=200,
             render_target=True,
             reward_type="dense",
-            norm_order=1,
+            norm_order=2,
             action_scale=1.0,
-            target_radius=0.60,
+            target_radius=0.50,
             boundary_dist=4,
             ball_radius=0.50,
-            walls=None,
+            walls=[],
             fixed_goal=None,
             goal_low=None,
             goal_high=None,
@@ -52,13 +56,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
             show_goal=True,
             **kwargs
     ):
-        if walls is None:
-            walls = []
-        self.metadata = {
-            'render.modes': ['human', 'rgb_array'],
-            'video.frames_per_second': 5,
-        }
-
         if walls is None:
             walls = []
         if len(kwargs) > 0:
@@ -92,22 +89,22 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = np.zeros((2))
 
         u = np.ones(2)
-        self.action_space = spaces.Box(-u, u)
+        self.action_space = spaces.Box(-u, u, dtype=np.float32)
 
         o = self.boundary_dist * np.ones(2)
-        self.obs_range = spaces.Box(-o, o)
+        self.obs_range = spaces.Box(-o, o, dtype='float32')
 
         if goal_low is None:
             goal_low = -o
         if goal_high is None:
             goal_high = o
-        self.goal_range = spaces.Box(np.array(goal_low), np.array(goal_high))
+        self.goal_range = spaces.Box(np.array(goal_low), np.array(goal_high), dtype='float32')
 
         if ball_low is None:
             ball_low = -o
         if ball_high is None:
             ball_high = o
-        self.ball_range = spaces.Box(np.array(ball_low), np.array(ball_high))
+        self.ball_range = spaces.Box(np.array(ball_low), np.array(ball_high), dtype='float32')
 
         self.observation_space = spaces.Dict([
             ('observation', self.obs_range),
@@ -119,68 +116,16 @@ class Point2DEnv(MultitaskEnv, Serializable):
         ])
 
         self.drawer = None
-        self.render_drawer = None
         self.subgoals = None
 
-    # Hack for PETS
-    @property
-    def mode(self):
-        return self.mode
-
-    @mode.setter
-    def mode(self, value):
-        if value == 'eval':
-            if self.wall_shape in {'u', 'big-u'}:
-                self.ball_range = spaces.Box(
-                    np.array([-2., -0.5]),
-                    np.array([2., 1.])
-                )
-                self.goal_range = spaces.Box(
-                    np.array([-4, 2]),
-                    np.array([4, 4])
-                )
-            else:
-                self.ball_range = spaces.Box(
-                    np.array([-1., -0.75]),
-                    np.array([1., -0.25])
-                )
-                self.goal_range = spaces.Box(
-                    np.array([-1, 1]),
-                    np.array([1, 3])
-                )
-        elif value == 'exploration':
-            self.ball_range = spaces.Box(
-                np.array([-4., -4.]),
-                np.array([4., 4.])
-            )
-            self.goal_range = spaces.Box(
-                np.array([-4., -4.]),
-                np.array([4., 4.])
-            )
-        else:
-            raise NotImplementedError(value)
-
     def step(self, velocities):
-        # assert self.action_scale <= 1.0
+        assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
-        orig_new_pos = new_position.copy()
         for wall in self.walls:
             new_position = wall.handle_collision(
                 self._position, new_position
             )
-        if sum(new_position != orig_new_pos) > 1:
-            """
-            Hack: sometimes you get caught on two walls at a time. If you
-            process the input in the other direction, you might only get
-            caught on one wall instead.
-            """
-            new_position = orig_new_pos.copy()
-            for wall in self.walls[::-1]:
-                new_position = wall.handle_collision(
-                    self._position, new_position
-                )
-
         self._position = new_position
         self._position = np.clip(
             self._position,
@@ -190,7 +135,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
         distance_to_target = np.linalg.norm(
             self._position - self._target_position
         )
+        below_wall = self._position[1] >= 2.0
         is_success = distance_to_target < 1.0
+        is_success_2 = distance_to_target < 1.5
+        is_success_3 = distance_to_target < 1.75
 
         ob = self._get_obs()
         reward = self.compute_reward(velocities, ob)
@@ -201,6 +149,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'velocity': velocities,
             'speed': np.linalg.norm(velocities),
             'is_success': is_success,
+            'is_success_2': is_success_2,
+            'is_success_3': is_success_3,
+            'below_wall': below_wall,
         }
         done = False
         return ob, reward, done, info
@@ -266,7 +217,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             state_achieved_goal=self._position.copy(),
         )
 
-    def compute_rewards(self, actions, obs):
+    def compute_rewards(self, actions, obs, prev_obs=None):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=-1)
@@ -281,7 +232,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         statistics = OrderedDict()
         for stat_name in [
             'distance_to_target',
+            'below_wall',
             'is_success',
+            'is_success_2',
+            'is_success_3',
+            'velocity',
+            'speed',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -302,6 +258,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'desired_goal': self._target_position.copy(),
             'state_desired_goal': self._target_position.copy(),
         }
+
+    def set_goal(self, goal):
+        self._target_position = goal['state_desired_goal']
 
     def sample_goal_for_rollout(self):
         if not self.fixed_goal is None:
@@ -340,23 +299,25 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if self.drawer is None:
+        if width is not None:
             if width != height:
                 raise NotImplementedError()
-            self.drawer = PygameViewer(
-                screen_width=width,
-                screen_height=height,
-                x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
-                y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
-                render_onscreen=self.render_onscreen,
-            )
-        self.draw(self.drawer, False)
+            if width != self.render_size:
+                self.drawer = PygameViewer(
+                    screen_width=width,
+                    screen_height=height,
+                    x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                    y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                    render_onscreen=self.render_onscreen,
+                )
+                self.render_size = width
+        self.render()
         img = self.drawer.get_image()
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
         else:
             r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
-            img = (-r + b).transpose().flatten()
+            img = (-r + b)
             return img
 
     def update_subgoals(self, subgoals):
@@ -383,66 +344,66 @@ class Point2DEnv(MultitaskEnv, Serializable):
         states = np.stack((xv, yv), axis=2).reshape((-1, 2))
         return states
 
-    def render(self, close=False, mode='human'):
+    def render(self, close=False):
         if close:
-            self.render_drawer = None
+            self.drawer = None
             return
 
-        if mode == 'rgb_array':
-            return self.get_image(self.render_size, self.render_size)
-        elif mode == 'human':
-            if self.render_drawer is None or self.render_drawer.terminated:
-                self.render_drawer = PygameViewer(
-                    self.render_size,
-                    self.render_size,
-                    x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
-                    y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
-                    render_onscreen=True,
-                )
-            self.draw(self.render_drawer, True)
-        else:
-            raise NotImplementedError(mode)
-
-    def draw(self, drawer, tick):
-        drawer.fill(Color('white'))
-        if self.show_goal:
-            drawer.draw_solid_circle(
+        if self.drawer is None or self.drawer.terminated:
+            self.drawer = PygameViewer(
+                self.render_size,
+                self.render_size,
+                x_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
+                render_onscreen=self.render_onscreen,
+            )
+        self.drawer.fill(Color('white'))
+        if self.render_target:
+            self.drawer.draw_solid_circle(
                 self._target_position,
                 self.target_radius,
                 Color('green'),
             )
-        drawer.draw_solid_circle(
+        self.drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
             Color('blue'),
         )
 
+        if self.subgoals is not None:
+            for goal in self.subgoals:
+                self.drawer.draw_solid_circle(
+                    goal,
+                    self.ball_radius + 0.1,
+                    Color('red'),
+                )
+            for p1, p2 in zip(np.concatenate(([self._position], self.subgoals[:-1]), axis=0), self.subgoals):
+                self.drawer.draw_segment(p1, p2, Color(100, 0, 0, 10))
+
         for wall in self.walls:
-            drawer.draw_segment(
+            self.drawer.draw_segment(
                 wall.endpoint1,
                 wall.endpoint2,
                 Color('black'),
             )
-            drawer.draw_segment(
+            self.drawer.draw_segment(
                 wall.endpoint2,
                 wall.endpoint3,
                 Color('black'),
             )
-            drawer.draw_segment(
+            self.drawer.draw_segment(
                 wall.endpoint3,
                 wall.endpoint4,
                 Color('black'),
             )
-            drawer.draw_segment(
+            self.drawer.draw_segment(
                 wall.endpoint4,
                 wall.endpoint1,
                 Color('black'),
             )
 
-        drawer.render()
-        if tick:
-            drawer.tick(self.render_dt_msec)
-
+        self.drawer.render()
+        self.drawer.tick(self.render_dt_msec)
 
     """Static visualization/utility methods"""
 
@@ -482,81 +443,65 @@ class Point2DEnv(MultitaskEnv, Serializable):
         actions_x = actions[:, 0]
         actions_y = -actions[:, 1]
 
-        # ax.quiver(x[:-1], y[:-1], x[1:] - x[:-1], y[1:] - y[:-1],
-        #           scale_units='xy', angles='xy', scale=1, width=0.005)
-        action_scale = 4.0
-        ax.quiver(x[:-1], y[:-1], action_scale * actions_x,
-                  action_scale * actions_y,
-                  scale_units='xy',
+        ax.quiver(x[:-1], y[:-1], x[1:] - x[:-1], y[1:] - y[:-1],
+                  scale_units='xy', angles='xy', scale=1, width=0.005)
+        ax.quiver(x[:-1], y[:-1], actions_x, actions_y, scale_units='xy',
                   angles='xy', scale=1, color='r',
                   width=0.0035, )
-        boundary_dist = 4
         ax.plot(
             [
-                -boundary_dist,
-                -boundary_dist,
+                -Point2DEnv.boundary_dist,
+                -Point2DEnv.boundary_dist,
             ],
             [
-                boundary_dist,
-                -boundary_dist,
+                Point2DEnv.boundary_dist,
+                -Point2DEnv.boundary_dist,
             ],
             color='k', linestyle='-',
         )
         ax.plot(
             [
-                boundary_dist,
-                -boundary_dist,
+                Point2DEnv.boundary_dist,
+                -Point2DEnv.boundary_dist,
             ],
             [
-                boundary_dist,
-                boundary_dist,
+                Point2DEnv.boundary_dist,
+                Point2DEnv.boundary_dist,
             ],
             color='k', linestyle='-',
         )
         ax.plot(
             [
-                boundary_dist,
-                boundary_dist,
+                Point2DEnv.boundary_dist,
+                Point2DEnv.boundary_dist,
             ],
             [
-                boundary_dist,
-                -boundary_dist,
+                Point2DEnv.boundary_dist,
+                -Point2DEnv.boundary_dist,
             ],
             color='k', linestyle='-',
         )
         ax.plot(
             [
-                boundary_dist,
-                -boundary_dist,
+                Point2DEnv.boundary_dist,
+                -Point2DEnv.boundary_dist,
             ],
             [
-                -boundary_dist,
-                -boundary_dist,
+                -Point2DEnv.boundary_dist,
+                -Point2DEnv.boundary_dist,
             ],
             color='k', linestyle='-',
         )
-        from matplotlib.collections import PatchCollection
-        from matplotlib.patches import Rectangle
-        errorboxes = [
-            Rectangle((-2.5, -1.5), 1, 4),
-            Rectangle((1.5, -1.5), 1, 4),
-            Rectangle((-2.5, -1.5), 4, 1),
-        ]
-        pc = PatchCollection(errorboxes, facecolor='r', alpha=0.5,
-                             edgecolor='None')
-
-        # Add collection to axes
-        ax.add_collection(pc)
 
         if goal is not None:
             ax.plot(goal[0], -goal[1], marker='*', color='g', markersize=15)
         ax.set_ylim(
-            -boundary_dist - 1,
-            boundary_dist + 1,
+            -Point2DEnv.boundary_dist - 1,
+            Point2DEnv.boundary_dist + 1,
         )
         ax.set_xlim(
-            -boundary_dist - 1,
-            boundary_dist + 1,
+            -Point2DEnv.boundary_dist - 1,
+            Point2DEnv.boundary_dist + 1,
         )
 
     def initialize_camera(self, init_fctn):
@@ -578,6 +523,7 @@ class Point2DWallEnv(Point2DEnv):
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
         self.wall_thickness = wall_thickness
+
         if wall_shape == "u":
             self.walls = [
                 # Right wall
@@ -620,15 +566,6 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                 )
             ]
-        if wall_shape == "---":
-            self.walls = [
-                HorizontalWall(
-                    self.ball_radius,
-                    0,
-                    -self.inner_wall_max_dist*2,
-                    self.inner_wall_max_dist*2,
-                )
-            ]
         if wall_shape == "big-u":
             self.walls = [
                 VerticalWall(
@@ -641,9 +578,9 @@ class Point2DWallEnv(Point2DEnv):
                 # Left wall
                 VerticalWall(
                     self.ball_radius,
-                    -self.inner_wall_max_dist*2,  # x pos -2.5
-                    -self.inner_wall_max_dist*2,  # y bot -2.5
-                    self.inner_wall_max_dist,  # y top 1.5
+                    -self.inner_wall_max_dist*2,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist,
                     self.wall_thickness
                 ),
                 # Bottom wall
@@ -652,8 +589,6 @@ class Point2DWallEnv(Point2DEnv):
                     self.inner_wall_max_dist,
                     -self.inner_wall_max_dist*2,
                     self.inner_wall_max_dist*2,
-                    # -self.inner_wall_max_dist,
-                    # self.inner_wall_max_dist,
                     self.wall_thickness
                 ),
             ]
@@ -724,35 +659,62 @@ class Point2DWallEnv(Point2DEnv):
         if wall_shape == "none":
             self.walls = []
 
-    def generate_expert_subgoals(self, num_subgoals):
+    def generate_expert_subgoals(self, num_subprobs):
         def avg(p1, p2):
-            return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
+            return [(p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2]
         ob_and_goal = self._get_obs()
         ob = ob_and_goal['state_observation']
         goal = ob_and_goal['state_desired_goal']
 
         subgoals = []
         if self.wall_shape == "big-u" or self.wall_shape == "easy-u":
-            if num_subgoals == 2:
+            if num_subprobs == 2:
                 if goal[0] <= 0:
-                    subgoals += [(-3, -3), goal]
+                    subgoals += [(-3, -3)]
                 else:
-                    subgoals += [(3, -3), goal]
-            elif num_subgoals == 4:
-                subgoals += [(0, -3)]
+                    subgoals += [(3, -3)]
+            elif num_subprobs in [4, 8]:
+                subgoals += [
+                    [1.0, -3.25],
+                    [3.25, -2.0],
+                    [3.25, 1.5]
+                ]
+
                 if goal[0] <= 0:
-                    subgoals += [(-3, -3), (-3, 2), goal]
-                else:
-                    subgoals += [(3, -3), (3, 2), goal]
-            elif num_subgoals == 8:
-                subgoals += [avg((0, -3), ob), (0, -3)]
+                    for subgoal in subgoals:
+                        subgoal[0] *= -1
+
+                if num_subprobs == 8:
+                    subgoals_1 = subgoals
+                    subgoals_2 = []
+
+                    for first, second in zip([ob] + subgoals_1 + [goal], subgoals_1 + [goal]):
+                        subgoals_2.append(avg(first, second))
+
+                    if goal[0] <= 0:
+                        subgoals_2[1] = [-2.5, -3.25]
+                    else:
+                        subgoals_2[1] = [2.5, -3.25]
+                    subgoals_2[3][1] = max(subgoals_2[3][1], 2.25)
+
+                    subgoals = [subgoals_2[0]] + [item for t in zip(subgoals_1, subgoals_2[1:]) for item in t]
+            elif num_subprobs == 6:
+                subgoals += [
+                    [0.5, -2.0],
+                    [2.5, -3.25],
+                    [3.25, -1.25],
+                    [3.25, 0.75],
+                ]
+
                 if goal[0] <= 0:
-                    subgoals += [avg((0, -3), (-3, -3)), (-3, -3), avg((-3, -3), (-3, 2)), (-3, 2), avg((-3, 2), goal), goal]
-                else:
-                    subgoals += [avg((0, -3), (3, -3)), (3, -3), avg((3, -3), (3, 2)), (3, 2), avg((3, 2), goal), goal]
+                    for subgoal in subgoals:
+                        subgoal[0] *= -1
+
+                subgoals.append(avg(subgoals[-1], goal))
+                subgoals[-1][1] = max(subgoals[-1][1], 2.25)
 
         if len(subgoals) == 0:
-            subgoals = np.tile(goal, num_subgoals).reshape(-1, 2)
+            subgoals = np.tile(goal, num_subprobs-1).reshape(num_subprobs-1, -1)
 
         return np.array(subgoals)
 
@@ -783,7 +745,7 @@ class Point2DWallEnv(Point2DEnv):
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
-        return self.get_image_plt(v_vals)
+        return self.get_image_plt(v_vals, vmin=-2.0, vmax=0.0)
 
     def get_image_rew(self, obs):
         nx, ny = (50, 50)
@@ -803,7 +765,6 @@ class Point2DWallEnv(Point2DEnv):
         xv, yv = np.meshgrid(x, y)
 
         sweep_goal = np.stack((xv, yv), axis=2).reshape((-1, 2))
-        from railrl.torch import pytorch_util as ptu
         rew_vals = ptu.get_numpy(self.realistic_goals(sweep_goal)).reshape((nx, ny))
         return self.get_image_plt(rew_vals)
 
@@ -812,13 +773,17 @@ class Point2DWallEnv(Point2DEnv):
                       vmin=None, vmax=None,
                       extent=[-4, 4, -4, 4],
                       small_markers=False,
-                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False):
+                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
+                      imsize=None):
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
         ax.set_ylim(ax.get_ylim()[::-1])
         DPI = fig.get_dpi()
-        fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
+        if imsize is None:
+            fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
+        else:
+            fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
 
         marker_factor = 0.60
         if small_markers:
@@ -853,6 +818,7 @@ class Point2DWallEnv(Point2DEnv):
         fig.subplots_adjust(top=1)
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
+        ax.axis('off')
 
         ax.imshow(
             vals,
@@ -891,7 +857,7 @@ class PointmassExpertPolicy:
 
     @staticmethod
     def point_in_box(point, low, high):
-        return spaces.Box(np.array(low), np.array(high)).contains(point)
+        return spaces.Box(np.array(low), np.array(high), dtype='float32').contains(point)
 
     def get_action(self, obs, goal_high_level, tau_high_level):
         action = [0, 0]
@@ -935,60 +901,15 @@ class PointmassExpertPolicy:
         return np.array(action), {}
 
 
-if __name__ == '__main__':
-    import gym
-    from multiworld.envs.pygame import register_custom_envs
-    import pygame
-    from pygame.locals import QUIT, KEYDOWN
-    import sys
-    register_custom_envs()
-    char_to_action = {
-        'w': np.array([0, -1, 0, 0]),
-        'a': np.array([1, 0, 0, 0]),
-        's': np.array([0, 1, 0, 0]),
-        'd': np.array([-1, 0, 0, 0]),
-        'q': np.array([1, -1, 0, 0]),
-        'e': np.array([-1, -1, 0, 0]),
-        'z': np.array([1, 1, 0, 0]),
-        'c': np.array([-1, 1, 0, 0]),
-        'r': 'reset',
-    }
-    # env = gym.make('Point2DFixedGoalEnv-v0')
-    # env = gym.make('PointmassUWallTrainEnvBig-v0')
-    env = gym.make('PointmassUWallTestEnvBig-v0')
-    # env = gym.make('PointmassFlatWallTrainEnvBig-v0')
-    # env = gym.make('PointmassFlatWallTrainEnvBig-v0')
-    env.render_size = 100
-    env.mode='eval'
-    # env.action_scale = 0.5
-    env.render_dt_msec = 33
-    obs, *_ = env.reset()
-    env.render()
-    while True:
-        action = np.zeros(3)
-        done = False
-        key_pressed = False
-        for event in pygame.event.get():
-            event_happened = True
-            if event.type == QUIT:
-                sys.exit()
-            if event.type == KEYDOWN:
-                key_pressed = True
-                char = event.dict['key']
-                new_action = char_to_action.get(chr(char), None)
-                print(char)
-                if new_action == 'reset':
-                    env.reset()
-                else:
-                    if new_action is not None:
-                        action = new_action[:3]
-                    else:
-                        action = np.zeros(3)
-        action = action.copy()
-        action[0] *= -1  # lazy hack: flip y axis
-        obs, *_ = env.step(action[:2])
-        if key_pressed:
-            print(obs['observation'])
-        if done:
-            obs = env.reset()
-        env.render()
+if __name__ == "__main__":
+    # e = Point2DEnv()
+    import matplotlib.pyplot as plt
+
+    # e = Point2DWallEnv("-", render_size=84)
+    e = ImageEnv(Point2DWallEnv(wall_shape="u", render_size=84))
+    for i in range(10):
+        e.reset()
+        for j in range(50):
+            e.step(np.random.rand(2))
+            e.render()
+            im = e.get_image()

@@ -54,13 +54,22 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             square_puck=False,
             heavy_puck=False,
+            invisible_boundary_wall=False,
+
+            indicator_threshold_2=0.08,
+            indicator_threshold_3=0.12,
+
+            test_mode_case_num=None,
     ):
         self.quick_init(locals())
 
         self.square_puck = square_puck
         self.heavy_puck = heavy_puck
+        self.invisible_boundary_wall = invisible_boundary_wall
 
-        if self.square_puck and self.heavy_puck:
+        if self.invisible_boundary_wall:
+            model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_wall.xml')
+        elif self.square_puck and self.heavy_puck:
             model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_square_heavy.xml')
         elif self.square_puck and not self.heavy_puck:
             model_name = get_asset_full_path('sawyer_xyz/sawyer_push_and_reach_nips_square.xml')
@@ -136,9 +145,32 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
 
+        self.test_mode_case_num = test_mode_case_num
+        assert self.test_mode_case_num in [None, 1, 2, 3, 4, 5]
+        if self.test_mode_case_num is not None:
+            self.fix_reset = True
+            self.fix_goal = True
+        if self.test_mode_case_num == 1:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([-0.20, 0.50, 0.20, 0.70])
+        elif self.test_mode_case_num == 2:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.15, 0.65, 0.20, 0.70])
+        elif self.test_mode_case_num == 3:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.20, 0.70, -0.20, 0.70])
+        elif self.test_mode_case_num == 4:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.20, 0.50, -0.20, 0.70])
+        elif self.test_mode_case_num == 5:
+            self.fixed_reset = np.array([0.20, 0.70, -0.15, 0.55])
+            self.fixed_goal = np.array([0.20, 0.50, 0.20, 0.70])
+
         self.reward_type = reward_type
         self.norm_order = norm_order
         self.indicator_threshold = indicator_threshold
+        self.indicator_threshold_2 = indicator_threshold_2
+        self.indicator_threshold_3 = indicator_threshold_3
 
         self.action_space = Box(np.array([-1, -1]), np.array([1, 1]), dtype=np.float32)
         self._action_scale = action_scale
@@ -244,6 +276,20 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             ),
             touch_success=float(touch_distance < self.indicator_threshold),
             state_success=float(state_distance < self.indicator_threshold),
+            hand_success_2=float(hand_distance < self.indicator_threshold_2),
+            puck_success_2=float(puck_distance < self.indicator_threshold_2),
+            hand_and_puck_success_2=float(
+                hand_distance + puck_distance < self.indicator_threshold_2
+            ),
+            touch_success_2=float(touch_distance < self.indicator_threshold_2),
+            state_success_2=float(state_distance < self.indicator_threshold_2),
+            hand_success_3=float(hand_distance < self.indicator_threshold_3),
+            puck_success_3=float(puck_distance < self.indicator_threshold_3),
+            hand_and_puck_success_3=float(
+                hand_distance + puck_distance < self.indicator_threshold_3
+            ),
+            touch_success_3=float(touch_distance < self.indicator_threshold_3),
+            state_success_3=float(state_distance < self.indicator_threshold_3),
         )
 
     def _get_obs(self):
@@ -317,15 +363,15 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'hand_distance', 'hand_distance_l2',
-            'puck_distance', 'puck_distance_l2',
-            'state_distance', 'state_distance_l2',
-            'touch_distance', 'touch_distance_l2',
-            'hand_success',
-            'puck_success',
-            'hand_and_puck_success',
-            'state_success',
-            'touch_success',
+            'hand_distance', #'hand_distance_l2',
+            'puck_distance', #'puck_distance_l2',
+            'state_distance', #'state_distance_l2',
+            'touch_distance', #'touch_distance_l2',
+            'hand_success', 'hand_success_2', 'hand_success_3',
+            'puck_success', 'puck_success_2', 'puck_success_3',
+            'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
+            'state_success', 'state_success_2', 'state_success_3',
+            'touch_success', 'touch_success_2', 'touch_success_3',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -663,6 +709,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         fig.subplots_adjust(top=1)
         fig.subplots_adjust(right=1)
         fig.subplots_adjust(left=0)
+        ax.axis('off')
 
         # if vals is not None:
         #     ax.imshow(

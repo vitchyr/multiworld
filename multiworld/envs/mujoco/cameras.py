@@ -92,6 +92,23 @@ def sawyer_pick_and_place_camera(camera):
     camera.azimuth = 180
     camera.trackbodyid = 0
 
+def sawyer_pick_and_place_camera_v1(camera):
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = .60
+    camera.lookat[2] = .07
+    camera.distance = .7
+    camera.elevation = 0
+    camera.azimuth = 180
+    camera.trackbodyid = 0
+
+def sawyer_pick_and_place_1obj_camera(camera):
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = .60
+    camera.lookat[2] = .08
+    camera.distance = .55
+    camera.elevation = 0
+    camera.azimuth = 180
+    camera.trackbodyid = 0
 
 def sawyer_pick_and_place_camera_slanted_angle(camera):
     camera.lookat[0] = 0.0
@@ -210,6 +227,22 @@ def sawyer_init_camera_zoomed_in(camera):
     camera.azimuth = cam_pos[5]
     camera.trackbodyid = -1
 
+def pointmass_camera_v0(camera):
+    # camera.trackbodyid = 0
+    # camera.lookat[0] = 0.0
+    # camera.lookat[1] = 0.0
+    # camera.lookat[2] = 0.5
+    # camera.distance = 12.5
+    # camera.elevation = -90
+    # camera.azimuth = 270
+
+    camera.trackbodyid = 0
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = 0.75
+    camera.lookat[2] = 0.5
+    camera.distance = 12.5
+    camera.elevation = -65
+    camera.azimuth = 270
 
 def wheeled_car_camera_v0(camera):
     camera.trackbodyid = 0

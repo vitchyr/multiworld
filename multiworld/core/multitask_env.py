@@ -48,19 +48,19 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
         goals = self.sample_goals(1)
         return self.unbatchify_dict(goals, 0)
 
-    def compute_reward(self, action, obs):
+    def compute_reward(self, action, obs, prev_obs=None):
         if action is not None:
             actions = action[None]
         else:
             actions = None
-        if obs is None:
-            import ipdb; ipdb.set_trace()
-        next_obs = {}
-        for k, v in obs.items():
-            if v is None:
-                continue
-            next_obs[k] = v[None]
-        return self.compute_rewards(actions, next_obs)[0]
+        next_obs = {
+            k: v[None] for k, v in obs.items()
+        }
+        if prev_obs is not None:
+            prev_obs = {
+                k: v[None] for k, v in prev_obs.items()
+            }
+        return self.compute_rewards(actions, next_obs, prev_obs=prev_obs)[0]
 
     def get_diagnostics(self, *args, **kwargs):
         """
@@ -101,4 +101,16 @@ class MultitaskEnv(gym.Env, metaclass=abc.ABCMeta):
         new_d = {}
         for k in batch_dict.keys():
             new_d[k] = np.array([batch_dict[k]])
+        return new_d
+
+    @staticmethod
+    def batchify_dict(batch_dict, i):
+        """
+        :param batch_dict: A batch dict is a dict whose values are batch.
+        :return: the dictionary returns a dict whose values are just elements of
+        the batch.
+        """
+        new_d = {}
+        for k in batch_dict.keys():
+            new_d[k] = batch_dict[k][i]
         return new_d
