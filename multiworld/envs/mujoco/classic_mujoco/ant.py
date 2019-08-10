@@ -325,7 +325,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         )
         return goals
 
-    def compute_rewards(self, actions, obs):
+    def compute_rewards(self, actions, obs, prev_obs=None):
         if self.reward_type == 'xy_dense':
             r = - self._compute_xy_distances(obs)
         elif self.reward_type == 'dense':
