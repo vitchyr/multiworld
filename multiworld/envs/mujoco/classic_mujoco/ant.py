@@ -127,7 +127,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             self.obs_space = Box(obs_space_low, obs_space_high, dtype=np.float32)
             self.goal_space = Box(goal_space_low, goal_space_high, dtype=np.float32)
-        qpos_space = Box(-10*np.ones(15), 10*np.ones(15))
+        qpos_space = Box(-10*np.ones(15), 10*np.ones(15), dtype=np.float32)
 
         spaces = [
             ('observation', self.obs_space),
