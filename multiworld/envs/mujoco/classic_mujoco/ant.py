@@ -456,12 +456,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return copy.deepcopy(state)
 
     def set_env_state(self, state):
-        # state, goal = state_and_goal
-        # self.sim.set_state(state)
-        # self._full_state_goal = goal
-        # self.sim.forward()
-        state, goal, cur_obs, prev_obs = state
-        self.sim.set_state(state)
+        joint_state, goal, cur_obs, prev_obs = state
+        self.sim.set_state(joint_state)
         self.sim.forward()
         self._full_state_goal = goal
         self._cur_obs = cur_obs
