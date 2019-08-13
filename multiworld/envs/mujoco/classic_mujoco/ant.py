@@ -287,7 +287,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             return copied_goal_dict
 
     def sample_goals(self, batch_size):
-        if self.fixed_goal or self.two_frames:
+        if self.fixed_goal:
             raise NotImplementedError()
         state_goals = None
         qpos_goals = None
@@ -304,10 +304,18 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self.presampled_goals.shape[0], size=batch_size,
             )
             state_goals = self.presampled_goals[idxs, :]
+            if not self.vel_in_state:
+                state_goals = state_goals[:, :15]
             xy_goals = state_goals[:, :2]
             qpos_goals = state_goals[:, :15]
         else:
             raise NotImplementedError(self.goal_sampling_strategy)
+
+        if self.two_frames:
+            state_goals = np.concatenate((state_goals, state_goals), axis=1)
+            xy_goals = np.concatenate((xy_goals, xy_goals), axis=1)
+            qpos_goals = np.concatenate((qpos_goals, qpos_goals), axis=1)
+
         goals_dict = {
             'desired_goal': state_goals.copy(),
             'xy_desired_goal': xy_goals.copy(),
@@ -402,20 +410,38 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def _set_goal(self, goal):
         if 'state_desired_goal' in goal:
-            self._full_state_goal = goal['state_desired_goal']
+            if self.two_frames:
+                state_size = len(goal['state_desired_goal'])
+                self._full_state_goal = goal['state_desired_goal'][:state_size//2]
+            else:
+                self._full_state_goal = goal['state_desired_goal']
+            # if self.two_frames:
+            #     state_size = len(goal['state_desired_goal'])
+            #     self._qpos_goal = np.concatenate((
+            #         self._full_state_goal[:15],
+            #         self._full_state_goal[state_size//2:state_size//2+15]
+            #     ))
+            #     qpos_size = len(self._qpos_goal)
+            #     self._xy_goal = np.concatenate((
+            #         self._qpos_goal[:2],
+            #         self._qpos_goal[qpos_size//2:qpos_size//2+2]
+            #     ))
+            # else:
             self._qpos_goal = self._full_state_goal[:15]
             self._xy_goal = self._qpos_goal[:2]
             if 'qpos_desired_goal' in goal:
-                assert (self._qpos_goal == goal['qpos_desired_goal']).all()
+                assert (self._qpos_goal == goal['qpos_desired_goal'][:15]).all()
             if 'xy_desired_goal' in goal:
-                assert (self._xy_goal == goal['xy_desired_goal']).all()
+                assert (self._xy_goal == goal['xy_desired_goal'][:2]).all()
         elif 'qpos_desired_goal' in goal:
+            raise NotImplementedError
             self._full_state_goal = None
             self._qpos_goal = goal['qpos_desired_goal']
             self._xy_goal = self._qpos_goal[:2]
             if 'xy_desired_goal' in goal:
                 assert (self._xy_goal == goal['xy_desired_goal']).all()
         elif 'xy_desired_goal' in goal:
+            raise NotImplementedError
             self._full_state_goal = None
             self._qpos_goal = None
             self._xy_goal = goal['xy_desired_goal']
@@ -451,14 +477,17 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self.set_state(qpos, qvel)
         else:
             site_xpos = self.sim.data.site_xpos
-            goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
+            goal_xpos = np.concatenate((self._xy_goal[:2], np.array([0.5])))
             site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
             self.model.site_pos[:] = site_xpos
 
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
         qpos = state_goal[0:15]
-        qvel = state_goal[15:29]
+        if self.vel_in_state:
+            qvel = state_goal[15:29]
+        else:
+            qvel = np.zeros(14)
         self.set_state(qpos, qvel)
         self._prev_obs = None
         self._cur_obs = None
