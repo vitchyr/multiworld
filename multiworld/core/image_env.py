@@ -99,7 +99,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
         self._img_goal = img_space.sample() #has to be done for presampling
         if self.two_frames:
-            self._img_goal = self._img_goal[:int(self._img_goal.size/2)]
+            self._img_goal = self._img_goal[:self._img_goal.size//2]
 
         spaces = self.wrapped_env.observation_space.spaces.copy()
         spaces['observation'] = img_space
@@ -229,7 +229,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             'image_proprio_desired_goal',
             'image_proprio_achieved_goal',
         ]:
-            frame[key] = np.concatenate((frame1[key], frame2[key]))
+            if key in frame1 and key in frame2:
+                frame[key] = np.concatenate((frame1[key], frame2[key]))
         return frame
 
     def _get_flat_img(self):
