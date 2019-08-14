@@ -442,7 +442,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self.set_state(qpos, qvel)
         else:
             site_xpos = self.sim.data.site_xpos
-            goal_xpos = np.concatenate((self._xy_goal[:2], np.array([0.5])))
+            goal_xpos = np.concatenate((self._xy_goal[:2], np.array([0.75])))
             site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
             self.model.site_pos[:] = site_xpos
 
