@@ -10,6 +10,10 @@ from multiworld.envs.env_util import get_asset_full_path
 import os.path as osp
 from railrl.misc.asset_loader import load_local_or_remote_file
 
+import matplotlib
+matplotlib.use('agg')
+import matplotlib.pyplot as plt
+
 from collections import OrderedDict
 
 from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
@@ -22,9 +26,6 @@ DEFAULT_GOAL = [-2., -2., 0.565, 1., 0., 0., 0., 0.,
                 1., 0., -1., 0., -1., 0., 1., -3.,
                 -3., 0.75, 1., 0., 0., 0., 0., 0.,
                 0., 0., 0., 0., 0., 0.]
-
-
-
 
 class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def __init__(
@@ -42,17 +43,18 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             goal_is_xy=False,
             goal_is_qpos=False,
             init_qpos=None,
-            fixed_goal=None,
-            init_xy_mode='corner',
+            fixed_goal=None, # deprecated feature
+            init_xy_mode='fixed',
             terminate_when_unhealthy=False,
             healthy_z_range=(0.2, 0.9),
             health_reward=10,
             goal_sampling_strategy='uniform',
             presampled_goal_paths='',
+            fixed_goal_qpos=None,
             *args,
             **kwargs):
         assert init_xy_mode in {
-            'corner',
+            'fixed',
             'sample-uniformly-xy-space',
             'sample-from-goal-space',  # soon to be deprecated
         }
@@ -74,7 +76,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.norm_order = norm_order
         self.goal_is_xy = goal_is_xy
         self.goal_is_qpos = goal_is_qpos
-        self.fixed_goal = fixed_goal
+        self.fixed_goal_qpos = fixed_goal_qpos
         self.init_xy_mode = init_xy_mode
         self.terminate_when_unhealthy = terminate_when_unhealthy
         self._healthy_reward = health_reward
@@ -143,6 +145,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._qpos_goal = None
         self._prev_obs = None
         self._cur_obs = None
+        self.subgoals = None
         self.reset()
 
     def step(self, action):
@@ -260,10 +263,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             return copied_goal_dict
 
     def sample_goals(self, batch_size):
-        if self.fixed_goal:
-            raise NotImplementedError()
-        state_goals = None
-        if self.goal_sampling_strategy == 'uniform':
+        if self.fixed_goal_qpos is not None:
+            fixed_goal = self.fixed_goal_qpos
+            if self.vel_in_state:
+                fixed_goal = np.concatenate((fixed_goal, np.zeros(14)))
+            state_goals = np.tile(fixed_goal, (batch_size, 1))
+        elif self.goal_sampling_strategy == 'uniform':
             assert self.goal_is_xy and self.vel_in_state
             raise NotImplementedError()
             # xy_goals = self._sample_uniform_xy(batch_size)
@@ -381,6 +386,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.sim.forward()
         self._prev_obs = None
         self._cur_obs = None
+        self.subgoals = None
 
         site_xpos = self.sim.data.site_xpos
         start_xpos = np.concatenate((self.sim.data.qpos.flat[:2], np.array([0.5])))
@@ -390,11 +396,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return self._get_obs()
 
     def _reset_ant(self):
-        qpos = self.init_qpos
-        qvel = np.zeros_like(self.init_qvel)
-        if self.init_xy_mode == 'sample-uniformly-xy-space':
+        if self.init_xy_mode == 'fixed':
+            qpos = self.init_qpos
+        elif self.init_xy_mode == 'sample-uniformly-xy-space':
+            qpos = self.init_qpos.copy()
             xy_start = self._sample_uniform_xy(1)[0]
             qpos[:2] = xy_start
+        qvel = np.zeros_like(self.init_qvel)
         self.set_state(qpos, qvel)
 
     def _set_goal(self, goal):
@@ -462,6 +470,86 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._full_state_goal = goal
         self._cur_obs = cur_obs
         self._prev_obs = prev_obs
+
+    def update_subgoals(self, subgoals, **kwargs):
+        self.subgoals = subgoals
+
+    def get_image_plt(
+            self,
+            vals=None,
+            vmin=None, vmax=None,
+            extent=[-3.0, 3.0, -3.0, 3.0],
+            small_markers=False,
+            draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
+            imsize=84
+    ):
+        fig, ax = plt.subplots()
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
+        # ax.set_xlim([2.75, -2.75])
+        # ax.set_ylim(ax.get_ylim()[::-1])
+        DPI = fig.get_dpi()
+        fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
+
+        marker_factor = 0.60
+        if small_markers:
+            marker_factor = 0.10
+
+        ob = self._get_obs()
+
+        if draw_state:
+            if small_markers:
+                color = 'cyan'
+            else:
+                color = 'blue'
+            ball = plt.Circle(ob['state_observation'][:2], 0.50 * marker_factor, color=color)
+            ax.add_artist(ball)
+        if draw_goal:
+            goal = plt.Circle(ob['state_desired_goal'][:2], 0.50 * marker_factor, color='green')
+            ax.add_artist(goal)
+        if draw_subgoals:
+            if self.subgoals is not None:
+                for i in range(len(self.subgoals)):
+                    subgoal = plt.Circle(self.subgoals[i][:2], (0.50 + 0.1) * marker_factor, color='red')
+                    ax.add_artist(subgoal)
+        # if draw_walls:
+        #     for wall in self.walls:
+        #         # ax.vlines(x=wall.min_x, ymin=wall.min_y, ymax=wall.max_y)
+        #         # ax.hlines(y=wall.min_y, xmin=wall.min_x, xmax=wall.max_x)
+        #         # ax.vlines(x=wall.max_x, ymin=wall.min_y, ymax=wall.max_y)
+        #         # ax.hlines(y=wall.max_y, xmin=wall.min_x, xmax=wall.max_x)
+        #         ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint2[1], ymax=wall.endpoint1[1])
+        #         ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
+        #         ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
+        #         ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+        ax.axis('off')
+
+        # if vals is not None:
+        #     ax.imshow(
+        #         vals,
+        #         extent=extent,
+        #         cmap=plt.get_cmap('plasma'),
+        #         interpolation='nearest',
+        #         vmax=vmax,
+        #         vmin=vmin,
+        #         origin='bottom',  # <-- Important! By default top left is (0, 0)
+        #     )
+
+        return self.plt_to_numpy(fig)
+
+    def plt_to_numpy(self, fig):
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close()
+        return data
 
 if __name__ == '__main__':
     env = AntEnv(
