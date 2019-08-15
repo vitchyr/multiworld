@@ -269,8 +269,17 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 fixed_goal = np.concatenate((fixed_goal, np.zeros(14)))
             state_goals = np.tile(fixed_goal, (batch_size, 1))
         elif self.goal_sampling_strategy == 'uniform':
-            assert self.goal_is_xy and self.vel_in_state
-            raise NotImplementedError()
+            # assert self.goal_is_xy and self.vel_in_state
+            # raise NotImplementedError()
+
+            qpos = self.init_qpos.copy().reshape(1, -1)
+            qpos = np.tile(qpos, (batch_size, 1))
+            qpos[:,:2] = self._sample_uniform_xy(batch_size)
+
+            if self.vel_in_state:
+                qvel = np.zeros((batch_size, 14))
+                state_goals = np.concatenate((qpos, qvel), axis=1)
+
             # xy_goals = self._sample_uniform_xy(batch_size)
         elif self.goal_sampling_strategy == 'preset1':
             assert self.goal_is_xy and self.vel_in_state
@@ -478,7 +487,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self,
             vals=None,
             vmin=None, vmax=None,
-            extent=[-3.0, 3.0, -3.0, 3.0],
+            extent=[-3.5, 3.5, -3.5, 3.5],
             small_markers=False,
             draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
             imsize=84
