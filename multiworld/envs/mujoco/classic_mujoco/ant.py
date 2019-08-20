@@ -519,7 +519,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         if draw_subgoals:
             if self.subgoals is not None:
                 for i in range(len(self.subgoals)):
-                    subgoal = plt.Circle(self.subgoals[i][:2], (0.50 + 0.1) * marker_factor, color='red')
+                    subgoal = plt.Circle(self.subgoals[i][:2], (0.50 - 0.1) * marker_factor, color='red')
                     ax.add_artist(subgoal)
         # if draw_walls:
         #     for wall in self.walls:

@@ -12,6 +12,7 @@ from multiworld.envs.env_util import concatenate_box_spaces
 from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
 
 from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
+from multiworld.envs.mujoco.classic_mujoco.ant_maze import AntMazeEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
 from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
     SawyerPickAndPlaceEnvYZ,
@@ -277,6 +278,26 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 #     img = img[::, :, ::-1]
                 #     cv2.imshow('img', img)
                 #     cv2.waitKey(1)
+            self.wrapped_env.set_env_state(pre_state)
+            imgs = imgs.reshape(orig_batch_size, -1)
+            return imgs
+        elif isinstance(self._wrapped_env, AntMazeEnv):
+            state_dim = len(self.observation_space.spaces['state_observation'].low)
+            if self.two_frames:
+                state_dim = state_dim // 2
+            orig_batch_size = states.shape[0]
+            states = states.reshape(-1, state_dim)
+
+            pre_state = self.wrapped_env.get_env_state()
+
+            batch_size = states.shape[0]
+            image_dim = self.image_length
+            if self.two_frames:
+                image_dim = image_dim // 2
+            imgs = np.zeros((batch_size, image_dim))
+            for i in range(batch_size):
+                self.wrapped_env.set_to_goal({"state_desired_goal": states[i]})
+                imgs[i, :] = self._get_flat_img()
             self.wrapped_env.set_env_state(pre_state)
             imgs = imgs.reshape(orig_batch_size, -1)
             return imgs
