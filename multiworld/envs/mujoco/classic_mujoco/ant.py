@@ -51,6 +51,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             goal_sampling_strategy='uniform',
             presampled_goal_paths='',
             fixed_goal_qpos=None,
+            test_mode_case_num=None,
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -83,7 +84,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._healthy_z_range = healthy_z_range
 
         self.model_path = model_path
-        assert goal_sampling_strategy in {'uniform', 'preset1', 'presampled'}
+        assert goal_sampling_strategy in {
+            'uniform',
+            'uniform_pos_and_rot',
+            'preset1',
+            'presampled'
+        }
         self.goal_sampling_strategy = goal_sampling_strategy
         if self.goal_sampling_strategy == 'presampled':
             assert presampled_goal_paths is not None
@@ -146,6 +152,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._prev_obs = None
         self._cur_obs = None
         self.subgoals = None
+        self.test_mode_case_num = test_mode_case_num
         self.reset()
 
     def step(self, action):
@@ -262,16 +269,37 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                     copied_goal_dict[k] = v
             return copied_goal_dict
 
-    def sample_goals(self, batch_size):
-        if self.fixed_goal_qpos is not None:
+    def sample_goals(self, batch_size, mode=None):
+        if mode == 'top_left':
+            qpos = self.init_qpos.copy().reshape(1, -1)
+            qpos = np.tile(qpos, (batch_size, 1))
+            qpos[:,:2] = np.random.uniform(
+                [-2.5, 2.5],
+                [-2.25, 2.5],
+                size=(batch_size, 2),
+            )
+
+            if self.vel_in_state:
+                qvel = np.zeros((batch_size, 14))
+                state_goals = np.concatenate((qpos, qvel), axis=1)
+        elif mode == 'top_right':
+            qpos = self.init_qpos.copy().reshape(1, -1)
+            qpos = np.tile(qpos, (batch_size, 1))
+            qpos[:,:2] = np.random.uniform(
+                [2.25, 2.5],
+                [2.5, 2.5],
+                size=(batch_size, 2),
+            )
+
+            if self.vel_in_state:
+                qvel = np.zeros((batch_size, 14))
+                state_goals = np.concatenate((qpos, qvel), axis=1)
+        elif self.fixed_goal_qpos is not None:
             fixed_goal = self.fixed_goal_qpos
             if self.vel_in_state:
                 fixed_goal = np.concatenate((fixed_goal, np.zeros(14)))
             state_goals = np.tile(fixed_goal, (batch_size, 1))
         elif self.goal_sampling_strategy == 'uniform':
-            # assert self.goal_is_xy and self.vel_in_state
-            # raise NotImplementedError()
-
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
             qpos[:,:2] = self._sample_uniform_xy(batch_size)
@@ -279,8 +307,25 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             if self.vel_in_state:
                 qvel = np.zeros((batch_size, 14))
                 state_goals = np.concatenate((qpos, qvel), axis=1)
+        elif self.goal_sampling_strategy == 'uniform_pos_and_rot':
+            qpos = self.init_qpos.copy().reshape(1, -1)
+            qpos = np.tile(qpos, (batch_size, 1))
+            qpos[:,:2] = self._sample_uniform_xy(batch_size)
 
-            # xy_goals = self._sample_uniform_xy(batch_size)
+            rots = np.random.randint(4, size=batch_size)
+            for i in range(batch_size):
+                if rots[i] == 0:
+                    qpos[i,3:7] = [1, 0, 0, 0]
+                elif rots[i] == 1:
+                    qpos[i, 3:7] = [0, 0, 0, 1]
+                elif rots[i] == 2:
+                    qpos[i, 3:7] = [0.7071068, 0, 0, 0.7071068]
+                elif rots[i] == 3:
+                    qpos[i, 3:7] = [0.7071068, 0, 0, -0.7071068]
+
+            if self.vel_in_state:
+                qvel = np.zeros((batch_size, 14))
+                state_goals = np.concatenate((qpos, qvel), axis=1)
         elif self.goal_sampling_strategy == 'preset1':
             assert self.goal_is_xy and self.vel_in_state
             raise NotImplementedError()
@@ -387,10 +432,33 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         diff = ant_pos - goals
         return np.abs(diff)
 
+    def sample_goal(self, mode=None):
+        goals = self.sample_goals(1, mode=mode)
+        return self.unbatchify_dict(goals, 0)
+
     def reset_model(self, goal=None):
-        if goal is None:
-            goal = self.sample_goal()
-        self._reset_ant()
+        if self.test_mode_case_num == 1:
+            if goal is None:
+                goal = self.sample_goal(mode='top_right')
+            self._reset_ant(mode='top_left')
+        elif self.test_mode_case_num == 2:
+            if goal is None:
+                goal = self.sample_goal(mode='top_left')
+            self._reset_ant(mode='top_right')
+        elif self.test_mode_case_num == 3:
+            mode = np.random.randint(2)
+            if mode == 0:
+                if goal is None:
+                    goal = self.sample_goal(mode='top_left')
+                self._reset_ant(mode='top_right')
+            elif mode == 1:
+                if goal is None:
+                    goal = self.sample_goal(mode='top_right')
+                self._reset_ant(mode='top_left')
+        else:
+            if goal is None:
+                goal = self.sample_goal()
+            self._reset_ant()
         self._set_goal(goal)
         self.sim.forward()
         self._prev_obs = None
@@ -404,8 +472,22 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
         return self._get_obs()
 
-    def _reset_ant(self):
-        if self.init_xy_mode == 'fixed':
+    def _reset_ant(self, mode=None):
+        if mode == 'top_left':
+            qpos = self.init_qpos.copy()
+            qpos[:2] = np.random.uniform(
+                [-2.5, 2.5],
+                [-2.25, 2.5],
+                size=(2),
+            )
+        elif mode == 'top_right':
+            qpos = self.init_qpos.copy()
+            qpos[:2] = np.random.uniform(
+                [2.25, 2.5],
+                [2.5, 2.5],
+                size=(2),
+            )
+        elif self.init_xy_mode == 'fixed':
             qpos = self.init_qpos
         elif self.init_xy_mode == 'sample-uniformly-xy-space':
             qpos = self.init_qpos.copy()
@@ -465,6 +547,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.set_state(qpos, qvel)
         self._prev_obs = None
         self._cur_obs = None
+        # qpos = list(self.sim.data.qpos.flat)[:15]
+        # flat_obs = qpos
+        # if self.vel_in_state:
+        #     flat_obs = flat_obs + list(self.sim.data.qvel.flat[:14])
+        # flat_obs = np.array(flat_obs)
+        # print(flat_obs - state_goal)
 
     def get_env_state(self):
         joint_state = self.sim.get_state()
