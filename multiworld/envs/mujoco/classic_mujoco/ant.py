@@ -169,6 +169,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             info['qpos-distance'] = self._compute_qpos_distances(
                 self.numpy_batchify_dict(ob)
             )
+            info['quat-distance'] = self._compute_quat_distances(
+                self.numpy_batchify_dict(ob)
+            )
         if self._xy_goal is not None:
             info['xy-distance'] = self._compute_xy_distances(
                 self.numpy_batchify_dict(ob)
@@ -193,6 +196,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         for stat_name in [
             'full-state-distance',
             'qpos-distance',
+            'quat-distance',
             'xy-distance',
             'is_not_healthy',
         ]:
@@ -269,7 +273,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                     copied_goal_dict[k] = v
             return copied_goal_dict
 
-    def sample_goals(self, batch_size, mode=None):
+    def sample_goals(self, batch_size, mode=None, keys=None):
         if mode == 'top_left':
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
@@ -367,6 +371,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             r = - self._compute_state_distances(obs)
         elif self.reward_type == 'qpos_dense':
             r = - self._compute_qpos_distances(obs)
+        elif self.reward_type == 'qpos_weighted':
+            r = - self._compute_qpos_weighted_distances(obs)
         elif self.reward_type == 'vectorized_dense':
             r = - self._compute_vectorized_state_distances(obs)
         else:
@@ -402,6 +408,28 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         diff = ant_pos - goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
+    def _compute_quat_distances(self, obs):
+        if self.two_frames:
+            state_size = obs['state_achieved_goal'].shape[1] // 2
+            achieved_goals = np.concatenate(
+                (obs['state_achieved_goal'][:, 3:7],
+                 obs['state_achieved_goal'][:, state_size+3:state_size+7]),
+                axis=1
+            )
+            desired_goals = np.concatenate(
+                (obs['state_desired_goal'][:, 3:7],
+                 obs['state_desired_goal'][:, state_size+3:state_size+7]),
+                axis=1
+            )
+        else:
+            achieved_goals = obs['state_achieved_goal'][:, 3:7]
+            desired_goals = obs['state_desired_goal'][:, 3:7]
+        if desired_goals.shape == (1,):
+            return -1000
+        return np.linalg.norm(
+            achieved_goals - desired_goals, ord=self.norm_order, axis=1
+        )
+
     def _compute_qpos_distances(self, obs):
         if self.two_frames:
             state_size = obs['state_achieved_goal'].shape[1] // 2
@@ -420,6 +448,33 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             desired_goals = obs['state_desired_goal'][:, :15]
         if desired_goals.shape == (1,):
             return -1000
+        return np.linalg.norm(
+            achieved_goals - desired_goals, ord=self.norm_order, axis=1
+        )
+
+    def _compute_qpos_weighted_distances(self, obs):
+        if self.two_frames:
+            state_size = obs['state_achieved_goal'].shape[1] // 2
+            achieved_goals = np.concatenate(
+                (obs['state_achieved_goal'][:, 0:15],
+                 obs['state_achieved_goal'][:, state_size:state_size+15]),
+                axis=1
+            )
+            desired_goals = np.concatenate(
+                (obs['state_desired_goal'][:, 0:15],
+                 obs['state_desired_goal'][:, state_size:state_size+15]),
+                axis=1
+            )
+        else:
+            achieved_goals = obs['state_achieved_goal'][:, :15]
+            desired_goals = obs['state_desired_goal'][:, :15]
+        if desired_goals.shape == (1,):
+            return -1000
+        diff = achieved_goals - desired_goals
+        diff[:, 3:7] = 5 * diff[:, 3:7]
+        if self.two_frames:
+            state_size = obs['state_achieved_goal'].shape[1] // 2
+            diff[:,state_size+3:state_size+7] = 5 * diff[:,state_size+3:state_size+7]
         return np.linalg.norm(
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
