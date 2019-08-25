@@ -10,7 +10,7 @@ class AntMazeEnv(AntEnv):
         for i in range(len(pos)):
             if 'small' in self.model_path:
                 if 'maze2' in self.model_path:
-                    if (-2.00 <= pos[i][0] <= 2.00) and (-2.00 <= pos[i][1] <= 4.00):
+                    if (-2.00 <= pos[i][0] <= 2.00) and (-2.00 <= pos[i][1]):
                         bad_pos_idx.append(i)
                     elif (2.75 <= pos[i][0]) or (pos[i][0] <= -2.75):
                         bad_pos_idx.append(i)
@@ -23,6 +23,16 @@ class AntMazeEnv(AntEnv):
                         bad_pos_idx.append(i)
                     elif (2.75 <= pos[i][1]) or (pos[i][1] <= -2.75):
                         bad_pos_idx.append(i)
+            elif 'big' in self.model_path:
+                if 'maze2' in self.model_path:
+                    if (-2.25 <= pos[i][0] <= 2.25) and (-2.75 <= pos[i][1]):
+                        bad_pos_idx.append(i)
+                    elif (4.75 <= pos[i][0]) or (pos[i][0] <= -4.75):
+                        bad_pos_idx.append(i)
+                    elif (4.75 <= pos[i][1]) or (pos[i][1] <= -4.75):
+                        bad_pos_idx.append(i)
+                else:
+                    raise NotImplementedError
             else:
                 raise NotImplementedError
 

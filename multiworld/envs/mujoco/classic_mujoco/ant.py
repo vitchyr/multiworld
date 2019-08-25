@@ -18,10 +18,6 @@ from collections import OrderedDict
 
 from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
 
-PRESET1 = np.array([
-    [-3, 0],
-    [0, -3],
-])
 DEFAULT_GOAL = [-2., -2., 0.565, 1., 0., 0., 0., 0.,
                 1., 0., -1., 0., -1., 0., 1., -3.,
                 -3., 0.75, 1., 0., 0., 0., 0., 0.,
@@ -52,6 +48,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             presampled_goal_paths='',
             fixed_goal_qpos=None,
             test_mode_case_num=None,
+            use_euler=False,
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -87,7 +84,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         assert goal_sampling_strategy in {
             'uniform',
             'uniform_pos_and_rot',
-            'preset1',
             'presampled'
         }
         self.goal_sampling_strategy = goal_sampling_strategy
@@ -102,28 +98,31 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             self.presampled_goals = None
 
+        self.use_euler = use_euler
+
         self.ant_low, self.ant_high = np.array(ant_low), np.array(ant_high)
         goal_low, goal_high = np.array(goal_low), np.array(goal_high)
         self.two_frames = two_frames
         self.vel_in_state = vel_in_state
-        if self.vel_in_state:
-            obs_space_low = np.concatenate((self.ant_low, -np.ones(27)))
-            obs_space_high = np.concatenate((self.ant_high, np.ones(27)))
-            if goal_is_xy:
-                goal_space_low = goal_low
-                goal_space_high = goal_high
-            else:
-                goal_space_low = np.concatenate((goal_low, -np.ones(27)))
-                goal_space_high = np.concatenate((goal_high, np.ones(27)))
+
+        if self.use_euler:
+            self.pos_dim = 17
         else:
-            obs_space_low = np.concatenate((self.ant_low, -np.ones(13)))
-            obs_space_high = np.concatenate((self.ant_high, np.ones(13)))
-            if goal_is_xy:
-                goal_space_low = goal_low
-                goal_space_high = goal_high
-            else:
-                goal_space_low = np.concatenate((goal_low, -np.ones(13)))
-                goal_space_high = np.concatenate((goal_high, np.ones(13)))
+            self.pos_dim = 15
+
+        if self.vel_in_state:
+            self.state_dim = self.pos_dim + 14
+        else:
+            self.state_dim = self.pos_dim
+
+        obs_space_low = np.concatenate((self.ant_low, -np.ones(self.state_dim-2)))
+        obs_space_high = np.concatenate((self.ant_high, np.ones(self.state_dim-2)))
+        if goal_is_xy:
+            goal_space_low = goal_low
+            goal_space_high = goal_high
+        else:
+            goal_space_low = np.concatenate((goal_low, -np.ones(self.state_dim-2)))
+            goal_space_high = np.concatenate((goal_high, np.ones(self.state_dim-2)))
 
         if self.two_frames:
             self.obs_space = Box(np.concatenate((obs_space_low, obs_space_low)),
@@ -147,8 +146,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.observation_space = Dict(spaces)
 
         self._full_state_goal = None
-        self._xy_goal = None
-        self._qpos_goal = None
         self._prev_obs = None
         self._cur_obs = None
         self.subgoals = None
@@ -161,21 +158,25 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = {}
-        if self._full_state_goal is not None:
-            info['full-state-distance'] = self._compute_state_distances(
-                self.numpy_batchify_dict(ob)
-            )
-        if self._qpos_goal is not None:
-            info['qpos-distance'] = self._compute_qpos_distances(
-                self.numpy_batchify_dict(ob)
-            )
-            info['quat-distance'] = self._compute_quat_distances(
-                self.numpy_batchify_dict(ob)
-            )
-        if self._xy_goal is not None:
-            info['xy-distance'] = self._compute_xy_distances(
-                self.numpy_batchify_dict(ob)
-            )
+        # if self._full_state_goal is not None:
+        info['full-state-distance'] = self._compute_state_distances(
+            self.numpy_batchify_dict(ob)
+        )
+        info['qpos-distance'] = self._compute_qpos_distances(
+            self.numpy_batchify_dict(ob)
+        )
+        info['epos-distance'] = self._compute_epos_distances(
+            self.numpy_batchify_dict(ob)
+        )
+        info['quat-distance'] = self._compute_quat_distances(
+            self.numpy_batchify_dict(ob)
+        )
+        info['euler-distance'] = self._compute_euler_distances(
+            self.numpy_batchify_dict(ob)
+        )
+        info['xy-distance'] = self._compute_xy_distances(
+            self.numpy_batchify_dict(ob)
+        )
         if self.terminate_when_unhealthy:
             done = not self.is_healthy
             reward += self._healthy_reward
@@ -184,11 +185,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
         info['is_not_healthy'] = int(not self.is_healthy)
 
-        if len(self.init_qpos) > 15 and self.viewer is not None:
-            qpos = self.sim.data.qpos
-            qpos[15:] = self._full_state_goal[:15]
-            qvel = self.sim.data.qvel
-            self.set_state(qpos, qvel)
         return ob, reward, done, info
 
     def get_diagnostics(self, paths, prefix=''):
@@ -196,7 +192,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         for stat_name in [
             'full-state-distance',
             'qpos-distance',
+            'epos-distance',
             'quat-distance',
+            'euler-distance',
             'xy-distance',
             'is_not_healthy',
         ]:
@@ -221,9 +219,82 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         is_healthy = (np.isfinite(state).all() and min_z <= state[2] <= max_z)
         return is_healthy
 
+    def _quat_to_euler(self, quat):
+        x, y, z, w = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
+        t0 = +2.0 * (w * x + y * z)
+        t1 = +1.0 - 2.0 * (x * x + y * y)
+        X = np.arctan2(t0, t1)
+
+        t2 = +2.0 * (w * y - z * x)
+        t2 = np.clip(t2, -1.0, 1.0)
+        Y = np.arcsin(t2)
+
+        t3 = +2.0 * (w * z + x * y)
+        t4 = +1.0 - 2.0 * (y * y + z * z)
+        Z = np.arctan2(t3, t4)
+
+        return np.column_stack((
+            np.cos(X), np.sin(X),
+            np.cos(Y), np.sin(Y),
+            np.cos(Z), np.sin(Z),
+        ))
+
+    def _euler_to_quat(self, euler):
+        roll = np.arctan2(euler[:, 1], euler[:, 0])
+        pitch = np.arctan2(euler[:, 3], euler[:, 2])
+        yaw = np.arctan2(euler[:, 5], euler[:, 4])
+
+        qx = np.sin(roll / 2) * np.cos(pitch / 2) * np.cos(yaw / 2) - np.cos(roll / 2) * np.sin(pitch / 2) * np.sin(
+            yaw / 2)
+        qy = np.cos(roll / 2) * np.sin(pitch / 2) * np.cos(yaw / 2) + np.sin(roll / 2) * np.cos(pitch / 2) * np.sin(
+            yaw / 2)
+        qz = np.cos(roll / 2) * np.cos(pitch / 2) * np.sin(yaw / 2) - np.sin(roll / 2) * np.sin(pitch / 2) * np.cos(
+            yaw / 2)
+        qw = np.cos(roll / 2) * np.cos(pitch / 2) * np.cos(yaw / 2) + np.sin(roll / 2) * np.sin(pitch / 2) * np.sin(
+            yaw / 2)
+
+        return np.column_stack((qx, qy, qz, qw))
+
+    def _qpos_to_epos(self, qpos):
+        qpos = np.array(qpos)
+        ndim = qpos.ndim
+        qpos = qpos.reshape(-1, 15)
+        quat = qpos[:, 3:7]
+        euler = self._quat_to_euler(quat)
+
+        epos = np.hstack((qpos[:,0:3], euler, qpos[:,7:]))
+
+        if ndim == 1:
+            return epos[0]
+        else:
+            return epos
+
+    def _epos_to_qpos(self, epos):
+        epos = np.array(epos)
+        ndim = epos.ndim
+        epos = epos.reshape(-1, 17)
+        euler = epos[:, 3:9]
+        quat = self._euler_to_quat(euler)
+
+        qpos = np.hstack((
+            epos[:,0:3],
+            quat,
+            epos[:,9:]
+        ))
+
+        if ndim == 1:
+            return qpos[0]
+        else:
+            return qpos
+
     def _get_obs(self):
         qpos = list(self.sim.data.qpos.flat)[:15]
-        flat_obs = qpos
+        if self.use_euler:
+            epos = self._qpos_to_epos(qpos)
+            flat_obs = list(epos)
+        else:
+            flat_obs = qpos
+
         if self.vel_in_state:
             flat_obs = flat_obs + list(self.sim.data.qvel.flat[:14])
         flat_obs = np.array(flat_obs)
@@ -275,6 +346,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def sample_goals(self, batch_size, mode=None, keys=None):
         if mode == 'top_left':
+            assert not self.use_euler
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
             qpos[:,:2] = np.random.uniform(
@@ -287,6 +359,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 qvel = np.zeros((batch_size, 14))
                 state_goals = np.concatenate((qpos, qvel), axis=1)
         elif mode == 'top_right':
+            assert not self.use_euler
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
             qpos[:,:2] = np.random.uniform(
@@ -299,6 +372,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 qvel = np.zeros((batch_size, 14))
                 state_goals = np.concatenate((qpos, qvel), axis=1)
         elif self.fixed_goal_qpos is not None:
+            assert not self.use_euler
             fixed_goal = self.fixed_goal_qpos
             if self.vel_in_state:
                 fixed_goal = np.concatenate((fixed_goal, np.zeros(14)))
@@ -308,10 +382,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             qpos = np.tile(qpos, (batch_size, 1))
             qpos[:,:2] = self._sample_uniform_xy(batch_size)
 
+            if self.use_euler:
+                pos = self._qpos_to_epos(qpos)
+            else:
+                pos = qpos
+
             if self.vel_in_state:
                 qvel = np.zeros((batch_size, 14))
-                state_goals = np.concatenate((qpos, qvel), axis=1)
+                state_goals = np.concatenate((pos, qvel), axis=1)
+            else:
+                state_goals = pos
         elif self.goal_sampling_strategy == 'uniform_pos_and_rot':
+            assert not self.use_euler
+
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
             qpos[:,:2] = self._sample_uniform_xy(batch_size)
@@ -330,19 +413,18 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             if self.vel_in_state:
                 qvel = np.zeros((batch_size, 14))
                 state_goals = np.concatenate((qpos, qvel), axis=1)
-        elif self.goal_sampling_strategy == 'preset1':
-            assert self.goal_is_xy and self.vel_in_state
-            raise NotImplementedError()
-            # xy_goals = PRESET1[
-            #     np.random.randint(PRESET1.shape[0], size=batch_size), :
-            # ]
         elif self.goal_sampling_strategy == 'presampled':
             idxs = np.random.randint(
                 self.presampled_goals.shape[0], size=batch_size,
             )
             state_goals = self.presampled_goals[idxs, :]
+            if self.use_euler:
+                qpos = state_goals[:,:15]
+                qvel = state_goals[:,15:]
+                epos = self._qpos_to_epos(qpos)
+                state_goals = np.hstack((epos, qvel))
             if not self.vel_in_state:
-                state_goals = state_goals[:, :15]
+                state_goals = state_goals[:, :self.pos_dim]
         else:
             raise NotImplementedError(self.goal_sampling_strategy)
 
@@ -371,13 +453,31 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             r = - self._compute_state_distances(obs)
         elif self.reward_type == 'qpos_dense':
             r = - self._compute_qpos_distances(obs)
-        elif self.reward_type == 'qpos_weighted':
-            r = - self._compute_qpos_weighted_distances(obs)
+        elif self.reward_type == 'epos_dense':
+            r = - self._compute_epos_distances(obs)
         elif self.reward_type == 'vectorized_dense':
             r = - self._compute_vectorized_state_distances(obs)
         else:
             raise NotImplementedError("Invalid/no reward type.")
         return r
+
+    def _compute_state_distances(self, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        if desired_goals.shape == (1,):
+            return -1000
+        ant_pos = achieved_goals
+        goals = desired_goals
+        diff = ant_pos - goals
+        return np.linalg.norm(diff, ord=self.norm_order, axis=1)
+
+    def _compute_vectorized_state_distances(self, obs):
+        achieved_goals = obs['state_achieved_goal']
+        desired_goals = obs['state_desired_goal']
+        ant_pos = achieved_goals
+        goals = desired_goals
+        diff = ant_pos - goals
+        return np.abs(diff)
 
     def _compute_xy_distances(self, obs):
         if self.two_frames:
@@ -398,32 +498,78 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         diff = achieved_goals - desired_goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
 
-    def _compute_state_distances(self, obs):
-        achieved_goals = obs['state_achieved_goal']
-        desired_goals = obs['state_desired_goal']
+    def _compute_quat_distances(self, obs):
+        if self.use_euler:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (self._euler_to_quat(obs['state_achieved_goal'][:, 3:9]),
+                     self._euler_to_quat(obs['state_achieved_goal'][:, state_size+3:state_size+9])),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (self._euler_to_quat(obs['state_desired_goal'][:, 3:9]),
+                     self._euler_to_quat(obs['state_desired_goal'][:, state_size+3:state_size+9])),
+                    axis=1
+                )
+            else:
+                achieved_goals = self._euler_to_quat(obs['state_achieved_goal'][:, 3:9])
+                desired_goals = self._euler_to_quat(obs['state_desired_goal'][:, 3:9])
+        else:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 3:7],
+                     obs['state_achieved_goal'][:, state_size+3:state_size+7]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 3:7],
+                     obs['state_desired_goal'][:, state_size+3:state_size+7]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, 3:7]
+                desired_goals = obs['state_desired_goal'][:, 3:7]
         if desired_goals.shape == (1,):
             return -1000
-        ant_pos = achieved_goals
-        goals = desired_goals
-        diff = ant_pos - goals
-        return np.linalg.norm(diff, ord=self.norm_order, axis=1)
+        return np.linalg.norm(
+            achieved_goals - desired_goals, ord=self.norm_order, axis=1
+        )
 
-    def _compute_quat_distances(self, obs):
-        if self.two_frames:
-            state_size = obs['state_achieved_goal'].shape[1] // 2
-            achieved_goals = np.concatenate(
-                (obs['state_achieved_goal'][:, 3:7],
-                 obs['state_achieved_goal'][:, state_size+3:state_size+7]),
-                axis=1
-            )
-            desired_goals = np.concatenate(
-                (obs['state_desired_goal'][:, 3:7],
-                 obs['state_desired_goal'][:, state_size+3:state_size+7]),
-                axis=1
-            )
+    def _compute_euler_distances(self, obs):
+        if self.use_euler:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 3:9],
+                     obs['state_achieved_goal'][:, state_size+3:state_size+9]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 3:9],
+                     obs['state_desired_goal'][:, state_size+3:state_size+9]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, 3:9]
+                desired_goals = obs['state_desired_goal'][:, 3:9]
         else:
-            achieved_goals = obs['state_achieved_goal'][:, 3:7]
-            desired_goals = obs['state_desired_goal'][:, 3:7]
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (self._quat_to_euler(obs['state_achieved_goal'][:, 3:7]),
+                     self._quat_to_euler(obs['state_achieved_goal'][:, state_size+3:state_size+7])),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (self._quat_to_euler(obs['state_desired_goal'][:, 3:7]),
+                     self._quat_to_euler(obs['state_desired_goal'][:, state_size+3:state_size+7])),
+                    axis=1
+                )
+            else:
+                achieved_goals = self._quat_to_euler(obs['state_achieved_goal'][:, 3:7])
+                desired_goals = self._quat_to_euler(obs['state_desired_goal'][:, 3:7])
         if desired_goals.shape == (1,):
             return -1000
         return np.linalg.norm(
@@ -431,61 +577,82 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         )
 
     def _compute_qpos_distances(self, obs):
-        if self.two_frames:
-            state_size = obs['state_achieved_goal'].shape[1] // 2
-            achieved_goals = np.concatenate(
-                (obs['state_achieved_goal'][:, 0:15],
-                 obs['state_achieved_goal'][:, state_size:state_size+15]),
-                axis=1
-            )
-            desired_goals = np.concatenate(
-                (obs['state_desired_goal'][:, 0:15],
-                 obs['state_desired_goal'][:, state_size:state_size+15]),
-                axis=1
-            )
+        if self.use_euler:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (self._epos_to_qpos(obs['state_achieved_goal'][:, 0:self.pos_dim]),
+                     self._epos_to_qpos(obs['state_achieved_goal'][:, state_size:state_size + self.pos_dim])),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (self._epos_to_qpos(obs['state_desired_goal'][:, 0:self.pos_dim]),
+                     self._epos_to_qpos(obs['state_desired_goal'][:, state_size:state_size + self.pos_dim])),
+                    axis=1
+                )
+            else:
+                achieved_goals = self._epos_to_qpos(obs['state_achieved_goal'][:, :self.pos_dim])
+                desired_goals = self._epos_to_qpos(obs['state_desired_goal'][:, :self.pos_dim])
         else:
-            achieved_goals = obs['state_achieved_goal'][:, :15]
-            desired_goals = obs['state_desired_goal'][:, :15]
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 0:self.pos_dim],
+                     obs['state_achieved_goal'][:, state_size:state_size+self.pos_dim]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 0:self.pos_dim],
+                     obs['state_desired_goal'][:, state_size:state_size+self.pos_dim]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, :self.pos_dim]
+                desired_goals = obs['state_desired_goal'][:, :self.pos_dim]
         if desired_goals.shape == (1,):
             return -1000
         return np.linalg.norm(
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
 
-    def _compute_qpos_weighted_distances(self, obs):
-        if self.two_frames:
-            state_size = obs['state_achieved_goal'].shape[1] // 2
-            achieved_goals = np.concatenate(
-                (obs['state_achieved_goal'][:, 0:15],
-                 obs['state_achieved_goal'][:, state_size:state_size+15]),
-                axis=1
-            )
-            desired_goals = np.concatenate(
-                (obs['state_desired_goal'][:, 0:15],
-                 obs['state_desired_goal'][:, state_size:state_size+15]),
-                axis=1
-            )
+    def _compute_epos_distances(self, obs):
+        if not self.use_euler:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (self._qpos_to_epos(obs['state_achieved_goal'][:, 0:self.pos_dim]),
+                     self._qpos_to_epos(obs['state_achieved_goal'][:, state_size:state_size + self.pos_dim])),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (self._qpos_to_epos(obs['state_desired_goal'][:, 0:self.pos_dim]),
+                     self._qpos_to_epos(obs['state_desired_goal'][:, state_size:state_size + self.pos_dim])),
+                    axis=1
+                )
+            else:
+                achieved_goals = self._qpos_to_epos(obs['state_achieved_goal'][:, :self.pos_dim])
+                desired_goals = self._qpos_to_epos(obs['state_desired_goal'][:, :self.pos_dim])
         else:
-            achieved_goals = obs['state_achieved_goal'][:, :15]
-            desired_goals = obs['state_desired_goal'][:, :15]
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 0:self.pos_dim],
+                     obs['state_achieved_goal'][:, state_size:state_size+self.pos_dim]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 0:self.pos_dim],
+                     obs['state_desired_goal'][:, state_size:state_size+self.pos_dim]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, :self.pos_dim]
+                desired_goals = obs['state_desired_goal'][:, :self.pos_dim]
         if desired_goals.shape == (1,):
             return -1000
-        diff = achieved_goals - desired_goals
-        diff[:, 3:7] = 5 * diff[:, 3:7]
-        if self.two_frames:
-            state_size = obs['state_achieved_goal'].shape[1] // 2
-            diff[:,state_size+3:state_size+7] = 5 * diff[:,state_size+3:state_size+7]
         return np.linalg.norm(
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
-
-    def _compute_vectorized_state_distances(self, obs):
-        achieved_goals = obs['state_achieved_goal']
-        desired_goals = obs['state_desired_goal']
-        ant_pos = achieved_goals
-        goals = desired_goals
-        diff = ant_pos - goals
-        return np.abs(diff)
 
     def sample_goal(self, mode=None):
         goals = self.sample_goals(1, mode=mode)
@@ -558,56 +725,30 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 self._full_state_goal = goal['state_desired_goal'][:state_size//2]
             else:
                 self._full_state_goal = goal['state_desired_goal']
-            self._qpos_goal = self._full_state_goal[:15]
-            self._xy_goal = self._qpos_goal[:2]
-            # if 'qpos_desired_goal' in goal:
-            #     assert (self._qpos_goal == goal['qpos_desired_goal'][:15]).all()
-            # if 'xy_desired_goal' in goal:
-            #     assert (self._xy_goal == goal['xy_desired_goal'][:2]).all()
-        # elif 'qpos_desired_goal' in goal:
-        #     raise NotImplementedError
-        #     self._full_state_goal = None
-        #     self._qpos_goal = goal['qpos_desired_goal']
-        #     self._xy_goal = self._qpos_goal[:2]
-        #     # if 'xy_desired_goal' in goal:
-        #     #     assert (self._xy_goal == goal['xy_desired_goal']).all()
-        # elif 'xy_desired_goal' in goal:
-        #     raise NotImplementedError
-        #     self._full_state_goal = None
-        #     self._qpos_goal = None
-        #     self._xy_goal = goal['xy_desired_goal']
         else:
             raise ValueError("C'mon, you gotta give me some goal!")
-        assert self._xy_goal is not None
         self._prev_obs = None
         self._cur_obs = None
-        if len(self.init_qpos) > 15 and self._qpos_goal is not None:
-            qpos = self.init_qpos
-            qpos[15:] = self._qpos_goal
-            qvel = self.sim.data.qvel
-            self.set_state(qpos, qvel)
-        else:
-            site_xpos = self.sim.data.site_xpos
-            goal_xpos = np.concatenate((self._xy_goal[:2], np.array([0.75])))
-            site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
-            self.model.site_pos[:] = site_xpos
+
+        site_xpos = self.sim.data.site_xpos
+        goal_xpos = np.concatenate((self._full_state_goal[:2], np.array([0.75])))
+        site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
+        self.model.site_pos[:] = site_xpos
 
     def set_to_goal(self, goal):
         state_goal = goal['state_desired_goal']
-        qpos = state_goal[0:15]
+        if self.use_euler:
+            qpos = self._epos_to_qpos(state_goal[:self.pos_dim])
+        else:
+            qpos = state_goal[:self.pos_dim]
+
         if self.vel_in_state:
-            qvel = state_goal[15:29]
+            qvel = state_goal[self.pos_dim:self.state_dim]
         else:
             qvel = np.zeros(14)
         self.set_state(qpos, qvel)
         self._prev_obs = None
         self._cur_obs = None
-        # qpos = list(self.sim.data.qpos.flat)[:15]
-        # flat_obs = qpos
-        # if self.vel_in_state:
-        #     flat_obs = flat_obs + list(self.sim.data.qvel.flat[:14])
-        # flat_obs = np.array(flat_obs)
-        # print(flat_obs - state_goal)
 
     def get_env_state(self):
         joint_state = self.sim.get_state()
@@ -630,11 +771,19 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self,
             vals=None,
             vmin=None, vmax=None,
-            extent=[-3.5, 3.5, -3.5, 3.5],
+            extent=None,
             small_markers=False,
             draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
             imsize=84
     ):
+        if extent is None:
+            if 'small' in self.model_path:
+                extent = [-3.5, 3.5, -3.5, 3.5]
+            elif 'big' in self.model_path:
+                extent = [-5.5, 5.5, -5.5, 5.5]
+            else:
+                extent = [-4.5, 4.5, -4.5, 4.5]
+
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
