@@ -38,7 +38,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             model_path='classic_mujoco/normal_gear_ratio_ant.xml',
             goal_is_xy=False,
             goal_is_qpos=False,
-            init_qpos=None,
+            init_qpos=list([
+                -2, -2, 0.565, 1,
+                0, 0, 0,
+                0, 1., 0., -1., 0., -1., 0., 1.,
+            ]),
             fixed_goal=None, # deprecated feature
             init_xy_mode='fixed',
             terminate_when_unhealthy=False,
@@ -79,6 +83,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.terminate_when_unhealthy = terminate_when_unhealthy
         self._healthy_reward = health_reward
         self._healthy_z_range = healthy_z_range
+        self.ant_radius = 0.75
 
         self.model_path = model_path
         assert goal_sampling_strategy in {
@@ -150,7 +155,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._cur_obs = None
         self.subgoals = None
         self.test_mode_case_num = test_mode_case_num
-        self.reset()
+        # self.reset()
 
     def step(self, action):
         self._prev_obs = self._cur_obs
