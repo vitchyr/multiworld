@@ -349,11 +349,20 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             assert not self.use_euler
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
-            qpos[:,:2] = np.random.uniform(
-                [-2.5, 2.5],
-                [-2.25, 2.5],
-                size=(batch_size, 2),
-            )
+            if 'small' in self.model_path:
+                qpos[:,:2] = np.random.uniform(
+                    [-2.5, 2.5],
+                    [-2.25, 2.5],
+                    size=(batch_size, 2),
+                )
+            elif 'big' in self.model_path:
+                qpos[:,:2] = np.random.uniform(
+                    [-4.25, 4.25],
+                    [-3.25, 4.25],
+                    size=(batch_size, 2),
+                )
+            else:
+                raise NotImplementedError
 
             if self.vel_in_state:
                 qvel = np.zeros((batch_size, 14))
@@ -362,11 +371,20 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             assert not self.use_euler
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
-            qpos[:,:2] = np.random.uniform(
-                [2.25, 2.5],
-                [2.5, 2.5],
-                size=(batch_size, 2),
-            )
+            if 'small' in self.model_path:
+                qpos[:,:2] = np.random.uniform(
+                    [2.25, 2.5],
+                    [2.5, 2.5],
+                    size=(batch_size, 2),
+                )
+            elif 'big' in self.model_path:
+                qpos[:, :2] = np.random.uniform(
+                    [3.25, 4.25],
+                    [4.25, 4.25],
+                    size=(batch_size, 2),
+                )
+            else:
+                raise NotImplementedError
 
             if self.vel_in_state:
                 qvel = np.zeros((batch_size, 14))
@@ -697,18 +715,36 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def _reset_ant(self, mode=None):
         if mode == 'top_left':
             qpos = self.init_qpos.copy()
-            qpos[:2] = np.random.uniform(
-                [-2.5, 2.5],
-                [-2.25, 2.5],
-                size=(2),
-            )
+            if 'small' in self.model_path:
+                qpos[:2] = np.random.uniform(
+                    [-2.5, 2.5],
+                    [-2.25, 2.5],
+                    size=(2),
+                )
+            elif 'big' in self.model_path:
+                qpos[:2] = np.random.uniform(
+                    [-4.25, 4.25],
+                    [-3.25, 4.25],
+                    size=(2),
+                )
+            else:
+                raise NotImplementedError
         elif mode == 'top_right':
             qpos = self.init_qpos.copy()
-            qpos[:2] = np.random.uniform(
-                [2.25, 2.5],
-                [2.5, 2.5],
-                size=(2),
-            )
+            if 'small' in self.model_path:
+                qpos[:2] = np.random.uniform(
+                    [2.25, 2.5],
+                    [2.5, 2.5],
+                    size=(2),
+                )
+            elif 'big' in self.model_path:
+                qpos[:2] = np.random.uniform(
+                    [3.25, 4.25],
+                    [4.25, 4.25],
+                    size=(2),
+                )
+            else:
+                raise NotImplementedError
         elif self.init_xy_mode == 'fixed':
             qpos = self.init_qpos
         elif self.init_xy_mode == 'sample-uniformly-xy-space':
