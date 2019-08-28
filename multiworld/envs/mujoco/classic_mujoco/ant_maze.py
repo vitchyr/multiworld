@@ -7,25 +7,29 @@ class AntMazeEnv(AntEnv):
 
     def __init__(
             self,
+            # model_path='classic_mujoco/normal_gear_ratio_ant.xml',
+            # test_mode_case_num=None,
             *args,
             **kwargs
     ):
-        self.quick_init(locals())
-        AntEnv.__init__(self, *args, **kwargs)
+        self.ant_radius = 0.75
 
-        if self.model_path == 'classic_mujoco/ant_maze2_gear30_small_dt3.xml':
+        model_path = kwargs['model_path']
+        test_mode_case_num = kwargs.get('test_mode_case_num', None)
+
+        if model_path == 'classic_mujoco/ant_maze2_gear30_small_dt3.xml':
             self.maze_type = 'u-small'
-        elif self.model_path == 'classic_mujoco/ant_maze2_gear30_big_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_maze2_gear30_big_dt3.xml':
             self.maze_type = 'u-big'
-        elif self.model_path == 'classic_mujoco/ant_fb_gear30_small_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_fb_gear30_small_dt3.xml':
             self.maze_type = 'fb-small'
-        elif self.model_path == 'classic_mujoco/ant_fb_gear30_med_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_fb_gear30_med_dt3.xml':
             self.maze_type = 'fb-med'
-        elif self.model_path == 'classic_mujoco/ant_fb_gear30_big_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_fb_gear30_big_dt3.xml':
             self.maze_type = 'fb-big'
-        elif self.model_path == 'classic_mujoco/ant_fork_gear30_med_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_fork_gear30_med_dt3.xml':
             self.maze_type = 'fork-med'
-        elif self.model_path == 'classic_mujoco/ant_fork_gear30_big_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_fork_gear30_big_dt3.xml':
             self.maze_type = 'fork-big'
         else:
             raise NotImplementedError
@@ -59,6 +63,26 @@ class AntMazeEnv(AntEnv):
                 Wall(7.0, 0, 1, 8.0, self.ant_radius),
                 Wall(-7.0, 0, 1, 8.0, self.ant_radius),
             ]
+
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-4.75, 4.25])
+                kwargs['reset_high'] = np.array([-4.25, 4.75])
+
+                kwargs['goal_low'] = np.array([4.25, -4.75])
+                kwargs['goal_high'] = np.array([4.75, -4.25])
+            elif test_mode_case_num == 2:
+                kwargs['reset_low'] = np.array([-4.75, -0.25])
+                kwargs['reset_high'] = np.array([-4.25, 0.25])
+
+                kwargs['goal_low'] = np.array([4.25, -0.25])
+                kwargs['goal_high'] = np.array([4.75, -0.25])
+            elif test_mode_case_num == 3:
+                kwargs['reset_low'] = np.array([-4.75, -4.75])
+                kwargs['reset_high'] = np.array([-4.25, -4.25])
+
+                kwargs['goal_low'] = np.array([4.25, 4.25])
+                kwargs['goal_high'] = np.array([4.75, 4.75])
+
         elif self.maze_type == 'fb-big':
             self.walls = [
                 Wall(-2.75, 2.0, 0.75, 5.5, self.ant_radius),
@@ -80,6 +104,20 @@ class AntMazeEnv(AntEnv):
                 Wall(6.0, 0, 1, 7.0, self.ant_radius),
                 Wall(-6.0, 0, 1, 7.0, self.ant_radius),
             ]
+
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-0.25, -3.75])
+                kwargs['reset_high'] = np.array([0.25, -3.25])
+
+                kwargs['goal_low'] = np.array([-3.75, -3.75])
+                kwargs['goal_high'] = np.array([-3.25, -3.25])
+            elif test_mode_case_num == 2:
+                kwargs['reset_low'] = np.array([-0.25, -0.25])
+                kwargs['reset_high'] = np.array([0.25, 0.25])
+
+                kwargs['goal_low'] = np.array([-3.75, -0.25])
+                kwargs['goal_high'] = np.array([-3.25, 0.25])
+
         elif self.maze_type == 'fork-big':
             self.walls = [
                 Wall(-3.5, -1.5, 0.25, 5.25, self.ant_radius),
@@ -92,8 +130,24 @@ class AntMazeEnv(AntEnv):
                 Wall(7.75, 0, 1, 8.75, self.ant_radius),
                 Wall(-7.75, 0, 1, 8.75, self.ant_radius),
             ]
+
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-5.5, -5.5])
+                kwargs['reset_high'] = np.array([-5.0, -5.0])
+
+                kwargs['goal_low'] = np.array([-5.5, -5.5])
+                kwargs['goal_high'] = np.array([-5.0, -5.0])
+
         else:
             raise NotImplementedError
+
+        self.quick_init(locals())
+        AntEnv.__init__(
+            self,
+            # model_path=model_path,
+            *args,
+            **kwargs
+        )
 
 
     def _collision_idx(self, pos):
@@ -134,10 +188,17 @@ class AntMazeEnv(AntEnv):
 
         return bad_pos_idx
 
-    def _sample_uniform_xy(self, batch_size):
+    def _sample_uniform_xy(self, batch_size, mode='goal'):
+        assert mode in ['reset', 'goal']
+
+        if mode == 'reset':
+            low, high = self.reset_low, self.reset_high
+        elif mode == 'goal':
+            low, high = self.goal_low, self.goal_high
+
         goals = np.random.uniform(
-            self.goal_space.low[:2],
-            self.goal_space.high[:2],
+            low,
+            high,
             size=(batch_size, 2),
         )
 
@@ -145,8 +206,8 @@ class AntMazeEnv(AntEnv):
         goals = np.delete(goals, bad_goals_idx, axis=0)
         while len(bad_goals_idx) > 0:
             new_goals = np.random.uniform(
-                self.goal_space.low[:2],
-                self.goal_space.high[:2],
+                low,
+                high,
                 size=(len(bad_goals_idx), 2),
             )
 

@@ -53,6 +53,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             fixed_goal_qpos=None,
             test_mode_case_num=None,
             use_euler=False,
+            reset_low=None,
+            reset_high=None,
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -83,7 +85,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.terminate_when_unhealthy = terminate_when_unhealthy
         self._healthy_reward = health_reward
         self._healthy_z_range = healthy_z_range
-        self.ant_radius = 0.75
+        # self.ant_radius = 0.75
 
         self.model_path = model_path
         assert goal_sampling_strategy in {
@@ -106,7 +108,20 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.use_euler = use_euler
 
         self.ant_low, self.ant_high = np.array(ant_low), np.array(ant_high)
+
         goal_low, goal_high = np.array(goal_low), np.array(goal_high)
+        self.goal_low, self.goal_high = goal_low, goal_high
+
+        if reset_low is not None:
+            reset_low = np.array(reset_low)
+        else:
+            reset_low = goal_low.copy()
+        if reset_high is not None:
+            reset_high = np.array(reset_high)
+        else:
+            reset_high = goal_high.copy()
+        self.reset_low, self.reset_high = reset_low, reset_high
+
         self.two_frames = two_frames
         self.vel_in_state = vel_in_state
 
@@ -182,6 +197,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         info['xy-distance'] = self._compute_xy_distances(
             self.numpy_batchify_dict(ob)
         )
+        info['success'] = self._compute_success(
+            self.numpy_batchify_dict(ob)
+        )
         if self.terminate_when_unhealthy:
             done = not self.is_healthy
             reward += self._healthy_reward
@@ -201,6 +219,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'quat-distance',
             'euler-distance',
             'xy-distance',
+            'success',
             'is_not_healthy',
         ]:
             stat_name = stat_name
@@ -403,7 +422,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         elif self.goal_sampling_strategy == 'uniform':
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
-            qpos[:,:2] = self._sample_uniform_xy(batch_size)
+            qpos[:,:2] = self._sample_uniform_xy(batch_size, mode='goal')
 
             if self.use_euler:
                 pos = self._qpos_to_epos(qpos)
@@ -420,7 +439,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
-            qpos[:,:2] = self._sample_uniform_xy(batch_size)
+            qpos[:,:2] = self._sample_uniform_xy(batch_size, mode='goal')
 
             rots = np.random.randint(4, size=batch_size)
             for i in range(batch_size):
@@ -461,10 +480,17 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
         return goals_dict
 
-    def _sample_uniform_xy(self, batch_size):
+    def _sample_uniform_xy(self, batch_size, mode='goal'):
+        assert mode in ['reset', 'goal']
+
+        if mode == 'reset':
+            low, high = self.reset_low, self.reset_high
+        elif mode == 'goal':
+            low, high = self.goal_low, self.goal_high
+
         goals = np.random.uniform(
-            self.goal_space.low[:2],
-            self.goal_space.high[:2],
+            low,
+            high,
             size=(batch_size, 2),
         )
         return goals
@@ -520,6 +546,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             desired_goals = obs['state_desired_goal'][:, :2]
         diff = achieved_goals - desired_goals
         return np.linalg.norm(diff, ord=self.norm_order, axis=1)
+
+    def _compute_success(self, obs):
+        assert not self.two_frames
+        achieved_goals = obs['state_achieved_goal'][:, :2]
+        desired_goals = obs['state_desired_goal'][:, :2]
+        diff = achieved_goals - desired_goals
+        return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 1.50).astype(int)
 
     def _compute_quat_distances(self, obs):
         if self.use_euler:
@@ -682,28 +715,33 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return self.unbatchify_dict(goals, 0)
 
     def reset_model(self, goal=None):
-        if self.test_mode_case_num == 1:
-            if goal is None:
-                goal = self.sample_goal(mode='top_right')
-            self._reset_ant(mode='top_left')
-        elif self.test_mode_case_num == 2:
-            if goal is None:
-                goal = self.sample_goal(mode='top_left')
-            self._reset_ant(mode='top_right')
-        elif self.test_mode_case_num == 3:
-            mode = np.random.randint(2)
-            if mode == 0:
-                if goal is None:
-                    goal = self.sample_goal(mode='top_left')
-                self._reset_ant(mode='top_right')
-            elif mode == 1:
-                if goal is None:
-                    goal = self.sample_goal(mode='top_right')
-                self._reset_ant(mode='top_left')
-        else:
-            if goal is None:
-                goal = self.sample_goal()
-            self._reset_ant()
+        # if self.test_mode_case_num == 1:
+        #     if goal is None:
+        #         goal = self.sample_goal(mode='top_right')
+        #     self._reset_ant(mode='top_left')
+        # elif self.test_mode_case_num == 2:
+        #     if goal is None:
+        #         goal = self.sample_goal(mode='top_left')
+        #     self._reset_ant(mode='top_right')
+        # elif self.test_mode_case_num == 3:
+        #     mode = np.random.randint(2)
+        #     if mode == 0:
+        #         if goal is None:
+        #             goal = self.sample_goal(mode='top_left')
+        #         self._reset_ant(mode='top_right')
+        #     elif mode == 1:
+        #         if goal is None:
+        #             goal = self.sample_goal(mode='top_right')
+        #         self._reset_ant(mode='top_left')
+        # else:
+        #     if goal is None:
+        #         goal = self.sample_goal()
+        #     self._reset_ant()
+
+        if goal is None:
+            goal = self.sample_goal()
+        self._reset_ant()
+
         self._set_goal(goal)
         self.sim.forward()
         self._prev_obs = None
@@ -754,7 +792,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             qpos = self.init_qpos
         elif self.init_xy_mode == 'sample-uniformly-xy-space':
             qpos = self.init_qpos.copy()
-            xy_start = self._sample_uniform_xy(1)[0]
+            xy_start = self._sample_uniform_xy(1, mode='reset')[0]
             qpos[:2] = xy_start
         qvel = np.zeros_like(self.init_qvel)
         self.set_state(qpos, qvel)
