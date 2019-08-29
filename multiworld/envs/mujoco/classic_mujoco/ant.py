@@ -59,9 +59,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             **kwargs):
         assert init_xy_mode in {
             'fixed',
+            'uniform',
+            'uniform_pos_and_rot',
+
             'sample-uniformly-xy-space',
-            'sample-from-goal-space',  # soon to be deprecated
         }
+
         assert not goal_is_xy or not goal_is_qpos
         self.quick_init(locals())
         MultitaskEnv.__init__(self)
@@ -89,18 +92,15 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
         self.model_path = model_path
         assert goal_sampling_strategy in {
+            'fixed',
             'uniform',
             'uniform_pos_and_rot',
+
             'presampled'
         }
         self.goal_sampling_strategy = goal_sampling_strategy
         if self.goal_sampling_strategy == 'presampled':
             assert presampled_goal_paths is not None
-            # if not osp.exists(presampled_goal_paths):
-            #     presampled_goal_paths = get_asset_full_path(
-            #         presampled_goal_paths
-            #     )
-            # self.presampled_goals = np.load(presampled_goal_paths)
             self.presampled_goals = load_local_or_remote_file(presampled_goal_paths)
         else:
             self.presampled_goals = None
@@ -197,7 +197,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         info['xy-distance'] = self._compute_xy_distances(
             self.numpy_batchify_dict(ob)
         )
-        info['success'] = self._compute_success(
+        info['xy-success'] = self._compute_success(
+            self.numpy_batchify_dict(ob)
+        )
+        info['leg-distance'] = self._compute_leg_distances(
             self.numpy_batchify_dict(ob)
         )
         if self.terminate_when_unhealthy:
@@ -219,7 +222,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'quat-distance',
             'euler-distance',
             'xy-distance',
-            'success',
+            'xy-success',
+            'leg-distance',
             'is_not_healthy',
         ]:
             stat_name = stat_name
@@ -369,51 +373,51 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             return copied_goal_dict
 
     def sample_goals(self, batch_size, mode=None, keys=None):
-        if mode == 'top_left':
-            assert not self.use_euler
-            qpos = self.init_qpos.copy().reshape(1, -1)
-            qpos = np.tile(qpos, (batch_size, 1))
-            if 'small' in self.model_path:
-                qpos[:,:2] = np.random.uniform(
-                    [-2.5, 2.5],
-                    [-2.25, 2.5],
-                    size=(batch_size, 2),
-                )
-            elif 'big' in self.model_path:
-                qpos[:,:2] = np.random.uniform(
-                    [-4.25, 4.25],
-                    [-3.25, 4.25],
-                    size=(batch_size, 2),
-                )
-            else:
-                raise NotImplementedError
-
-            if self.vel_in_state:
-                qvel = np.zeros((batch_size, 14))
-                state_goals = np.concatenate((qpos, qvel), axis=1)
-        elif mode == 'top_right':
-            assert not self.use_euler
-            qpos = self.init_qpos.copy().reshape(1, -1)
-            qpos = np.tile(qpos, (batch_size, 1))
-            if 'small' in self.model_path:
-                qpos[:,:2] = np.random.uniform(
-                    [2.25, 2.5],
-                    [2.5, 2.5],
-                    size=(batch_size, 2),
-                )
-            elif 'big' in self.model_path:
-                qpos[:, :2] = np.random.uniform(
-                    [3.25, 4.25],
-                    [4.25, 4.25],
-                    size=(batch_size, 2),
-                )
-            else:
-                raise NotImplementedError
-
-            if self.vel_in_state:
-                qvel = np.zeros((batch_size, 14))
-                state_goals = np.concatenate((qpos, qvel), axis=1)
-        elif self.fixed_goal_qpos is not None:
+        # if mode == 'top_left':
+        #     assert not self.use_euler
+        #     qpos = self.init_qpos.copy().reshape(1, -1)
+        #     qpos = np.tile(qpos, (batch_size, 1))
+        #     if 'small' in self.model_path:
+        #         qpos[:,:2] = np.random.uniform(
+        #             [-2.5, 2.5],
+        #             [-2.25, 2.5],
+        #             size=(batch_size, 2),
+        #         )
+        #     elif 'big' in self.model_path:
+        #         qpos[:,:2] = np.random.uniform(
+        #             [-4.25, 4.25],
+        #             [-3.25, 4.25],
+        #             size=(batch_size, 2),
+        #         )
+        #     else:
+        #         raise NotImplementedError
+        #
+        #     if self.vel_in_state:
+        #         qvel = np.zeros((batch_size, 14))
+        #         state_goals = np.concatenate((qpos, qvel), axis=1)
+        # elif mode == 'top_right':
+        #     assert not self.use_euler
+        #     qpos = self.init_qpos.copy().reshape(1, -1)
+        #     qpos = np.tile(qpos, (batch_size, 1))
+        #     if 'small' in self.model_path:
+        #         qpos[:,:2] = np.random.uniform(
+        #             [2.25, 2.5],
+        #             [2.5, 2.5],
+        #             size=(batch_size, 2),
+        #         )
+        #     elif 'big' in self.model_path:
+        #         qpos[:, :2] = np.random.uniform(
+        #             [3.25, 4.25],
+        #             [4.25, 4.25],
+        #             size=(batch_size, 2),
+        #         )
+        #     else:
+        #         raise NotImplementedError
+        #
+        #     if self.vel_in_state:
+        #         qvel = np.zeros((batch_size, 14))
+        #         state_goals = np.concatenate((qpos, qvel), axis=1)
+        if self.fixed_goal_qpos is not None:
             assert not self.use_euler
             fixed_goal = self.fixed_goal_qpos
             if self.vel_in_state:
@@ -435,8 +439,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             else:
                 state_goals = pos
         elif self.goal_sampling_strategy == 'uniform_pos_and_rot':
-            assert not self.use_euler
-
             qpos = self.init_qpos.copy().reshape(1, -1)
             qpos = np.tile(qpos, (batch_size, 1))
             qpos[:,:2] = self._sample_uniform_xy(batch_size, mode='goal')
@@ -452,9 +454,14 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 elif rots[i] == 3:
                     qpos[i, 3:7] = [0.7071068, 0, 0, -0.7071068]
 
+            if self.use_euler:
+                pos = self._qpos_to_epos(qpos)
+            else:
+                pos = qpos
+
             if self.vel_in_state:
                 qvel = np.zeros((batch_size, 14))
-                state_goals = np.concatenate((qpos, qvel), axis=1)
+                state_goals = np.concatenate((pos, qvel), axis=1)
         elif self.goal_sampling_strategy == 'presampled':
             idxs = np.random.randint(
                 self.presampled_goals.shape[0], size=batch_size,
@@ -553,6 +560,45 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         desired_goals = obs['state_desired_goal'][:, :2]
         diff = achieved_goals - desired_goals
         return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 1.50).astype(int)
+
+    def _compute_leg_distances(self, obs):
+        if self.use_euler:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 9:17],
+                     obs['state_achieved_goal'][:, state_size+9:state_size+17]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 9:17],
+                     obs['state_desired_goal'][:, state_size+9:state_size+17]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, 9:17]
+                desired_goals = obs['state_desired_goal'][:, 9:17]
+        else:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 7:15],
+                     obs['state_achieved_goal'][:, state_size+7:state_size+15]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 7:15],
+                     obs['state_desired_goal'][:, state_size+7:state_size+15]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, 7:15]
+                desired_goals = obs['state_desired_goal'][:, 7:15]
+        if desired_goals.shape == (1,):
+            return -1000
+        return np.linalg.norm(
+            achieved_goals - desired_goals, ord=self.norm_order, axis=1
+        )
 
     def _compute_quat_distances(self, obs):
         if self.use_euler:
@@ -756,44 +802,59 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return self._get_obs()
 
     def _reset_ant(self, mode=None):
-        if mode == 'top_left':
-            qpos = self.init_qpos.copy()
-            if 'small' in self.model_path:
-                qpos[:2] = np.random.uniform(
-                    [-2.5, 2.5],
-                    [-2.25, 2.5],
-                    size=(2),
-                )
-            elif 'big' in self.model_path:
-                qpos[:2] = np.random.uniform(
-                    [-4.25, 4.25],
-                    [-3.25, 4.25],
-                    size=(2),
-                )
-            else:
-                raise NotImplementedError
-        elif mode == 'top_right':
-            qpos = self.init_qpos.copy()
-            if 'small' in self.model_path:
-                qpos[:2] = np.random.uniform(
-                    [2.25, 2.5],
-                    [2.5, 2.5],
-                    size=(2),
-                )
-            elif 'big' in self.model_path:
-                qpos[:2] = np.random.uniform(
-                    [3.25, 4.25],
-                    [4.25, 4.25],
-                    size=(2),
-                )
-            else:
-                raise NotImplementedError
-        elif self.init_xy_mode == 'fixed':
+        # if mode == 'top_left':
+        #     qpos = self.init_qpos.copy()
+        #     if 'small' in self.model_path:
+        #         qpos[:2] = np.random.uniform(
+        #             [-2.5, 2.5],
+        #             [-2.25, 2.5],
+        #             size=(2),
+        #         )
+        #     elif 'big' in self.model_path:
+        #         qpos[:2] = np.random.uniform(
+        #             [-4.25, 4.25],
+        #             [-3.25, 4.25],
+        #             size=(2),
+        #         )
+        #     else:
+        #         raise NotImplementedError
+        # elif mode == 'top_right':
+        #     qpos = self.init_qpos.copy()
+        #     if 'small' in self.model_path:
+        #         qpos[:2] = np.random.uniform(
+        #             [2.25, 2.5],
+        #             [2.5, 2.5],
+        #             size=(2),
+        #         )
+        #     elif 'big' in self.model_path:
+        #         qpos[:2] = np.random.uniform(
+        #             [3.25, 4.25],
+        #             [4.25, 4.25],
+        #             size=(2),
+        #         )
+        #     else:
+        #         raise NotImplementedError
+        if self.init_xy_mode == 'fixed':
             qpos = self.init_qpos
-        elif self.init_xy_mode == 'sample-uniformly-xy-space':
+        elif self.init_xy_mode in ['uniform', 'sample-uniformly-xy-space']:
             qpos = self.init_qpos.copy()
             xy_start = self._sample_uniform_xy(1, mode='reset')[0]
             qpos[:2] = xy_start
+        elif self.init_xy_mode == 'uniform_pos_and_rot':
+            qpos = self.init_qpos.copy()
+            xy_start = self._sample_uniform_xy(1, mode='reset')[0]
+            qpos[:2] = xy_start
+
+            rots = np.random.randint(4)
+            if rots == 0:
+                qpos[3:7] = [1, 0, 0, 0]
+            elif rots == 1:
+                qpos[3:7] = [0, 0, 0, 1]
+            elif rots == 2:
+                qpos[3:7] = [0.7071068, 0, 0, 0.7071068]
+            elif rots == 3:
+                qpos[3:7] = [0.7071068, 0, 0, -0.7071068]
+
         qvel = np.zeros_like(self.init_qvel)
         self.set_state(qpos, qvel)
 
