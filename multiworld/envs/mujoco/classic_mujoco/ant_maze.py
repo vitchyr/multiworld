@@ -17,9 +17,17 @@ class AntMazeEnv(AntEnv):
         model_path = kwargs['model_path']
         test_mode_case_num = kwargs.get('test_mode_case_num', None)
 
-        if model_path == 'classic_mujoco/ant_maze2_gear30_small_dt3.xml':
+        if model_path in [
+            'classic_mujoco/ant_maze2_gear30_small_dt3.xml',
+            'classic_mujoco/ant_gear30_dt3_u_small.xml',
+        ]:
             self.maze_type = 'u-small'
-        elif model_path == 'classic_mujoco/ant_maze2_gear30_big_dt3.xml':
+        elif model_path == 'classic_mujoco/ant_gear30_dt3_u_med.xml':
+            self.maze_type = 'u-med'
+        elif model_path == [
+            'classic_mujoco/ant_maze2_gear30_big_dt3.xml',
+            'classic_mujoco/ant_gear30_dt3_u_big.xml',
+        ]:
             self.maze_type = 'u-big'
         elif model_path == 'classic_mujoco/ant_fb_gear30_small_dt3.xml':
             self.maze_type = 'fb-small'
@@ -43,6 +51,21 @@ class AntMazeEnv(AntEnv):
                 Wall(4.5, 0, 1, 5.5, self.ant_radius),
                 Wall(-4.5, 0, 1, 5.5, self.ant_radius),
             ]
+        elif self.maze_type == 'u-med':
+            self.walls = [
+                Wall(0, 1.5, 1.5, 3, self.ant_radius),
+
+                Wall(0, 5.5, 4.5, 1, self.ant_radius),
+                Wall(0, -5.5, 4.5, 1, self.ant_radius),
+                Wall(5.5, 0, 1, 6.5, self.ant_radius),
+                Wall(-5.5, 0, 1, 6.5, self.ant_radius),
+            ]
+
+            if 'goal_low' not in kwargs:
+                kwargs['goal_low'] = np.array([-5.5, -5.5])
+            if 'goal_high' not in kwargs:
+                kwargs['goal_high'] = np.array([5.5, 5.5])
+
         elif self.maze_type == 'fb-small':
             self.walls = [
                 Wall(-2.0, 1.25, 0.75, 4.0, self.ant_radius),
@@ -82,6 +105,12 @@ class AntMazeEnv(AntEnv):
 
                 kwargs['goal_low'] = np.array([4.25, 4.25])
                 kwargs['goal_high'] = np.array([4.75, 4.75])
+            elif test_mode_case_num == 4:
+                kwargs['reset_low'] = np.array([-0.25, -4.75])
+                kwargs['reset_high'] = np.array([0.25, -4.25])
+
+                kwargs['goal_low'] = np.array([4.25, -4.75])
+                kwargs['goal_high'] = np.array([4.75, -4.25])
 
         elif self.maze_type == 'fb-big':
             self.walls = [

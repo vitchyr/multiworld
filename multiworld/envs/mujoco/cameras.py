@@ -284,6 +284,14 @@ def ant_u_small_camera(camera):
     camera.distance = 9.0 #6.5
     camera.elevation = -70
 
+def ant_u_med_camera(camera):
+    camera.trackbodyid = 0
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = -1.0
+    camera.lookat[2] = 0.5
+    camera.distance = 12.0 #6.5
+    camera.elevation = -70
+
 def ant_u_big_camera(camera):
     camera.trackbodyid = 0
     camera.lookat[0] = 0.0

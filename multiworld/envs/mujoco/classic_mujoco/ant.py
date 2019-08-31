@@ -55,6 +55,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             use_euler=False,
             reset_low=None,
             reset_high=None,
+            reset_and_goal_mode=None,
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -64,6 +65,22 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
             'sample-uniformly-xy-space',
         }
+
+        assert reset_and_goal_mode in {
+            'fixed',
+            'uniform',
+            'uniform_pos_and_rot',
+            None
+        }
+
+        if reset_and_goal_mode is not None:
+            init_xy_mode = reset_and_goal_mode
+            goal_sampling_strategy = reset_and_goal_mode
+
+        if model_path == 'classic_mujoco/ant_maze2_gear30_small_dt3.xml':
+            model_path = 'classic_mujoco/ant_gear30_dt3_u_small.xml'
+        elif model_path == 'classic_mujoco/ant_maze2_gear30_big_dt3.xml':
+            model_path = 'classic_mujoco/ant_gear30_dt3_u_big.xml'
 
         assert not goal_is_xy or not goal_is_qpos
         self.quick_init(locals())

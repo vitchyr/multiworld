@@ -1,0 +1,23 @@
+<mujoco>
+    <body name="walls" pos="0 0 0">
+        <body name="innerwall" pos="0 0 0">
+            <geom type="box" pos="0 1.5 0" size="1.5 3 1"
+                  rgba=".12 .4 .9 1"
+                  contype="3" conaffinity="3" />
+        </body>
+        <body name="outerwall" pos="0 0 0">
+            <geom type="box" pos="0 5.5 0" size="4.5 1 1"
+                  rgba=".12 .4 .9 1"
+                  contype="2" conaffinity="3" />
+            <geom type="box" pos="0 -5.5 0" size="4.5 1 1"
+                  rgba=".12 .4 .9 1"
+                  contype="2" conaffinity="3" />
+            <geom type="box" pos="5.5 0 0" size="1 6.5 1"
+                  rgba=".12 .4 .9 1"
+                  contype="2" conaffinity="3" />
+            <geom type="box" pos="-5.5 0 0" size="1 6.5 1"
+                  rgba=".12 .4 .9 1"
+                  contype="2" conaffinity="3" />
+        </body>
+    </body>
+</mujoco>
