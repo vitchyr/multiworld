@@ -226,6 +226,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             done = False
 
+        info['is_flipped'] = int(self.is_flipped)
         info['is_not_healthy'] = int(not self.is_healthy)
 
         return ob, reward, done, info
@@ -242,6 +243,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'xy-success',
             'leg-distance',
             'is_not_healthy',
+            'is_flipped',
         ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
@@ -823,7 +825,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         if desired_goals.shape == (1,):
             return -1000
 
-        scaling_factor = 10.0
+        scaling_factor = 3.0 #10.0
         achieved_goals = np.copy(achieved_goals)
         desired_goals = np.copy(desired_goals)
         achieved_goals[:,3:9] = achieved_goals[:,3:9] * scaling_factor
