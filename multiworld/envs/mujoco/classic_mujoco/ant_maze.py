@@ -51,6 +51,14 @@ class AntMazeEnv(AntEnv):
                 Wall(4.5, 0, 1, 5.5, self.ant_radius),
                 Wall(-4.5, 0, 1, 5.5, self.ant_radius),
             ]
+
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-2.5, 2.5])
+                kwargs['reset_high'] = np.array([-2.25, 2.5])
+
+                kwargs['goal_low'] = np.array([2.25, 2.5])
+                kwargs['goal_high'] = np.array([2.5, 2.5])
+
         elif self.maze_type == 'u-med':
             self.walls = [
                 Wall(0, 1.5, 1.5, 3, self.ant_radius),
@@ -76,6 +84,7 @@ class AntMazeEnv(AntEnv):
                 Wall(6.25, 0, 1, 7.25, self.ant_radius),
                 Wall(-6.25, 0, 1, 7.25, self.ant_radius),
             ]
+
         elif self.maze_type == 'fb-med':
             self.walls = [
                 Wall(-2.25, 1.5, 0.75, 4.5, self.ant_radius),
