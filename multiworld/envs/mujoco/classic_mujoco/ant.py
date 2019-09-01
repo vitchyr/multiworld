@@ -270,13 +270,14 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
     def is_flipped(self):
         state = self.state_vector()
         euler = self._qpos_to_epos(state[:15])[3:9]
-        roll = np.arctan2(euler[1], euler[0])
         pitch = np.arctan2(euler[3], euler[2])
         yaw = np.arctan2(euler[5], euler[4])
-        # print(np.degrees([roll, pitch, yaw]))
         return np.abs(np.degrees(pitch)) > 90 or np.abs(np.degrees(yaw)) > 90
-        # is_healthy = (np.isfinite(state).all() and min_z <= state[2] <= max_z)
-        # return is_healthy
+
+    def _check_flipped(self, euler):
+        pitch = np.arctan2(euler[:,3], euler[:,2])
+        yaw = np.arctan2(euler[:,5], euler[:,4])
+        return np.logical_or(np.abs(np.degrees(pitch)) > 90, np.abs(np.degrees(yaw)) > 90)
 
     def _quat_to_euler(self, quat):
         x, y, z, w = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
@@ -544,6 +545,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             r = - self._compute_epos_distances(obs)
         elif self.reward_type == 'epos_weighted_euler':
             r = - self._compute_epos_weighted_euler_distances(obs)
+        elif self.reward_type == 'epos_penalize_flip':
+            r = - self._compute_epos_penalize_flip_distances(obs)
         elif self.reward_type in ['state_vectorized', 'vectorized_dense']:
             r = - self._compute_vectorized_state_distances(obs)
         else:
@@ -839,6 +842,51 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return np.linalg.norm(
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
+
+    def _compute_epos_penalize_flip_distances(self, obs):
+        if not self.use_euler:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (self._qpos_to_epos(obs['state_achieved_goal'][:, 0:self.pos_dim]),
+                     self._qpos_to_epos(obs['state_achieved_goal'][:, state_size:state_size + self.pos_dim])),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (self._qpos_to_epos(obs['state_desired_goal'][:, 0:self.pos_dim]),
+                     self._qpos_to_epos(obs['state_desired_goal'][:, state_size:state_size + self.pos_dim])),
+                    axis=1
+                )
+            else:
+                achieved_goals = self._qpos_to_epos(obs['state_achieved_goal'][:, :self.pos_dim])
+                desired_goals = self._qpos_to_epos(obs['state_desired_goal'][:, :self.pos_dim])
+        else:
+            if self.two_frames:
+                state_size = obs['state_achieved_goal'].shape[1] // 2
+                achieved_goals = np.concatenate(
+                    (obs['state_achieved_goal'][:, 0:self.pos_dim],
+                     obs['state_achieved_goal'][:, state_size:state_size+self.pos_dim]),
+                    axis=1
+                )
+                desired_goals = np.concatenate(
+                    (obs['state_desired_goal'][:, 0:self.pos_dim],
+                     obs['state_desired_goal'][:, state_size:state_size+self.pos_dim]),
+                    axis=1
+                )
+            else:
+                achieved_goals = obs['state_achieved_goal'][:, :self.pos_dim]
+                desired_goals = obs['state_desired_goal'][:, :self.pos_dim]
+        if desired_goals.shape == (1,):
+            return -1000
+
+        achieved_goals_flipped = self._check_flipped(achieved_goals[:,3:9])
+        desired_goals_flipped = self._check_flipped(desired_goals[:,3:9])
+        penalty = 10.0 * np.logical_and(np.logical_not(desired_goals_flipped), achieved_goals_flipped)
+
+        base_distance = np.linalg.norm(
+            achieved_goals - desired_goals, ord=self.norm_order, axis=1
+        )
+        return base_distance + penalty
 
     def sample_goal(self, mode=None):
         goals = self.sample_goals(1, mode=mode)
