@@ -187,11 +187,15 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self._cur_obs = None
         self.subgoals = None
         self.test_mode_case_num = test_mode_case_num
+        self.timesteps_so_far = 0
+        self.tau = None
         # self.reset()
 
     def step(self, action):
         self._prev_obs = self._cur_obs
+        flipped_before_step = self.is_flipped
         self.do_simulation(np.array(action), self.frame_skip)
+        self.timesteps_so_far += 1
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = {}
@@ -226,10 +230,18 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             done = False
 
+        if not flipped_before_step and self.is_flipped:
+            info['flip_time'] = self.timesteps_so_far
+            if self.tau is not None:
+                info['flip_tau'] = self.tau
+
         info['is_flipped'] = int(self.is_flipped)
         info['is_not_healthy'] = int(not self.is_healthy)
 
         return ob, reward, done, info
+
+    def set_tau(self, tau):
+        self.tau = tau
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
@@ -245,7 +257,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'is_not_healthy',
             'is_flipped',
         ]:
-            stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
             statistics.update(create_stats_ordered_dict(
                 '%s%s' % (prefix, stat_name),
@@ -257,6 +268,24 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 [s[-1] for s in stat],
                 always_show_all_stats=True,
             ))
+
+        for stat_name in [
+            'flip_time',
+            'flip_tau',
+        ]:
+            stat = []
+            for path in paths:
+                for info in path['env_infos']:
+                    if stat_name in info:
+                        stat.append(info[stat_name])
+            if len(stat) == 0:
+                stat = [-1]
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+            ))
+
         return statistics
 
     @property
@@ -893,29 +922,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         return self.unbatchify_dict(goals, 0)
 
     def reset_model(self, goal=None):
-        # if self.test_mode_case_num == 1:
-        #     if goal is None:
-        #         goal = self.sample_goal(mode='top_right')
-        #     self._reset_ant(mode='top_left')
-        # elif self.test_mode_case_num == 2:
-        #     if goal is None:
-        #         goal = self.sample_goal(mode='top_left')
-        #     self._reset_ant(mode='top_right')
-        # elif self.test_mode_case_num == 3:
-        #     mode = np.random.randint(2)
-        #     if mode == 0:
-        #         if goal is None:
-        #             goal = self.sample_goal(mode='top_left')
-        #         self._reset_ant(mode='top_right')
-        #     elif mode == 1:
-        #         if goal is None:
-        #             goal = self.sample_goal(mode='top_right')
-        #         self._reset_ant(mode='top_left')
-        # else:
-        #     if goal is None:
-        #         goal = self.sample_goal()
-        #     self._reset_ant()
-
+        self.timesteps_so_far = 0
         if goal is None:
             goal = self.sample_goal()
         self._reset_ant()
@@ -1048,13 +1055,18 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
             imsize=84
     ):
-        if extent is None:
-            if 'small' in self.model_path:
-                extent = [-3.5, 3.5, -3.5, 3.5]
-            elif 'big' in self.model_path:
-                extent = [-5.5, 5.5, -5.5, 5.5]
-            else:
-                extent = [-4.5, 4.5, -4.5, 4.5]
+        if self.model_path in [
+            'classic_mujoco/ant_maze2_gear30_small_dt3.xml',
+            'classic_mujoco/ant_gear30_dt3_u_small.xml',
+        ]:
+            extent = [-3.5, 3.5, -3.5, 3.5]
+        elif self.model_path in [
+            'classic_mujoco/ant_gear30_dt3_u_med.xml',
+            'classic_mujoco/ant_gear30_u_med.xml',
+        ]:
+            extent = [-4.5, 4.5, -4.5, 4.5]
+        else:
+            extent = [-5.5, 5.5, -5.5, 5.5]
 
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
