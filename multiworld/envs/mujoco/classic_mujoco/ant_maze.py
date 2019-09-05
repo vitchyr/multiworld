@@ -24,6 +24,7 @@ class AntMazeEnv(AntEnv):
             self.maze_type = 'u-small'
         elif model_path in [
             'classic_mujoco/ant_gear30_dt3_u_med.xml',
+            'classic_mujoco/ant_gear10_dt3_u_med.xml',
             'classic_mujoco/ant_gear30_u_med.xml',
         ]:
             self.maze_type = 'u-med'
