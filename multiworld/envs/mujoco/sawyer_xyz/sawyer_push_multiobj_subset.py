@@ -46,6 +46,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             fixed_hand_goal=(-0.05, 0.6),
             # multi-object
             num_objects=1,
+            reset_frequency=1,
             fixed_colors=True,
             seed = None,
             filename='sawyer_multiobj.xml',
@@ -114,6 +115,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.sliding_joints = sliding_joints
         self.cur_objects = [0] * num_objects
         self.preload_obj_dict = preload_obj_dict
+        self.reset_frequency = reset_frequency
+        self.reset_index = 0
 
         self.num_cur_objects = 0
         # Generate XML
@@ -293,9 +296,15 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             objects["object%d" % i] = b[i+1]
         info = dict(
             hand_distance=hand_distance,
-            hand_success=float(hand_distance < 0.03),
-            puck_success=float(object_distances["current_object_distance"] < 0.03),
-            success=float((hand_distance < 0.03) and (object_distances["current_object_distance"] < 0.03)),
+            hand_success_03=float(hand_distance < 0.03),
+            hand_success_04=float(hand_distance < 0.04),
+            hand_success_05=float(hand_distance < 0.05),
+            puck_success_03=float(object_distances["current_object_distance"] < 0.03),
+            puck_success_05=float(object_distances["current_object_distance"] < 0.05),
+            puck_success_06=float(object_distances["current_object_distance"] < 0.06),
+            puck_success_07=float(object_distances["current_object_distance"] < 0.07),
+            puck_success_075=float(object_distances["current_object_distance"] < 0.075),
+            #success=float((hand_distance < 0.03) and (object_distances["current_object_distance"] < 0.03)),
             **object_distances,
             **touch_distances,
             **objects,
@@ -417,19 +426,20 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         )
 
     def set_initial_object_positions(self):
-        n_o = np.random.choice(self.num_scene_objects)
-        self.num_cur_objects = n_o
-        self.cur_objects = np.random.choice(self.num_objects, n_o, replace=False)
+        reset_positon = self.fixed_start and (self.reset_index % self.reset_frequency == 0)
+        self.reset_index = (self.reset_index + 1) % self.reset_frequency
         while True:
             pos = [self.INIT_HAND_POS[:2], ]
-            for i in range(n_o):
-                if self.fixed_start:
+            for i in range(self.num_cur_objects):
+                if not self.fixed_start:
+                    r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+                elif reset_positon:
                     r = self.fixed_start_pos
                 else:
-                    r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+                    r = self.get_object_pos(self.cur_objects[i])
                 pos.append(r)
             touching = []
-            for i in range(n_o + 1):
+            for i in range(self.num_cur_objects + 1):
                 for j in range(i):
                     t = np.linalg.norm(pos[i] - pos[j]) <= self.maxlen
                     touching.append(t)
@@ -440,15 +450,65 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         for i in range(self.num_objects):
             z = 10 + 10 * i
             positions.append(np.array([z, z]))
-        for i in range(n_o):
+        for i in range(self.num_cur_objects):
             j = self.cur_objects[i]
             positions[j] = pos[i]
         self.set_object_xys(positions)
+
+    def set_rand_object_positions(self):
+        while True:
+            pos = [self.INIT_HAND_POS[:2], ]
+            for i in range(self.num_cur_objects):
+                r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
+                pos.append(r)
+            touching = []
+            for i in range(self.num_cur_objects + 1):
+                for j in range(i):
+                    t = np.linalg.norm(pos[i] - pos[j]) <= self.maxlen
+                    touching.append(t)
+            if not any(touching):
+                break
+        pos.reverse()
+        positions = []
+        for i in range(self.num_objects):
+            z = 10 + 10 * i
+            positions.append(np.array([z, z]))
+        for i in range(self.num_cur_objects):
+            j = self.cur_objects[i]
+            positions[j] = pos[i]
+        self.set_object_xys(positions)
+
+    def get_context(self):
+        while True:
+            pos = [self.INIT_HAND_POS[:2], ]
+            for i in range(self.num_cur_objects):
+                r = self.fixed_start_pos
+                pos.append(r)
+            touching = []
+            for i in range(self.num_cur_objects + 1):
+                for j in range(i):
+                    t = np.linalg.norm(pos[i] - pos[j]) <= self.maxlen
+                    touching.append(t)
+            if not any(touching):
+                break
+        pos.reverse()
+        positions = []
+        for i in range(self.num_objects):
+            z = 10 + 10 * i
+            positions.append(np.array([z, z]))
+        for i in range(self.num_cur_objects):
+            j = self.cur_objects[i]
+            positions[j] = pos[i]
+        self.set_object_xys(positions)
+        return self._get_obs()
 
     def reset(self):
         if self.use_textures:
             for i in range(self.num_objects):
                 self.modder.rand_rgb('object%d' % i)
+        n_o = np.random.choice(self.num_scene_objects)
+        self.num_cur_objects = n_o
+        self.cur_objects = np.random.choice(self.num_objects, n_o, replace=False)
 
         velocities = self.data.qvel.copy()
         angles = self.data.qpos.copy()
@@ -458,8 +518,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
         # set_state resets the goal xy, so we need to explicit set it again
-        # if self.reset_to_initial_position:
-            # self.set_initial_object_positions()
         self.state_goal = self.sample_goal_for_rollout()
         self.reset_mocap_welds()
 
@@ -470,7 +528,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         #     xquat = self.data.body_xquat[obj_id]
         #     self.data.set_joint_qpos(xpos)
 
-        self.set_initial_object_positions()
+        if self.reset_to_initial_position:
+            self.set_initial_object_positions()
         return self._get_obs()
 
     def compute_rewards(self, action, obs, info=None):
