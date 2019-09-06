@@ -426,17 +426,19 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         )
 
     def set_initial_object_positions(self):
-        reset_positon = self.fixed_start and (self.reset_index % self.reset_frequency == 0)
-        self.reset_index = (self.reset_index + 1) % self.reset_frequency
+        do_reset_this_episode = self.reset_index % self.reset_frequency == 0
+        self.reset_index = self.reset_index + 1
         while True:
             pos = [self.INIT_HAND_POS[:2], ]
             for i in range(self.num_cur_objects):
-                if not self.fixed_start:
-                    r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
-                elif reset_positon:
-                    r = self.fixed_start_pos
+                if do_reset_this_episode:
+                    if self.fixed_start:
+                        r = self.fixed_start_pos
+                    else:
+                        r = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
                 else:
                     r = self.get_object_pos(self.cur_objects[i])
+
                 pos.append(r)
             touching = []
             for i in range(self.num_cur_objects + 1):
