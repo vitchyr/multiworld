@@ -189,6 +189,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.test_mode_case_num = test_mode_case_num
         self.timesteps_so_far = 0
         self.tau = None
+
+        self.sweep_goal = None
         # self.reset()
 
     def step(self, action):
@@ -327,6 +329,53 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             np.cos(Y), np.sin(Y),
             np.cos(Z), np.sin(Z),
         ))
+
+    def get_image_v(self, agent, qf, vf, obs, tau=None):
+        nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
+        if self.sweep_goal is None:
+            sweep_goal_xy = np.stack((xv, yv), axis=2).reshape((-1, 2))
+            init_epos = self._qpos_to_epos(self.init_qpos)
+            sweep_goal_rest = np.tile(np.concatenate((init_epos[2:], np.zeros(14)))[None], (nx*ny, 1))
+            sweep_goal = np.concatenate((sweep_goal_xy, sweep_goal_rest), axis=1)
+            self.sweep_goal = sweep_goal
+        else:
+            sweep_goal = self.sweep_goal
+
+        if tau is not None:
+            sweep_tau = np.tile(tau, (nx * ny, 1))
+        if vf is not None:
+            if tau is not None:
+                v_vals = vf.eval_np(sweep_obs, sweep_goal, sweep_tau)
+            else:
+                sweep_obs_goal = np.hstack((sweep_obs, sweep_goal))
+                v_vals = vf.eval_np(sweep_obs_goal)
+        else:
+            if tau is not None:
+                # sweep_actions = agent.eval_np(sweep_obs, sweep_goal, sweep_tau)
+                sweep_actions = agent.get_actions(sweep_obs, sweep_goal, sweep_tau)
+                v_vals = qf.eval_np(sweep_obs, sweep_actions, sweep_goal, sweep_tau)
+            else:
+                sweep_obs_goal = np.hstack((sweep_obs, sweep_goal))
+                # sweep_actions = agent.eval_np(sweep_obs_goal)
+                sweep_actions = agent.get_actions(sweep_obs_goal)
+                v_vals = qf.eval_np(sweep_obs_goal, sweep_actions)
+        v_vals = v_vals / agent.reward_scale
+        if tau is not None:
+            v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
+        v_vals = v_vals.reshape((nx, ny))
+        return self.get_image_plt(
+            v_vals,
+            draw_walls=True,
+            draw_state=True,
+            draw_goal=True,
+            draw_subgoals=True,
+            vmin=-4.0, vmax=0.0,
+        )
 
     def _euler_to_quat(self, euler):
         roll = np.arctan2(euler[:, 1], euler[:, 0])
@@ -1053,7 +1102,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             extent=None,
             small_markers=False,
             draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
-            imsize=84
+            imsize=400
     ):
         if self.model_path in [
             'classic_mujoco/ant_maze2_gear30_small_dt3.xml',
@@ -1062,6 +1111,11 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             extent = [-3.5, 3.5, -3.5, 3.5]
         elif self.model_path in [
             'classic_mujoco/ant_gear30_dt3_u_med.xml',
+            'classic_mujoco/ant_gear15_dt3_u_med.xml',
+            'classic_mujoco/ant_gear10_dt3_u_med.xml',
+            'classic_mujoco/ant_gear30_dt2_u_med.xml',
+            'classic_mujoco/ant_gear15_dt2_u_med.xml',
+            'classic_mujoco/ant_gear10_dt2_u_med.xml',
             'classic_mujoco/ant_gear30_u_med.xml',
         ]:
             extent = [-4.5, 4.5, -4.5, 4.5]
@@ -1087,6 +1141,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 color = 'cyan'
             else:
                 color = 'blue'
+
+            if self._check_flipped(ob['state_observation'][3:9][None])[0]:
+                color = 'purple'
+
             ball = plt.Circle(ob['state_observation'][:2], 0.50 * marker_factor, color=color)
             ax.add_artist(ball)
         if draw_goal:
@@ -1097,16 +1155,16 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 for i in range(len(self.subgoals)):
                     subgoal = plt.Circle(self.subgoals[i][:2], (0.50 - 0.1) * marker_factor, color='red')
                     ax.add_artist(subgoal)
-        # if draw_walls:
-        #     for wall in self.walls:
-        #         # ax.vlines(x=wall.min_x, ymin=wall.min_y, ymax=wall.max_y)
-        #         # ax.hlines(y=wall.min_y, xmin=wall.min_x, xmax=wall.max_x)
-        #         # ax.vlines(x=wall.max_x, ymin=wall.min_y, ymax=wall.max_y)
-        #         # ax.hlines(y=wall.max_y, xmin=wall.min_x, xmax=wall.max_x)
-        #         ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint2[1], ymax=wall.endpoint1[1])
-        #         ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
-        #         ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
-        #         ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
+        if draw_walls:# and hasattr(self, "walls:"):
+            for wall in self.walls:
+                # ax.vlines(x=wall.min_x, ymin=wall.min_y, ymax=wall.max_y)
+                # ax.hlines(y=wall.min_y, xmin=wall.min_x, xmax=wall.max_x)
+                # ax.vlines(x=wall.max_x, ymin=wall.min_y, ymax=wall.max_y)
+                # ax.hlines(y=wall.max_y, xmin=wall.min_x, xmax=wall.max_x)
+                ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint2[1], ymax=wall.endpoint1[1])
+                ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
+                ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
+                ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
 
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
@@ -1117,15 +1175,16 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         ax.axis('off')
 
         # if vals is not None:
-        #     ax.imshow(
-        #         vals,
-        #         extent=extent,
-        #         cmap=plt.get_cmap('plasma'),
-        #         interpolation='nearest',
-        #         vmax=vmax,
-        #         vmin=vmin,
-        #         origin='bottom',  # <-- Important! By default top left is (0, 0)
-        #     )
+        if type(vals) is np.ndarray:
+            ax.imshow(
+                vals,
+                extent=extent,
+                cmap=plt.get_cmap('plasma'),
+                interpolation='nearest',
+                vmax=vmax,
+                vmin=vmin,
+                origin='bottom',  # <-- Important! By default top left is (0, 0)
+            )
 
         return self.plt_to_numpy(fig)
 

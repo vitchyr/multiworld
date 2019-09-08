@@ -24,7 +24,11 @@ class AntMazeEnv(AntEnv):
             self.maze_type = 'u-small'
         elif model_path in [
             'classic_mujoco/ant_gear30_dt3_u_med.xml',
+            'classic_mujoco/ant_gear15_dt3_u_med.xml',
             'classic_mujoco/ant_gear10_dt3_u_med.xml',
+            'classic_mujoco/ant_gear30_dt2_u_med.xml',
+            'classic_mujoco/ant_gear15_dt2_u_med.xml',
+            'classic_mujoco/ant_gear10_dt2_u_med.xml',
             'classic_mujoco/ant_gear30_u_med.xml',
         ]:
             self.maze_type = 'u-med'
@@ -126,11 +130,11 @@ class AntMazeEnv(AntEnv):
                 kwargs['goal_low'] = np.array([4.25, 4.25])
                 kwargs['goal_high'] = np.array([4.75, 4.75])
             elif test_mode_case_num == 4:
-                kwargs['reset_low'] = np.array([-0.25, -4.75])
-                kwargs['reset_high'] = np.array([0.25, -4.25])
+                kwargs['reset_low'] = np.array([-4.75, 4.25])
+                kwargs['reset_high'] = np.array([-4.25, 4.75])
 
-                kwargs['goal_low'] = np.array([4.25, -4.75])
-                kwargs['goal_high'] = np.array([4.75, -4.25])
+                kwargs['goal_low'] = np.array([-0.25, 4.25])
+                kwargs['goal_high'] = np.array([0.25, 4.75])
 
         elif self.maze_type == 'fb-big':
             self.walls = [
@@ -282,6 +286,11 @@ class Wall:
         self.max_x = x_center + x_thickness + min_dist
         self.min_y = y_center - y_thickness - min_dist
         self.max_y = y_center + y_thickness + min_dist
+
+        self.endpoint1 = (x_center+x_thickness, y_center+y_thickness)
+        self.endpoint2 = (x_center+x_thickness, y_center-y_thickness)
+        self.endpoint3 = (x_center-x_thickness, y_center-y_thickness)
+        self.endpoint4 = (x_center-x_thickness, y_center+y_thickness)
 
     def contains_point(self, point):
         return (self.min_x < point[0] < self.max_x) and (self.min_y < point[1] < self.max_y)
