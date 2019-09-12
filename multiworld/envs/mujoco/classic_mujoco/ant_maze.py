@@ -39,7 +39,12 @@ class AntMazeEnv(AntEnv):
             self.maze_type = 'u-big'
         elif model_path == 'classic_mujoco/ant_fb_gear30_small_dt3.xml':
             self.maze_type = 'fb-small'
-        elif model_path == 'classic_mujoco/ant_fb_gear30_med_dt3.xml':
+        elif model_path in [
+            'classic_mujoco/ant_fb_gear30_med_dt3.xml',
+            'classic_mujoco/ant_gear30_dt3_fb_med.xml',
+            'classic_mujoco/ant_gear15_dt3_fb_med.xml',
+            'classic_mujoco/ant_gear10_dt3_fb_med.xml',
+        ]:
             self.maze_type = 'fb-med'
         elif model_path == 'classic_mujoco/ant_fb_gear30_big_dt3.xml':
             self.maze_type = 'fb-big'
@@ -135,6 +140,11 @@ class AntMazeEnv(AntEnv):
 
                 kwargs['goal_low'] = np.array([-0.25, 4.25])
                 kwargs['goal_high'] = np.array([0.25, 4.75])
+
+            if 'goal_low' not in kwargs:
+                kwargs['goal_low'] = np.array([-7.0, -7.0])
+            if 'goal_high' not in kwargs:
+                kwargs['goal_high'] = np.array([7.0, 7.0])
 
         elif self.maze_type == 'fb-big':
             self.walls = [

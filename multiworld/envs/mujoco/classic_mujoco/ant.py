@@ -56,6 +56,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             reset_low=None,
             reset_high=None,
             reset_and_goal_mode=None,
+
+            v_func_heatmap_bounds=(-4.0, 0.0),
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -81,6 +83,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             model_path = 'classic_mujoco/ant_gear30_dt3_u_small.xml'
         elif model_path == 'classic_mujoco/ant_maze2_gear30_big_dt3.xml':
             model_path = 'classic_mujoco/ant_gear30_dt3_u_big.xml'
+        elif model_path == 'classic_mujoco/ant_fb_gear30_med_dt3.xml':
+            model_path = 'classic_mujoco/ant_gear30_dt3_fb_med.xml'
 
         assert not goal_is_xy or not goal_is_qpos
         self.quick_init(locals())
@@ -189,6 +193,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.test_mode_case_num = test_mode_case_num
         self.timesteps_so_far = 0
         self.tau = None
+
+        self.v_func_heatmap_bounds = v_func_heatmap_bounds
 
         self.sweep_goal = None
         # self.reset()
@@ -364,17 +370,23 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 # sweep_actions = agent.eval_np(sweep_obs_goal)
                 sweep_actions = agent.get_actions(sweep_obs_goal)
                 v_vals = qf.eval_np(sweep_obs_goal, sweep_actions)
-        v_vals = v_vals / agent.reward_scale
+        if self.v_func_heatmap_bounds is not None:
+            v_vals = v_vals / agent.reward_scale
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
+        if self.v_func_heatmap_bounds is not None:
+            vmin = self.v_func_heatmap_bounds[0]
+            vmax = self.v_func_heatmap_bounds[1]
+        else:
+            vmin, vmax = None, None
         return self.get_image_plt(
             v_vals,
             draw_walls=True,
             draw_state=True,
             draw_goal=True,
             draw_subgoals=True,
-            vmin=-4.0, vmax=0.0,
+            vmin=vmin, vmax=vmax,
         )
 
     def _euler_to_quat(self, euler):
@@ -621,6 +633,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             r = - self._compute_qpos_distances(obs)
         elif self.reward_type in ['epos_dense', 'epos']:
             r = - self._compute_epos_distances(obs)
+        elif self.reward_type in ['vectorized_epos']:
+            r = - self._compute_epos_distances(obs, vectorized=True)
         elif self.reward_type == 'epos_weighted_euler':
             r = - self._compute_epos_weighted_euler_distances(obs)
         elif self.reward_type == 'epos_penalize_flip':
@@ -831,7 +845,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
 
-    def _compute_epos_distances(self, obs):
+    def _compute_epos_distances(self, obs, vectorized=False):
         if not self.use_euler:
             if self.two_frames:
                 state_size = obs['state_achieved_goal'].shape[1] // 2
@@ -866,9 +880,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 desired_goals = obs['state_desired_goal'][:, :self.pos_dim]
         if desired_goals.shape == (1,):
             return -1000
-        return np.linalg.norm(
-            achieved_goals - desired_goals, ord=self.norm_order, axis=1
-        )
+        if vectorized:
+            return np.abs(achieved_goals - desired_goals)
+        else:
+            return np.linalg.norm(
+                achieved_goals - desired_goals, ord=self.norm_order, axis=1
+            )
 
     def _compute_epos_weighted_euler_distances(self, obs):
         if not self.use_euler:
@@ -1119,6 +1136,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'classic_mujoco/ant_gear30_u_med.xml',
         ]:
             extent = [-4.5, 4.5, -4.5, 4.5]
+        elif self.model_path in [
+            'classic_mujoco/ant_fb_gear30_med_dt3.xml',
+            'classic_mujoco/ant_gear30_dt3_fb_med.xml',
+            'classic_mujoco/ant_gear15_dt3_fb_med.xml',
+            'classic_mujoco/ant_gear10_dt3_fb_med.xml',
+        ]:
+            extent = [-6.0, 6.0, -6.0, 6.0]
         else:
             extent = [-5.5, 5.5, -5.5, 5.5]
 
