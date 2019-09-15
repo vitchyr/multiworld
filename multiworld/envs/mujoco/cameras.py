@@ -254,3 +254,11 @@ def sawyer_pusher_camera_tdm_v4(camera):
     camera.elevation = -55
     camera.azimuth = 270
     camera.trackbodyid = -1
+
+def init_ant_camera_v1(camera):
+    """
+    Do not get so close that the arm crossed the camera plane
+    """
+    camera.distance = 10
+    camera.elevation = -90
+    camera.azimuth = 90

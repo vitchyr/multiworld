@@ -374,26 +374,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         else:
             raise ValueError("C'mon, you gotta give me some goal!")
         assert self._xy_goal is not None
-        # if self.goal_is_xy:
-        #     self._xy_goal = goal['xy_desired_goal'].copy()
-        # else:
-        #     self._xy_goal = goal['state_desired_goal'][:2].copy()
-        # if self.goal_is_qpos:
-        #     self._qpos_goal = goal['qpos_desired_goal'].copy()
-        # else:
-        #     self._qpos_goal = goal['state_desired_goal'][:15].copy()
-        #
-        # if self.goal_is_xy:
-        #     self._full_state_goal = goal.get('state_desired_goal', None)
-        # else:
-        #     if self.two_frames:
-        #         self._full_state_goal = goal['state_desired_goal'][int(len(goal['state_desired_goal']) / 2):]
-        #     else:
-        #         self._full_state_goal = goal['state_desired_goal'].copy()
-        #     if self.goal_is_qpos:
-        #         self._qpos_goal = self._full_state_goal[:15].copy()
-        # if self._full_state_goal is not None:
-        #     self._full_state_goal = self._full_state_goal.copy()
         self._prev_obs = None
         self._cur_obs = None
         if len(self.init_qpos) > 15 and self._qpos_goal is not None:
@@ -401,11 +381,28 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             qpos[15:] = self._qpos_goal
             qvel = self.sim.data.qvel
             self.set_state(qpos, qvel)
-        else:
-            site_xpos = self.sim.data.site_xpos
-            goal_xpos = np.concatenate((self._xy_goal, np.array([0.5])))
-            site_xpos[self.sim.model.site_name2id('goal')] = goal_xpos
-            self.model.site_pos[:] = site_xpos
+
+    def get_env_state(self):
+        ant_qpos = self.data.qpos.flat.copy()[:15]
+        goal = self.get_goal().copy()
+        return ant_qpos, goal
+
+    def set_env_state(self, state):
+        ant_qpos, goal = state
+        self._set_goal(goal)
+
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[:15] = ant_qpos
+        qvel[:15] = 0
+        self.set_state(qpos, qvel)
+
+    def set_to_goal(self, goal):
+        qpos = self.data.qpos.flat.copy()
+        qvel = self.data.qvel.flat.copy()
+        qpos[:15] = goal['qpos_desired_goal']
+        qvel[:15] = 0
+        self.set_state(qpos, qvel)
 
 
 if __name__ == '__main__':
