@@ -229,6 +229,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         info['xy-success'] = self._compute_xy_successes(
             self.numpy_batchify_dict(ob)
         )
+        info['xy-success2'] = self._compute_xy_successes2(
+            self.numpy_batchify_dict(ob)
+        )
         info['leg-distance'] = self._compute_leg_distances(
             self.numpy_batchify_dict(ob)
         )
@@ -261,6 +264,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'euler-distance',
             'xy-distance',
             'xy-success',
+            'xy-success2',
             'leg-distance',
             'is_not_healthy',
             'is_flipped',
@@ -336,7 +340,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             np.cos(Z), np.sin(Z),
         ))
 
-    def get_image_v(self, agent, qf, vf, obs, tau=None):
+    def get_image_v(self, agent, qf, vf, obs, tau=None, imsize=None):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
@@ -372,8 +376,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 v_vals = qf.eval_np(sweep_obs_goal, sweep_actions)
         if self.v_func_heatmap_bounds is not None:
             v_vals = v_vals / agent.reward_scale
-        if tau is not None:
-            v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
+        if v_vals.ndim == 2:
+            if hasattr(qf, "norm_order"):
+                norm_order = qf.norm_order
+            else:
+                norm_order = 2
+            v_vals = -np.linalg.norm(v_vals, ord=norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
         if self.v_func_heatmap_bounds is not None:
             vmin = self.v_func_heatmap_bounds[0]
@@ -387,6 +395,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             draw_goal=True,
             draw_subgoals=True,
             vmin=vmin, vmax=vmax,
+            imsize=imsize,
         )
 
     def _euler_to_quat(self, euler):
@@ -688,6 +697,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         desired_goals = obs['state_desired_goal'][:, :2]
         diff = achieved_goals - desired_goals
         return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 1.50).astype(int)
+
+    def _compute_xy_successes2(self, obs):
+        assert not self.two_frames
+        achieved_goals = obs['state_achieved_goal'][:, :2]
+        desired_goals = obs['state_desired_goal'][:, :2]
+        diff = achieved_goals - desired_goals
+        return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 2.50).astype(int)
 
     def _compute_leg_distances(self, obs):
         if self.use_euler:
@@ -1119,7 +1135,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             extent=None,
             small_markers=False,
             draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
-            imsize=400
+            imsize=400 #400
     ):
         if self.model_path in [
             'classic_mujoco/ant_maze2_gear30_small_dt3.xml',
