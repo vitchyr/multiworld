@@ -1,5 +1,11 @@
 # Bullet research
 
+### Setup
+```
+pip install -r environment/requirements.txt
+pip install -e .
+```
+
 ### Position control
 
 `python demo/position_control.py`
