@@ -32,11 +32,15 @@ class AntMazeEnv(AntEnv):
             'classic_mujoco/ant_gear30_u_med.xml',
         ]:
             self.maze_type = 'u-med'
-        elif model_path == [
+        elif model_path in [
             'classic_mujoco/ant_maze2_gear30_big_dt3.xml',
             'classic_mujoco/ant_gear30_dt3_u_big.xml',
         ]:
             self.maze_type = 'u-big'
+        elif model_path in [
+            'classic_mujoco/ant_gear10_dt3_u_long.xml',
+        ]:
+            self.maze_type = 'u-long'
         elif model_path == 'classic_mujoco/ant_fb_gear30_small_dt3.xml':
             self.maze_type = 'fb-small'
         elif model_path in [
@@ -93,6 +97,21 @@ class AntMazeEnv(AntEnv):
                 kwargs['goal_low'] = np.array([-5.5, -5.5])
             if 'goal_high' not in kwargs:
                 kwargs['goal_high'] = np.array([5.5, 5.5])
+
+        elif self.maze_type == 'u-long':
+            self.walls = [
+                Wall(0, 1.5, 0.75, 7.5, self.ant_radius),
+
+                Wall(0, 10.0, 3.75, 1, self.ant_radius),
+                Wall(0, -10.0, 3.75, 1, self.ant_radius),
+                Wall(4.75, 0, 1, 11.0, self.ant_radius),
+                Wall(-4.75, 0, 1, 11.0, self.ant_radius),
+            ]
+
+            if 'goal_low' not in kwargs:
+                kwargs['goal_low'] = np.array([-3.75, -9.0])
+            if 'goal_high' not in kwargs:
+                kwargs['goal_high'] = np.array([3.75, 9.0])
 
         elif self.maze_type == 'fb-small':
             self.walls = [
