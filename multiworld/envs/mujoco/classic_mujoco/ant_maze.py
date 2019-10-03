@@ -108,6 +108,13 @@ class AntMazeEnv(AntEnv):
                 Wall(-4.75, 0, 1, 11.0, self.ant_radius),
             ]
 
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-2.5, 7.25])
+                kwargs['reset_high'] = np.array([-2.0, 7.75])
+
+                kwargs['goal_low'] = np.array([2.0, 7.25])
+                kwargs['goal_high'] = np.array([2.5, 7.75])
+
             if 'goal_low' not in kwargs:
                 kwargs['goal_low'] = np.array([-3.75, -9.0])
             if 'goal_high' not in kwargs:
