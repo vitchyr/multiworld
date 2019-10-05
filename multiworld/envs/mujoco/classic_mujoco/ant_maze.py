@@ -14,6 +14,9 @@ class AntMazeEnv(AntEnv):
     ):
         self.ant_radius = 0.75
 
+        wall_collision_buffer = kwargs.get("wall_collision_buffer", 0.0)
+        self.wall_radius = self.ant_radius + wall_collision_buffer
+
         model_path = kwargs['model_path']
         test_mode_case_num = kwargs.get('test_mode_case_num', None)
 
@@ -56,17 +59,25 @@ class AntMazeEnv(AntEnv):
             self.maze_type = 'fork-med'
         elif model_path == 'classic_mujoco/ant_fork_gear30_big_dt3.xml':
             self.maze_type = 'fork-big'
+        elif model_path in [
+            'classic_mujoco/ant_gear10_dt3_maze_med.xml',
+        ]:
+            self.maze_type = 'maze-med'
+        elif model_path in [
+            'classic_mujoco/ant_gear10_dt3_fg_med.xml',
+        ]:
+            self.maze_type = 'fg-med'
         else:
             raise NotImplementedError
 
         if self.maze_type == 'u-small':
             self.walls = [
-                Wall(0, 1.125, 1.25, 2.375, self.ant_radius),
+                Wall(0, 1.125, 1.25, 2.375, self.wall_radius),
 
-                Wall(0, 4.5, 3.5, 1, self.ant_radius),
-                Wall(0, -4.5, 3.5, 1, self.ant_radius),
-                Wall(4.5, 0, 1, 5.5, self.ant_radius),
-                Wall(-4.5, 0, 1, 5.5, self.ant_radius),
+                Wall(0, 4.5, 3.5, 1, self.wall_radius),
+                Wall(0, -4.5, 3.5, 1, self.wall_radius),
+                Wall(4.5, 0, 1, 5.5, self.wall_radius),
+                Wall(-4.5, 0, 1, 5.5, self.wall_radius),
             ]
 
             if test_mode_case_num == 1:
@@ -78,12 +89,12 @@ class AntMazeEnv(AntEnv):
 
         elif self.maze_type == 'u-med':
             self.walls = [
-                Wall(0, 1.5, 1.5, 3, self.ant_radius),
+                Wall(0, 1.5, 1.5, 3, self.wall_radius),
 
-                Wall(0, 5.5, 4.5, 1, self.ant_radius),
-                Wall(0, -5.5, 4.5, 1, self.ant_radius),
-                Wall(5.5, 0, 1, 6.5, self.ant_radius),
-                Wall(-5.5, 0, 1, 6.5, self.ant_radius),
+                Wall(0, 5.5, 4.5, 1, self.wall_radius),
+                Wall(0, -5.5, 4.5, 1, self.wall_radius),
+                Wall(5.5, 0, 1, 6.5, self.wall_radius),
+                Wall(-5.5, 0, 1, 6.5, self.wall_radius),
             ]
 
             if test_mode_case_num == 1:
@@ -100,12 +111,12 @@ class AntMazeEnv(AntEnv):
 
         elif self.maze_type == 'u-long':
             self.walls = [
-                Wall(0, 1.5, 0.75, 7.5, self.ant_radius),
+                Wall(0, 1.5, 0.75, 7.5, self.wall_radius),
 
-                Wall(0, 10.0, 3.75, 1, self.ant_radius),
-                Wall(0, -10.0, 3.75, 1, self.ant_radius),
-                Wall(4.75, 0, 1, 11.0, self.ant_radius),
-                Wall(-4.75, 0, 1, 11.0, self.ant_radius),
+                Wall(0, 10.0, 3.75, 1, self.wall_radius),
+                Wall(0, -10.0, 3.75, 1, self.wall_radius),
+                Wall(4.75, 0, 1, 11.0, self.wall_radius),
+                Wall(-4.75, 0, 1, 11.0, self.wall_radius),
             ]
 
             if test_mode_case_num == 1:
@@ -122,24 +133,24 @@ class AntMazeEnv(AntEnv):
 
         elif self.maze_type == 'fb-small':
             self.walls = [
-                Wall(-2.0, 1.25, 0.75, 4.0, self.ant_radius),
-                Wall(2.0, -1.25, 0.75, 4.0, self.ant_radius),
+                Wall(-2.0, 1.25, 0.75, 4.0, self.wall_radius),
+                Wall(2.0, -1.25, 0.75, 4.0, self.wall_radius),
 
-                Wall(0, 6.25, 5.25, 1, self.ant_radius),
-                Wall(0, -6.25, 5.25, 1, self.ant_radius),
-                Wall(6.25, 0, 1, 7.25, self.ant_radius),
-                Wall(-6.25, 0, 1, 7.25, self.ant_radius),
+                Wall(0, 6.25, 5.25, 1, self.wall_radius),
+                Wall(0, -6.25, 5.25, 1, self.wall_radius),
+                Wall(6.25, 0, 1, 7.25, self.wall_radius),
+                Wall(-6.25, 0, 1, 7.25, self.wall_radius),
             ]
 
         elif self.maze_type == 'fb-med':
             self.walls = [
-                Wall(-2.25, 1.5, 0.75, 4.5, self.ant_radius),
-                Wall(2.25, -1.5, 0.75, 4.5, self.ant_radius),
+                Wall(-2.25, 1.5, 0.75, 4.5, self.wall_radius),
+                Wall(2.25, -1.5, 0.75, 4.5, self.wall_radius),
 
-                Wall(0, 7.0, 6.0, 1, self.ant_radius),
-                Wall(0, -7.0, 6.0, 1, self.ant_radius),
-                Wall(7.0, 0, 1, 8.0, self.ant_radius),
-                Wall(-7.0, 0, 1, 8.0, self.ant_radius),
+                Wall(0, 7.0, 6.0, 1, self.wall_radius),
+                Wall(0, -7.0, 6.0, 1, self.wall_radius),
+                Wall(7.0, 0, 1, 8.0, self.wall_radius),
+                Wall(-7.0, 0, 1, 8.0, self.wall_radius),
             ]
 
             if test_mode_case_num == 1:
@@ -174,24 +185,24 @@ class AntMazeEnv(AntEnv):
 
         elif self.maze_type == 'fb-big':
             self.walls = [
-                Wall(-2.75, 2.0, 0.75, 5.5, self.ant_radius),
-                Wall(2.75, -2.0, 0.75, 5.5, self.ant_radius),
+                Wall(-2.75, 2.0, 0.75, 5.5, self.wall_radius),
+                Wall(2.75, -2.0, 0.75, 5.5, self.wall_radius),
 
-                Wall(0, 8.5, 7.5, 1, self.ant_radius),
-                Wall(0, -8.5, 7.5, 1, self.ant_radius),
-                Wall(8.5, 0, 1, 9.5, self.ant_radius),
-                Wall(-8.5, 0, 1, 9.5, self.ant_radius),
+                Wall(0, 8.5, 7.5, 1, self.wall_radius),
+                Wall(0, -8.5, 7.5, 1, self.wall_radius),
+                Wall(8.5, 0, 1, 9.5, self.wall_radius),
+                Wall(-8.5, 0, 1, 9.5, self.wall_radius),
             ]
         elif self.maze_type == 'fork-med':
             self.walls = [
-                Wall(-1.75, -1.5, 0.25, 3.5, self.ant_radius),
-                Wall(0, 1.75, 2.0, 0.25, self.ant_radius),
-                Wall(0, -1.75, 2.0, 0.25, self.ant_radius),
+                Wall(-1.75, -1.5, 0.25, 3.5, self.wall_radius),
+                Wall(0, 1.75, 2.0, 0.25, self.wall_radius),
+                Wall(0, -1.75, 2.0, 0.25, self.wall_radius),
 
-                Wall(0, 6.0, 5.0, 1, self.ant_radius),
-                Wall(0, -6.0, 5.0, 1, self.ant_radius),
-                Wall(6.0, 0, 1, 7.0, self.ant_radius),
-                Wall(-6.0, 0, 1, 7.0, self.ant_radius),
+                Wall(0, 6.0, 5.0, 1, self.wall_radius),
+                Wall(0, -6.0, 5.0, 1, self.wall_radius),
+                Wall(6.0, 0, 1, 7.0, self.wall_radius),
+                Wall(-6.0, 0, 1, 7.0, self.wall_radius),
             ]
 
             if test_mode_case_num == 1:
@@ -209,15 +220,15 @@ class AntMazeEnv(AntEnv):
 
         elif self.maze_type == 'fork-big':
             self.walls = [
-                Wall(-3.5, -1.5, 0.25, 5.25, self.ant_radius),
-                Wall(0, -3.5, 3.75, 0.25, self.ant_radius),
-                Wall(0, 0.0, 3.75, 0.25, self.ant_radius),
-                Wall(0, 3.5, 3.75, 0.25, self.ant_radius),
+                Wall(-3.5, -1.5, 0.25, 5.25, self.wall_radius),
+                Wall(0, -3.5, 3.75, 0.25, self.wall_radius),
+                Wall(0, 0.0, 3.75, 0.25, self.wall_radius),
+                Wall(0, 3.5, 3.75, 0.25, self.wall_radius),
 
-                Wall(0, 7.75, 6.75, 1, self.ant_radius),
-                Wall(0, -7.75, 6.75, 1, self.ant_radius),
-                Wall(7.75, 0, 1, 8.75, self.ant_radius),
-                Wall(-7.75, 0, 1, 8.75, self.ant_radius),
+                Wall(0, 7.75, 6.75, 1, self.wall_radius),
+                Wall(0, -7.75, 6.75, 1, self.wall_radius),
+                Wall(7.75, 0, 1, 8.75, self.wall_radius),
+                Wall(-7.75, 0, 1, 8.75, self.wall_radius),
             ]
 
             if test_mode_case_num == 1:
@@ -227,6 +238,42 @@ class AntMazeEnv(AntEnv):
                 kwargs['goal_low'] = np.array([-5.5, -5.5])
                 kwargs['goal_high'] = np.array([-5.0, -5.0])
 
+        elif self.maze_type == 'maze-med':
+            self.walls = [
+                Wall(2.375, 3.25, 1.625, 0.75, self.wall_radius),
+                Wall(-2.375, 3.25, 1.625, 0.75, self.wall_radius),
+                Wall(0, 2, 0.75, 6, self.wall_radius),
+                Wall(6, -2.25, 2, 0.75, self.wall_radius),
+                Wall(-6, -2.25, 2, 0.75, self.wall_radius),
+
+                Wall(0, 9, 8, 1, self.wall_radius),
+                Wall(0, -9, 8, 1, self.wall_radius),
+                Wall(9, 0, 1, 10, self.wall_radius),
+                Wall(-9, 0, 1, 10, self.wall_radius),
+            ]
+
+            if 'goal_low' not in kwargs:
+                kwargs['goal_low'] = np.array([-8.0, -8.0])
+            if 'goal_high' not in kwargs:
+                kwargs['goal_high'] = np.array([8.0, 8.0])
+
+        elif self.maze_type == 'fg-med':
+            self.walls = [
+                Wall(0, -3.25, 3, 0.75, self.wall_radius),
+                Wall(-3.75, 0, 0.75, 4, self.wall_radius),
+                Wall(3.75, 0, 0.75, 4, self.wall_radius),
+                Wall(0, -6, 0.75, 2, self.wall_radius),
+
+                Wall(0, 9, 8, 1, self.wall_radius),
+                Wall(0, -9, 8, 1, self.wall_radius),
+                Wall(9, 0, 1, 10, self.wall_radius),
+                Wall(-9, 0, 1, 10, self.wall_radius),
+            ]
+
+            if 'goal_low' not in kwargs:
+                kwargs['goal_low'] = np.array([-8.0, -8.0])
+            if 'goal_high' not in kwargs:
+                kwargs['goal_high'] = np.array([8.0, 8.0])
         else:
             raise NotImplementedError
 

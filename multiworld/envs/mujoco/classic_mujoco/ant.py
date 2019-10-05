@@ -58,6 +58,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             reset_and_goal_mode=None,
 
             v_func_heatmap_bounds=(-4.0, 0.0),
+            wall_collision_buffer=0.0,
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -195,6 +196,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.tau = None
 
         self.v_func_heatmap_bounds = v_func_heatmap_bounds
+        self.wall_collision_buffer = wall_collision_buffer
 
         self.sweep_goal = None
         # self.reset()
@@ -1163,6 +1165,14 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'classic_mujoco/ant_gear10_dt3_u_long.xml',
         ]:
             extent = [-3.75, 3.75, -9.0, 9.0]
+        elif self.model_path in [
+            'classic_mujoco/ant_gear10_dt3_maze_med.xml',
+        ]:
+            extent = [-8.0, 8.0, -8.0, 8.0]
+        elif self.model_path in [
+            'classic_mujoco/ant_gear10_dt3_fg_med.xml',
+        ]:
+            extent = [-8.0, 8.0, -8.0, 8.0]
         else:
             extent = [-5.5, 5.5, -5.5, 5.5]
 

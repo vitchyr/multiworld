@@ -308,6 +308,22 @@ def ant_u_long_camera(camera):
     camera.distance = 20.0 #6.5
     camera.elevation = -60
 
+def ant_maze_med_camera(camera):
+    camera.trackbodyid = 0
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = -2.5
+    camera.lookat[2] = 0.5
+    camera.distance = 22.5 #6.5
+    camera.elevation = -60
+
+def ant_fg_med_camera(camera):
+    camera.trackbodyid = 0
+    camera.lookat[0] = 0.0
+    camera.lookat[1] = -2.5
+    camera.lookat[2] = 0.5
+    camera.distance = 22.5 #6.5
+    camera.elevation = -60
+
 def ant_fb_small_camera(camera):
     camera.trackbodyid = 0
     camera.lookat[0] = 0.0
