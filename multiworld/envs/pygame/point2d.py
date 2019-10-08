@@ -54,6 +54,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             sample_realistic_goals=False,
             images_are_rgb=False,  # else black and white
             show_goal=True,
+            v_func_heatmap_bounds=None,
             **kwargs
     ):
         if walls is None:
@@ -117,6 +118,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.subgoals = None
+
+        self.v_func_heatmap_bounds = v_func_heatmap_bounds
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -718,7 +721,7 @@ class Point2DWallEnv(Point2DEnv):
 
         return np.array(subgoals)
 
-    def get_image_v(self, agent, qf, vf, obs, tau=None):
+    def get_image_v(self, agent, qf, vf, obs, tau=None, imsize=None):
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
@@ -742,10 +745,17 @@ class Point2DWallEnv(Point2DEnv):
                 sweep_obs_goal = np.hstack((sweep_obs, sweep_goal))
                 sweep_actions = agent.eval_np(sweep_obs_goal)
                 v_vals = qf.eval_np(sweep_obs_goal, sweep_actions)
+        if self.v_func_heatmap_bounds is not None:
+            v_vals = v_vals / agent.reward_scale
         if tau is not None:
             v_vals = -np.linalg.norm(v_vals, ord=qf.norm_order, axis=1)
         v_vals = v_vals.reshape((nx, ny))
-        return self.get_image_plt(v_vals, vmin=-2.0, vmax=0.0)
+        if self.v_func_heatmap_bounds is not None:
+            vmin = self.v_func_heatmap_bounds[0]
+            vmax = self.v_func_heatmap_bounds[1]
+        else:
+            vmin, vmax = None, None
+        return self.get_image_plt(v_vals, vmin=vmin, vmax=vmax)
 
     def get_image_rew(self, obs):
         nx, ny = (50, 50)
