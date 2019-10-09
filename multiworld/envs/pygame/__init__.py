@@ -387,6 +387,7 @@ def register_soroush_u_wall_envs():
             'ball_high': (2, 1),
             'goal_low': (-4, 2),
             'goal_high': (4, 4),
+            'v_func_heatmap_bounds': (-1.5, 0.0),
         }
     )
     register(

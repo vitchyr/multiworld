@@ -323,7 +323,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             img = (-r + b)
             return img
 
-    def update_subgoals(self, subgoals):
+    def update_subgoals(self, subgoals, subgoals_reproj=None, subgoal_v_vals=None):
         self.subgoals = subgoals
 
     def set_to_goal(self, goal_dict):
@@ -783,7 +783,7 @@ class Point2DWallEnv(Point2DEnv):
                       vmin=None, vmax=None,
                       extent=[-4, 4, -4, 4],
                       small_markers=False,
-                      draw_walls=True, draw_state=True, draw_goal=False, draw_subgoals=False,
+                      draw_walls=True, draw_state=True, draw_goal=True, draw_subgoals=False,
                       imsize=None):
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])

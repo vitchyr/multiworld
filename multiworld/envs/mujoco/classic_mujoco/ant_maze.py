@@ -252,6 +252,19 @@ class AntMazeEnv(AntEnv):
                 Wall(-9, 0, 1, 10, self.wall_radius),
             ]
 
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-2.5, 6.25])
+                kwargs['reset_high'] = np.array([-2.0, 6.75])
+
+                kwargs['goal_low'] = np.array([2.0, 6.25])
+                kwargs['goal_high'] = np.array([2.5, 6.75])
+            elif test_mode_case_num == 2:
+                kwargs['reset_low'] = np.array([0.75, 6.25])
+                kwargs['reset_high'] = np.array([1.25, 6.75])
+
+                kwargs['goal_low'] = np.array([0.75, 6.25])
+                kwargs['goal_high'] = np.array([1.25, 6.75])
+
             if 'goal_low' not in kwargs:
                 kwargs['goal_low'] = np.array([-8.0, -8.0])
             if 'goal_high' not in kwargs:
@@ -269,6 +282,13 @@ class AntMazeEnv(AntEnv):
                 Wall(9, 0, 1, 10, self.wall_radius),
                 Wall(-9, 0, 1, 10, self.wall_radius),
             ]
+
+            if test_mode_case_num == 1:
+                kwargs['reset_low'] = np.array([-2.5, -6.75])
+                kwargs['reset_high'] = np.array([-2.0, -6.25])
+
+                kwargs['goal_low'] = np.array([2.0, -6.75])
+                kwargs['goal_high'] = np.array([2.5, -6.25])
 
             if 'goal_low' not in kwargs:
                 kwargs['goal_low'] = np.array([-8.0, -8.0])
