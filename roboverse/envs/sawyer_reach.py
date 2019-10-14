@@ -2,13 +2,13 @@ import os
 import time
 
 import gym
-from gym import spaces
 import numpy as np
 import pybullet as p
 import pybullet_data
+from gym import spaces
 
-from roboverse.core.misc import load_urdf
 from roboverse.core.ik import sawyer_ik, position_control
+from roboverse.core.misc import load_urdf
 from roboverse.core.queries import get_index_by_attribute, get_link_state
 
 LARGE_VAL_OBSERVATION = 100
@@ -64,11 +64,16 @@ class SawyerReachEnv(gym.Env):
         ## load meshes
         self._sawyer = load_urdf(self._sawyer_urdf_path)
         self._table = load_urdf(
-            os.path.join(self._pybullet_data_dir, 'table/table.urdf'), [.75, -.2, -1], [0, 0, 0.707107, 0.707107], scale=1.0)
+            os.path.join(self._pybullet_data_dir, 'table/table.urdf'),
+            [.75, -.2, -1], [0, 0, 0.707107, 0.707107],
+            scale=1.0)
         self._duck = load_urdf(
-            os.path.join(self._pybullet_data_dir, 'duck_vhacd.urdf'), [.75, -.2, 0], [0, 0, 1, 0], scale=0.8)
+            os.path.join(self._pybullet_data_dir, 'duck_vhacd.urdf'),
+            [.75, -.2, 0], [0, 0, 1, 0], scale=0.8)
         self._lego = load_urdf(
-            os.path.join(self._pybullet_data_dir, 'lego/lego.urdf'), [.75, .2, 0], [0, 0, 1, 0], rgba=[1, 0, 0, 1], scale=1.5)
+            os.path.join(self._pybullet_data_dir, 'lego/lego.urdf'),
+            [.75, .2, 0], [0, 0, 1, 0], rgba=[1, 0, 0, 1],
+            scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
 
@@ -102,7 +107,7 @@ class SawyerReachEnv(gym.Env):
         pass
 
     def get_reward(self, observation):
-        return -1.0*np.linalg.norm(observation-self._goal_observation)
+        return -1.0 * np.linalg.norm(observation - self._goal_observation)
 
 
 if __name__ == "__main__":
