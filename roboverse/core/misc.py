@@ -14,6 +14,7 @@ def connect():
         p.connect(p.GUI)
 
     p.setAdditionalSearchPath(pdata.getDataPath())
+    # p.setAdditionalSearchPath('roboverse/envs/assets/')
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 
