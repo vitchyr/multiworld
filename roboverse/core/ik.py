@@ -1,9 +1,17 @@
 import numpy as np
 import pybullet as p
+import pdb
 
 from roboverse.core.queries import (
     get_joint_info,
     get_joint_state,
+    get_link_state,
+)
+
+from roboverse.core.misc import (
+    quat_to_deg,
+    l2_dist,
+    rot_diff_deg,
 )
 
 
@@ -21,6 +29,22 @@ def ik(body, link, pos, theta, damping):
                                                jointDamping=damping)
     return np.array(ik_solution)
 
+def ee_approx_eq(pos_a, theta_a, pos_b, theta_b, pos_eps=1e-5, theta_eps=1):
+    '''
+        theta_a and theta_b : euler angles in degrees
+        returns True if ||pos_a-pos_b||_2 <= pos_eps
+        and ||theta_a-theta_b||_2 <= theta_eps
+    '''
+    pos_delta = l2_dist(pos_a, pos_b)
+    theta_delta = rot_diff_deg(theta_a, theta_b)
+    return pos_delta <= pos_eps and theta_delta <= theta_eps
+
+def get_num_actuators(body):
+    '''
+        TODO : there is probably a better way to do this
+    '''
+    joint_indices, _ = get_joint_positions(body)
+    return len(joint_indices)
 
 def get_joint_positions(body):
     num_joints = p.getNumJoints(body)
@@ -28,7 +52,6 @@ def get_joint_positions(body):
     joint_indices = [j for j in range(num_joints) if q_indices[j] > -1]
     joint_positions = [get_joint_state(body, j, 'pos') for j in joint_indices]
     return np.array(joint_indices), np.array(joint_positions)
-
 
 def ik_to_joint_vel(body, ik_solution):
     indices, current = get_joint_positions(body)
@@ -72,4 +95,10 @@ def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
     #### velocities
     joints, velocities = ik_to_joint_vel(body, ik_solution)
     velocities[-2:] *= gripper_vel_mult
+    #### check if end effector already at correct position and orientation
+    link_pos, link_deg = get_link_state(body, link, ['pos', 'theta'], return_list=True)
+    deg = quat_to_deg(theta)
+    if ee_approx_eq(link_pos, link_deg, pos, deg):
+        velocities[:-2] = 0
+    #### apply velocities
     velocity_control(body, joints, velocities)

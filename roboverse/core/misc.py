@@ -37,11 +37,11 @@ def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
 ############################
 
 def deg_to_rad(deg):
-    return [d * np.pi / 180. for d in deg]
+    return np.array([d * np.pi / 180. for d in deg])
 
 
 def rad_to_deg(rad):
-    return [r * 180. / np.pi for r in rad]
+    return np.array([r * 180. / np.pi for r in rad])
 
 
 def quat_to_deg(quat):
@@ -62,3 +62,19 @@ def deg_to_quat(deg):
 
 def step():
     p.stepSimulation()
+
+def l2_dist(a, b):
+    a = np.array(a)
+    b = np.array(b)
+    return np.linalg.norm(a-b, 2)
+
+def rot_diff_deg(a, b):
+    '''
+        a, b : orientations in degrees
+        returns ||a-b||_1, taking into account that multiple
+        [r_x, r_y, r_z] vectors correspond to the same orientation
+    '''
+    diff = (a - b) % 360
+    diff = np.minimum(diff, 360-diff)
+    return np.linalg.norm(diff, 1)
+

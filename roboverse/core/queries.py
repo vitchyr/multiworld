@@ -7,28 +7,28 @@ from roboverse.core.misc import quat_to_deg
 #### bullet queries ####
 ########################
 
-def get_joint_state(body, joint, keys=None):
+def get_joint_state(body, joint, keys=None, return_list=False):
     lookup_fn = p.getJointState
     labels = ['pos', 'vel', 'forces', 'torque']
-    return _lookup_by_joint(body, joint, lookup_fn, labels, keys)
+    return _lookup_by_joint(body, joint, lookup_fn, labels, keys, return_list)
 
 
-def get_joint_info(body, joint, keys=None):
+def get_joint_info(body, joint, keys=None, return_list=False):
     lookup_fn = p.getJointInfo
     labels = ['joint_index', 'joint_name', 'joint_type', 'q_index', 'u_index', 'flags',
               'damping', 'friction', 'low', 'high', 'max_force', 'max_velocity',
               'link_name', 'axis', 'parent_frame_pos', 'parent_frame_theta', 'parent_index']
-    return _lookup_by_joint(body, joint, lookup_fn, labels, keys)
+    return _lookup_by_joint(body, joint, lookup_fn, labels, keys, return_list)
 
 
-def get_link_state(body, link, keys=None):
+def get_link_state(body, link, keys=None, return_list=False):
     lookup_fn = p.getLinkState
     labels = ['pos', 'theta', 'local_inertial_pos', 'local_inertial_theta',
               'world_link_pos', 'world_link_theta', 'world_link_linear_vel', 'world_link_angular_vel']
-    return _lookup_by_joint(body, link, lookup_fn, labels, keys)
+    return _lookup_by_joint(body, link, lookup_fn, labels, keys, return_list)
 
 
-def _lookup_by_joint(body, joint, lookup_fn, labels, keys):
+def _lookup_by_joint(body, joint, lookup_fn, labels, keys, return_list):
     keys = keys or labels
     ## get joint index from name if joint is not already an index
     joint = coerce_to_joint_name(body, joint)
@@ -48,9 +48,14 @@ def _lookup_by_joint(body, joint, lookup_fn, labels, keys):
     filtered_d = filter_quat_to_deg(filtered_d)
     ####
     if len(keys) == 1:
+        ## return val for sole key
         key = keys[0]
         return filtered_d[key]
+    elif return_list:
+        ## return list of vals
+        return [filtered_d[k] for k in keys]
     else:
+        ## return dictionary
         return filtered_d
 
 
