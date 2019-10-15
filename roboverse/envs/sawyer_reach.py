@@ -19,13 +19,15 @@ class SawyerReachEnv(gym.Env):
     def __init__(self,
                  action_repeat=10,
                  renders=False,
-                 goal_observation=(0.8, 0.4, 0.0)):
+                 goal_observation=(0.8, 0.4, 0.0),
+                 control_xyz_position_only=True):
 
         self._time_step = 1. / 240.
 
         self._renders = renders
         self._action_repeat = action_repeat
         self._goal_observation = np.asarray(goal_observation)
+        self._control_xyz_position_only = control_xyz_position_only
         self.terminated = 0
 
         self._p = p
@@ -82,22 +84,27 @@ class SawyerReachEnv(gym.Env):
         p.setGravity(0, 0, -10)
         p.stepSimulation()
         pos = np.array([0.5, 0, 0])
-        theta = [0.7071, 0.7071, 0, 0]
-        position_control(self._sawyer, self._end_effector, pos, theta)
+        self.theta = [0.7071, 0.7071, 0, 0]
+        position_control(self._sawyer, self._end_effector, pos, self.theta)
         return self.get_observation()
 
     def get_observation(self):
         observation = get_link_state(self._sawyer, self._end_effector, 'pos')
         return np.asarray(observation)
 
-    def step(self, action):
+    def step(self, action, angle):
         pos = get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += action[:3] * 0.1
-        theta = [0.7071, 0.7071, 0, 0]
+        if not self._control_xyz_position_only:
+            if not hasattr(self, 'theta'):
+                self.theta = [0.7071, 0.7071, 0, 0]
+            self.theta += angle[:4] * 0.1
+        else:
+            self.theta = [0.7071, 0.7071, 0, 0]
         gripper = 0
         done = False
         for _ in range(self._action_repeat):
-            sawyer_ik(self._sawyer, self._end_effector, pos, theta, gripper)
+            sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper)
             p.stepSimulation()
         observation = self.get_observation()
         return observation, self.get_reward(observation), done, {}

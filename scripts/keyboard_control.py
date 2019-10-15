@@ -47,7 +47,7 @@ pressed_keys = {
 }
 
 
-env = SawyerReachEnv(renders=True)
+env = SawyerReachEnv(renders=True, control_xyz_position_only=False)
 env.reset()
 pygame.init()
 screen = pygame.display.set_mode((100, 100))
@@ -83,4 +83,5 @@ while True:
             elif new_action[1] == 'gripper':
                 gripper = new_action[0]
     
-    obs, reward, done, info = env.step(0.1 * dx)
+    print(dtheta)
+    obs, reward, done, info = env.step(0.1 * dx, 0.1 * dtheta)
