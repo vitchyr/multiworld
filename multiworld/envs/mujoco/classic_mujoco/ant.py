@@ -1163,6 +1163,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             extent = [-6.0, 6.0, -6.0, 6.0]
         elif self.model_path in [
             'classic_mujoco/ant_gear10_dt3_u_long.xml',
+            'classic_mujoco/ant_gear15_dt3_u_long.xml',
         ]:
             extent = [-3.75, 3.75, -9.0, 9.0]
         elif self.model_path in [

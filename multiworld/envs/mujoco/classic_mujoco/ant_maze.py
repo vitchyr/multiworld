@@ -42,6 +42,7 @@ class AntMazeEnv(AntEnv):
             self.maze_type = 'u-big'
         elif model_path in [
             'classic_mujoco/ant_gear10_dt3_u_long.xml',
+            'classic_mujoco/ant_gear15_dt3_u_long.xml',
         ]:
             self.maze_type = 'u-long'
         elif model_path == 'classic_mujoco/ant_fb_gear30_small_dt3.xml':
@@ -289,6 +290,18 @@ class AntMazeEnv(AntEnv):
 
                 kwargs['goal_low'] = np.array([2.0, -6.75])
                 kwargs['goal_high'] = np.array([2.5, -6.25])
+            elif test_mode_case_num == 2:
+                kwargs['reset_low'] = np.array([-0.25, -1.25])
+                kwargs['reset_high'] = np.array([0.25, -0.75])
+
+                kwargs['goal_low'] = np.array([2.0, -6.75])
+                kwargs['goal_high'] = np.array([2.5, -6.25])
+            elif test_mode_case_num == 3:
+                kwargs['reset_low'] = np.array([-6.25, -0.25])
+                kwargs['reset_high'] = np.array([-5.75, 0.25])
+
+                kwargs['goal_low'] = np.array([5.75, -0.25])
+                kwargs['goal_high'] = np.array([6.25, 0.25])
 
             if 'goal_low' not in kwargs:
                 kwargs['goal_low'] = np.array([-8.0, -8.0])
