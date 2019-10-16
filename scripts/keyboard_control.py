@@ -83,5 +83,4 @@ while True:
             elif new_action[1] == 'gripper':
                 gripper = new_action[0]
     
-    print(dtheta)
-    obs, reward, done, info = env.step(0.1 * dx, 0.1 * dtheta)
+    obs, reward, done, info = env.step(0.5 * dx, 0.2 * dtheta)
