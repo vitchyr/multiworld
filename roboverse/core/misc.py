@@ -1,4 +1,5 @@
 import numpy as np
+import pdb
 
 import pybullet as p
 import pybullet_data as pdata
@@ -18,11 +19,39 @@ def connect():
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
 
+def connect_headless(render=False):
+    if render:
+        cid = p.connect(p.SHARED_MEMORY)
+        if cid < 0:
+            p.connect(p.GUI)
+    else:
+        p.connect(p.DIRECT)
+
+    p.resetDebugVisualizerCamera(0.8, 90, -20, [0.75, -.2, 0])
+    p.setAdditionalSearchPath(pdata.getDataPath())
+
 
 def setup(real_time=True, gravity=-10):
+    '''
+        sets parameters for running pybullet 
+        interactively
+    '''
     p.setRealTimeSimulation(real_time)
     p.setGravity(0, 0, gravity)
+    p.stepSimulation()
 
+def setup_headless(timestep=1./240, solver_iterations=150, gravity=-10):
+    '''
+        sets parameters for running pybullet 
+        in a headless environment
+    '''
+    p.setPhysicsEngineParameter(numSolverIterations=solver_iterations)
+    p.setTimeStep(timestep)
+    p.setGravity(0, 0, gravity)
+    p.stepSimulation()
+
+def reset():
+    p.resetSimulation()
 
 def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
     body = p.loadURDF(filepath, globalScaling=scale)
@@ -31,6 +60,34 @@ def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
         p.changeVisualShape(body, -1, rgbaColor=rgba)
     return body
 
+#############################
+#### rendering functions ####
+#############################
+
+def get_view_matrix(target_pos=[.75, -.2, 0], distance=0.9, 
+                    yaw=90, pitch=-20, roll=0, up_axis_index=2):
+    view_matrix = p.computeViewMatrixFromYawPitchRoll(
+        target_pos, distance, yaw, pitch, roll, up_axis_index)
+    return view_matrix
+
+def get_projection_matrix(height, width, fov=60, near_plane=0.1, far_plane=2):
+    aspect = width / height
+    projection_matrix = p.computeProjectionMatrixFOV(fov, aspect, near_plane, far_plane)
+    return projection_matrix
+
+def render(height, width, view_matrix, projection_matrix, 
+           shadow=1, light_direction=[1,1,1], renderer=p.ER_BULLET_HARDWARE_OPENGL):
+    ## ER_BULLET_HARDWARE_OPENGL
+    img_tuple = p.getCameraImage(width,
+                                 height,
+                                 view_matrix,
+                                 projection_matrix,
+                                 shadow=shadow,
+                                 lightDirection=light_direction,
+                                 renderer=renderer)
+    _, _, img, depth, segmentation = img_tuple
+    img = img[:,:,:-1]
+    return img, depth, segmentation
 
 ############################
 #### rotation functions ####
@@ -77,4 +134,58 @@ def rot_diff_deg(a, b):
     diff = (a - b) % 360
     diff = np.minimum(diff, 360-diff)
     return np.linalg.norm(diff, 1)
+
+def get_bbox(body, draw=False):
+    bbox = p.getAABB(body)
+    if draw:
+        draw_bbox(*bbox)
+    return bbox
+
+def draw_bbox(aabbMin, aabbMax):
+    '''
+        https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/getAABB.py
+    '''
+    f = [aabbMin[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 0, 0])
+    f = [aabbMin[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [0, 1, 0])
+    f = [aabbMin[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [0, 0, 1])
+
+    f = [aabbMin[0], aabbMin[1], aabbMax[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMin[0], aabbMin[1], aabbMax[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMax[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMax[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMin[0], aabbMax[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMax[1], aabbMax[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1.0, 0.5, 0.5])
+    f = [aabbMax[0], aabbMax[1], aabbMax[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+    f = [aabbMax[0], aabbMax[1], aabbMax[2]]
+    t = [aabbMax[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
 
