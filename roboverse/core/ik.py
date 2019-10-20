@@ -79,7 +79,7 @@ def position_control(body, link, pos, theta, damping=1e-3):
 
 
 def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
-              gripper_close_thresh=0.5, gripper_vel_mult=20):
+              gripper_close_thresh=0.5, gripper_vel_mult=200):
     #### get gripper state position
     l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
                               ['low', 'high'])
@@ -102,3 +102,17 @@ def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
         velocities[:-2] = 0
     #### apply velocities
     velocity_control(body, joints, velocities)
+
+def step_ik(body=0):
+    '''
+        enforces joint limits for gripper fingers
+    '''
+    for joint in range(20, 25):
+        low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
+        pos = get_joint_state(body, joint, 'pos')
+        pos = np.clip(pos, low, high)
+        p.resetJointState(body, joint, pos)
+
+
+
+
