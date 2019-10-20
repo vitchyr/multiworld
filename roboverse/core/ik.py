@@ -79,7 +79,7 @@ def position_control(body, link, pos, theta, damping=1e-3):
 
 
 def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
-              gripper_close_thresh=0.5, gripper_vel_mult=200):
+              gripper_close_thresh=0.5, gripper_vel_mult=5):
     #### get gripper state position
     l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
                               ['low', 'high'])

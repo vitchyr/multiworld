@@ -520,7 +520,7 @@
       <inertial>
         <!-- yaw = ${-pi/2*(reflect+1)} = -pi/2*2 = -pi -->
         <origin rpy="0 0 -3.14" xyz="0 0 0"/>
-        <mass value="0.001"/>
+        <mass value="0.1"/>
         <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
       </inertial>
     </link>
@@ -558,7 +558,7 @@
       </collision>
       <inertial>
         <origin rpy="0 0 0" xyz="0 0 0"/>
-        <mass value="0.001"/>
+        <mass value="0.1"/>
         <inertia ixx="0.01" ixy="0" ixz="0" iyy="0.01" iyz="0" izz="0.01"/>
       </inertial>
     </link>
