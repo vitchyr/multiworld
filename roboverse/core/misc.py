@@ -79,3 +79,57 @@ def rot_diff_deg(a, b):
     diff = np.minimum(diff, 360-diff)
     return np.linalg.norm(diff, 1)
 
+def get_bbox(body, draw=False):
+    bbox = p.getAABB(body)
+    if draw:
+        draw_bbox(*bbox)
+    return bbox
+
+def draw_bbox(aabbMin, aabbMax):
+    '''
+        https://github.com/bulletphysics/bullet3/blob/master/examples/pybullet/examples/getAABB.py
+    '''
+    f = [aabbMin[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 0, 0])
+    f = [aabbMin[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [0, 1, 0])
+    f = [aabbMin[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [0, 0, 1])
+
+    f = [aabbMin[0], aabbMin[1], aabbMax[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMin[0], aabbMin[1], aabbMax[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMin[1], aabbMin[2]]
+    t = [aabbMax[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMax[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMin[0], aabbMax[1], aabbMin[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+
+    f = [aabbMax[0], aabbMax[1], aabbMax[2]]
+    t = [aabbMin[0], aabbMax[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1.0, 0.5, 0.5])
+    f = [aabbMax[0], aabbMax[1], aabbMax[2]]
+    t = [aabbMax[0], aabbMin[1], aabbMax[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+    f = [aabbMax[0], aabbMax[1], aabbMax[2]]
+    t = [aabbMax[0], aabbMax[1], aabbMin[2]]
+    p.addUserDebugLine(f, t, [1, 1, 1])
+

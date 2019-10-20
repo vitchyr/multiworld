@@ -28,9 +28,12 @@ bullet.position_control(sawyer, end_effector, pos, theta)
 while True:
 
     delta = space_mouse.control
-    pos += delta * 0.1
+    pos += delta * 0.2
     print(delta, pos)
 
     bullet.sawyer_ik(sawyer, end_effector, pos, theta, space_mouse.control_gripper)
     bullet.step_ik()
     pos = bullet.get_link_state(sawyer, end_effector, 'pos')
+
+    # bbox = bullet.get_bbox(cube, draw=True)
+    # pdb.set_trace()
