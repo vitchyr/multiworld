@@ -1,4 +1,5 @@
 import os
+import pdb
 
 import pybullet as p
 import pybullet_data as pdata
@@ -9,11 +10,11 @@ def loader(*filepath, **defaults):
     filepath = os.path.join(*filepath)
     def fn(*args, **kwargs):
         defaults.update(kwargs)
-        print('LOADING: ', filepath, defaults)
         return load_urdf(filepath, **defaults)
     return fn
 
-ASSET_PATH = 'roboverse/envs/assets'
+cur_path = os.path.dirname(os.path.realpath(__file__))
+ASSET_PATH = os.path.join(cur_path, '../envs/assets')
 PDATA_PATH = pdata.getDataPath()
 
 

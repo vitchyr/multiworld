@@ -11,9 +11,9 @@ import roboverse.core.objects as objects
 class SawyerBaseEnv(gym.Env):
 
     def __init__(self,
-                 img_dim=64,
+                 img_dim=256,
                  render=False,
-                 action_scale=.2,
+                 action_scale=.1,
                  action_repeat=4,
                  timestep=1./120,
                  solver_iterations=150,
@@ -33,7 +33,7 @@ class SawyerBaseEnv(gym.Env):
         self._projection_matrix = bullet.get_projection_matrix(self._img_dim, self._img_dim)
 
     def _set_spaces(self):
-        act_dim = 3
+        act_dim = 4
         act_bound = 1
         act_high = np.ones(act_dim) * act_bound
         self.action_space = gym.spaces.Box(-act_high, act_high)
@@ -85,7 +85,7 @@ class SawyerBaseEnv(gym.Env):
 
     def get_observation(self):
         observation = bullet.get_sim_state(*self._state_query)
-        return np.asarray(observation)
+        return observation
 
     def step(self, *action):
         delta_pos, gripper = self._format_action(*action)
@@ -106,15 +106,6 @@ class SawyerBaseEnv(gym.Env):
 
     def render(self, mode='rgb_array'):
         img, depth, segmentation = bullet.render(self._img_dim, self._img_dim, self._view_matrix, self._projection_matrix)
-
-        # img_tuple = p.getCameraImage(width,
-        #                              height,
-        #                              view_matrix,
-        #                              projection_matrix,
-        #                              shadow=1,
-        #                              lightDirection=[1, 1, 1],
-        #                              renderer=p.ER_BULLET_HARDWARE_OPENGL)
-        # _, _, img, depth, segmentation = img_tuple
         return img
 
     def get_reward(self, observation):

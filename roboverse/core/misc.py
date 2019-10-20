@@ -76,7 +76,7 @@ def get_projection_matrix(height, width, fov=60, near_plane=0.1, far_plane=2):
     return projection_matrix
 
 def render(height, width, view_matrix, projection_matrix, 
-           shadow=1, light_direction=[1,1,1], renderer=p.ER_TINY_RENDERER):
+           shadow=1, light_direction=[1,1,1], renderer=p.ER_BULLET_HARDWARE_OPENGL):
     ## ER_BULLET_HARDWARE_OPENGL
     img_tuple = p.getCameraImage(width,
                                  height,
@@ -86,6 +86,7 @@ def render(height, width, view_matrix, projection_matrix,
                                  lightDirection=light_direction,
                                  renderer=renderer)
     _, _, img, depth, segmentation = img_tuple
+    img = img[:,:,:-1]
     return img, depth, segmentation
 
 ############################

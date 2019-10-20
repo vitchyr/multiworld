@@ -6,7 +6,7 @@ from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 class SawyerLiftEnv(SawyerBaseEnv):
 
-    def __init__(self, goal_pos, *args, **kwargs):
+    def __init__(self, goal_pos=[.75,-.4,.2], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
         self._finger_tip = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger_tip')
@@ -22,7 +22,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
 if __name__ == "__main__":
     import time
 
-    env = SawyerLiftEnv([.75,-.4,.2], render=False)
+    env = SawyerLiftEnv([.75,-.4,.2], img_dim=256, render=False)
     # env.reset()
 
     ## interactive
@@ -44,7 +44,7 @@ if __name__ == "__main__":
     for i in range(num_steps):
         act = np.array([1.0, 0.0, 0.0, 0.0])
         obs, rew, term, info = env.step(act)
-        print(i, obs.shape)
+        print(i, obs.shape, rew, term)
         img = env.render()
     t1 = time.time()
 
@@ -52,3 +52,6 @@ if __name__ == "__main__":
     fps = num_steps / tot_time
     print('{} steps in {} seconds'.format(num_steps, tot_time))
     print('{} fps'.format(fps))
+
+
+
