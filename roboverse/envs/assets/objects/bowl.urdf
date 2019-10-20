@@ -39,12 +39,40 @@
       </geometry>
        <material name="teal"/>
     </visual>
-<!--     <collision>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+    <collision>
+      <origin rpy="0 0 0" xyz="0 0 -.3"/>
       <geometry>
-	 			<box size=".8 .8  .6"/>
+	 			<box size="1.2 1.2 .1"/>
       </geometry>
-    </collision> -->
+    </collision>
+    <collision>
+      <!-- right -->
+      <origin rpy="0 0 0" xyz="0 -.6 0"/>
+      <geometry>
+        <box size="1.1 .1 .5"/>
+      </geometry>
+    </collision>
+    <collision>
+      <!-- left -->
+      <origin rpy="0 0 0" xyz="0 .6 0"/>
+      <geometry>
+        <box size="1.1 .1 .5"/>
+      </geometry>
+    </collision>
+    <collision>
+      <!-- front -->
+      <origin rpy="0 0 0" xyz=".6 0 0"/>
+      <geometry>
+        <box size=".1 1.1 .5"/>
+      </geometry>
+    </collision>
+    <collision>
+      <!-- back -->
+      <origin rpy="0 0 0" xyz="-.6 0 0"/>
+      <geometry>
+        <box size=".1 1.1 .5"/>
+      </geometry>
+    </collision>
   </link>
 
   <link name="lid">
@@ -72,9 +100,7 @@
     </collision>
   </link>
 
-  <link name="handle"/>
-
-  <link name="handle_m">
+  <link name="handle">
     <lateral_friction value="1.0"/>
     <rolling_friction value="0.0"/>
     <contact_cfm value="0.0"/>
@@ -116,12 +142,6 @@
     <origin rpy="0 0 0" xyz="0 0 0.1"/>
     <parent link="lid"/>
     <child link="handle"/>
-  </joint>
-
-  <joint name="j_handle_m" type="fixed">
-    <origin rpy="0 0 0" xyz="0 0 0"/>
-    <parent link="handle"/>
-    <child link="handle_m"/>
   </joint>
 
 </robot>
