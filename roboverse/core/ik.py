@@ -79,7 +79,7 @@ def position_control(body, link, pos, theta, damping=1e-3):
 
 
 def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
-              gripper_close_thresh=0.5, gripper_vel_mult=10):
+              gripper_close_thresh=0.5, arm_vel_mult=3, gripper_vel_mult=10):
     #### get gripper state position
     l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
                               ['low', 'high'])
@@ -94,6 +94,7 @@ def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
     ik_solution[-2:] = gripper_state
     #### velocities
     joints, velocities = ik_to_joint_vel(body, ik_solution)
+    velocities[:-2] *= arm_vel_mult
     velocities[-2:] *= gripper_vel_mult
     #### check if end effector already at correct position and orientation
     link_pos, link_deg = get_link_state(body, link, ['pos', 'theta'], return_list=True)
@@ -107,6 +108,7 @@ def step_ik(body=0):
     '''
         enforces joint limits for gripper fingers
     '''
+    p.stepSimulation()
     for joint in range(20, 25):
         low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
         pos = get_joint_state(body, joint, 'pos')

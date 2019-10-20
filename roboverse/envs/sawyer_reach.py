@@ -92,7 +92,7 @@ class SawyerReachEnv(gym.Env):
         observation = get_link_state(self._sawyer, self._end_effector, 'pos')
         return np.asarray(observation)
 
-    def step(self, action, angle):
+    def step(self, action):
         pos = get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += action[:3] * 0.1
         if not self._control_xyz_position_only:

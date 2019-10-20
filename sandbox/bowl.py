@@ -28,7 +28,7 @@ bullet.position_control(sawyer, end_effector, pos, theta)
 while True:
 
     delta = space_mouse.control
-    pos += delta * 0.2
+    pos += delta * 0.1
     print(delta, pos)
 
     bullet.sawyer_ik(sawyer, end_effector, pos, theta, space_mouse.control_gripper)

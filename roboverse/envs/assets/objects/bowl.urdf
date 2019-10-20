@@ -47,28 +47,28 @@
     </collision>
     <collision>
       <!-- right -->
-      <origin rpy="0 0 0" xyz="0 -.6 0"/>
+      <origin rpy="0 0 0" xyz="0 -.5 0"/>
       <geometry>
         <box size="1.1 .1 .5"/>
       </geometry>
     </collision>
     <collision>
       <!-- left -->
-      <origin rpy="0 0 0" xyz="0 .6 0"/>
+      <origin rpy="0 0 0" xyz="0 .5 0"/>
       <geometry>
         <box size="1.1 .1 .5"/>
       </geometry>
     </collision>
     <collision>
       <!-- front -->
-      <origin rpy="0 0 0" xyz=".6 0 0"/>
+      <origin rpy="0 0 0" xyz=".5 0 0"/>
       <geometry>
         <box size=".1 1.1 .5"/>
       </geometry>
     </collision>
     <collision>
       <!-- back -->
-      <origin rpy="0 0 0" xyz="-.6 0 0"/>
+      <origin rpy="0 0 0" xyz="-.5 0 0"/>
       <geometry>
         <box size=".1 1.1 .5"/>
       </geometry>
@@ -82,7 +82,7 @@
     <contact_erp value="1.0"/>
     <inertial>
       <origin rpy="0 0 0" xyz="0.0 0.0 0.0"/>
-       <mass value=".1"/>
+       <mass value=".25"/>
        <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
     </inertial>
     <visual>
@@ -125,12 +125,12 @@
     </collision>
   </link>
 
-  <joint name="j_base" type="fixed">
+  <joint name="base_joint" type="fixed">
     <parent link="world"/>
     <child link="base"/>
   </joint>
 
-  <joint name="j_lid" type="prismatic">
+  <joint name="lid_joint" type="prismatic">
     <origin rpy="0 0 0" xyz="0 0 0.35"/>
     <parent link="base"/>
     <child link="lid"/>
@@ -138,7 +138,7 @@
     <limit effort="100" lower="0" upper="1" velocity="100"/>
   </joint>
 
-  <joint name="j_handle" type="fixed">
+  <joint name="handle_joint" type="fixed">
     <origin rpy="0 0 0" xyz="0 0 0.1"/>
     <parent link="lid"/>
     <child link="handle"/>
