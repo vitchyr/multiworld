@@ -35,7 +35,7 @@
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
         <!-- <box size="1 1 1"/> -->
-        <mesh filename="roboverse/envs/assets/objects/base.dae" scale=".7 .7 .7"/>
+        <mesh filename="roboverse/envs/assets/objects/bowl/base.dae" scale=".7 .7 .7"/>
       </geometry>
        <material name="teal"/>
     </visual>
