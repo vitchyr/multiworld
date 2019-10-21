@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import os
 import pdb
 
 import pybullet as p
@@ -59,6 +61,14 @@ def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
     if rgba is not None:
         p.changeVisualShape(body, -1, rgbaColor=rgba)
     return body
+
+def load_obj(filepathcollision, filepathvisual, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
+    collisionid= p.createCollisionShape(p.GEOM_MESH, fileName=filepathcollision, meshScale=scale * np.array([1, 1, 1]))
+    visualid = p.createVisualShape(p.GEOM_MESH, fileName=filepathvisual, meshScale=scale * np.array([1, 1, 1]))
+    body = p.createMultiBody(0.05, collisionid, visualid)
+    p.resetBasePositionAndOrientation(body, pos, quat)
+    return body
+
 
 #############################
 #### rendering functions ####
@@ -189,3 +199,24 @@ def draw_bbox(aabbMin, aabbMax):
     t = [aabbMax[0], aabbMax[1], aabbMin[2]]
     p.addUserDebugLine(f, t, [1, 1, 1])
 
+def load_random_objects(filePath, number):
+    objects = []
+    chosen_objects = []
+    for root, dirs, files in os.walk(filePath+'/models_vhacd'):
+        for d in dirs:
+            objects.append(str(d))
+        break
+    try:
+        chosen_objects = random.sample(range(len(d)), number) 
+    except ValueError:
+        print('Sample size exceeded population size')
+    
+    object_ids = []
+    for i in chosen_objects:
+        f = open(filePath+'/models_vhacd/{0}/scale.txt'.format(objects[i]), 'r')
+        scaling = float(f.read())
+        obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]), 
+            filePath+'/models/{0}.obj'.format(objects[i]),
+            [random.uniform(0.65, 0.85), random.uniform(-0.4, 0.3), 0.5], [0, 0, 1, 0], scale=scaling)
+        object_ids.append(obj)
+    return object_ids

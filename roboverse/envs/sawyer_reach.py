@@ -8,7 +8,7 @@ import pybullet_data
 from gym import spaces
 
 from roboverse.core.ik import sawyer_ik, position_control
-from roboverse.core.misc import load_urdf
+from roboverse.core.misc import load_urdf, load_obj, load_random_objects
 from roboverse.core.queries import get_index_by_attribute, get_link_state
 
 LARGE_VAL_OBSERVATION = 100
@@ -78,6 +78,8 @@ class SawyerReachEnv(gym.Env):
             scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
+        #self._object = load_obj('/home/jonathan/Desktop/ShapeNetSemTemp/models_vhacd/1d039d24ce67c8c5ff59f04994ef1f0c/model_vhacd.obj', '/home/jonathan/Desktop/ShapeNetSemTemp/models/1d039d24ce67c8c5ff59f04994ef1f0c.obj', [.75, .3, .3], [0, 0, 1, 0], scale=0.00250657255290433)
+        load_random_objects('/home/jonathan/Desktop/ShapeNetSemTemp', 3)
 
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._time_step)
@@ -92,7 +94,7 @@ class SawyerReachEnv(gym.Env):
         observation = get_link_state(self._sawyer, self._end_effector, 'pos')
         return np.asarray(observation)
 
-    def step(self, action):
+    def step(self, action, angle):
         pos = get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += action[:3] * 0.1
         if not self._control_xyz_position_only:
