@@ -16,7 +16,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
         ee_pos = bullet.get_link_state(self._sawyer, self._finger_tip, 'pos')
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
-        reward = -(ee_dist + 5*goal_dist)
+        reward = -(ee_dist + 2*goal_dist)
         return reward
 
 if __name__ == "__main__":

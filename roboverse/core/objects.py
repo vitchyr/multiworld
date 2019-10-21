@@ -62,7 +62,7 @@ cube = loader(ASSET_PATH, 'objects/cube.urdf',
               scale=0.05)
 
 spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
-              pos=[.75, -.4, 0], 
+              pos=[.75, -.4, -.3], 
               deg=[90,0,-90],
               scale=0.025)
 
