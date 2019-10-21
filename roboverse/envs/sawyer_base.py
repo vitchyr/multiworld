@@ -62,7 +62,7 @@ class SawyerBaseEnv(gym.Env):
         self._sawyer = objects.sawyer()
         self._table = objects.table()
         self._bowl = objects.bowl()
-        self._cube = objects.cube()
+        self._cube = objects.spam()
 
     def _format_state_query(self):
         ## position and orientation of body root

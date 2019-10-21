@@ -4,12 +4,21 @@ import pdb
 import pybullet as p
 import pybullet_data as pdata
 
-from roboverse.core.misc import load_urdf
+from roboverse.core.misc import (
+  load_urdf,
+  deg_to_quat,
+)
 
 def loader(*filepath, **defaults):
     filepath = os.path.join(*filepath)
     def fn(*args, **kwargs):
         defaults.update(kwargs)
+
+        if 'deg' in defaults:
+          assert 'quat' not in defaults
+          defaults['quat'] = deg_to_quat(defaults['deg'])
+          del defaults['deg']
+
         return load_urdf(filepath, **defaults)
     return fn
 
@@ -51,6 +60,11 @@ bowl = loader(ASSET_PATH, 'objects/bowl.urdf',
 cube = loader(ASSET_PATH, 'objects/cube.urdf', 
               pos=[.75, -.4, -.3],
               scale=0.05)
+
+spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
+              pos=[.75, -.4, 0], 
+              deg=[90,0,-90],
+              scale=0.025)
 
 
 

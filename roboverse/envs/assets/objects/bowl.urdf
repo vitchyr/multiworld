@@ -47,30 +47,30 @@
     </collision>
     <collision>
       <!-- right -->
-      <origin rpy="0 0 0" xyz="0 -.5 0"/>
+      <origin rpy="0 0 0" xyz="0 -.45 0"/>
       <geometry>
-        <box size="1.1 .1 .5"/>
+        <box size="1 .05 .5"/>
       </geometry>
     </collision>
     <collision>
       <!-- left -->
-      <origin rpy="0 0 0" xyz="0 .5 0"/>
+      <origin rpy="0 0 0" xyz="0 .45 0"/>
       <geometry>
-        <box size="1.1 .1 .5"/>
+        <box size="1 .05 .5"/>
       </geometry>
     </collision>
     <collision>
       <!-- front -->
-      <origin rpy="0 0 0" xyz=".5 0 0"/>
+      <origin rpy="0 0 0" xyz=".45 0 0"/>
       <geometry>
-        <box size=".1 1.1 .5"/>
+        <box size=".05 1 .5"/>
       </geometry>
     </collision>
     <collision>
       <!-- back -->
-      <origin rpy="0 0 0" xyz="-.5 0 0"/>
+      <origin rpy="0 0 0" xyz="-.45 0 0"/>
       <geometry>
-        <box size=".1 1.1 .5"/>
+        <box size=".05 1 .5"/>
       </geometry>
     </collision>
   </link>

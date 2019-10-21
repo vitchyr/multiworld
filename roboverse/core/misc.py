@@ -14,10 +14,11 @@ def connect():
     if (clid < 0):
         p.connect(p.GUI)
 
-    p.setAdditionalSearchPath(pdata.getDataPath())
-    # p.setAdditionalSearchPath('roboverse/envs/assets/')
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
+    p.resetDebugVisualizerCamera(0.8, 90, -20, [0.75, -.2, 0])
+    p.setAdditionalSearchPath(pdata.getDataPath())
+    # p.setAdditionalSearchPath('roboverse/envs/assets/')
 
 def connect_headless(render=False):
     if render:
