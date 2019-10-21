@@ -9,11 +9,14 @@ class SawyerLiftEnv(SawyerBaseEnv):
     def __init__(self, goal_pos=[.75,-.4,.2], *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
-        self._finger_tip = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger_tip')
+        self._l_finger_tip = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_l_finger_tip')
+        self._r_finger_tip = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger_tip')
 
     def get_reward(self, observation):
         cube_pos = bullet.get_body_info(self._cube, 'pos')
-        ee_pos = bullet.get_link_state(self._sawyer, self._finger_tip, 'pos')
+        l_finger_pos = bullet.get_link_state(self._sawyer, self._l_finger_tip, 'pos')
+        r_finger_pos = bullet.get_link_state(self._sawyer, self._r_finger_tip, 'pos')
+        pdb.set_trace()
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
         reward = -(ee_dist + 2*goal_dist)
