@@ -2,7 +2,7 @@
 <robot name="spam.urdf">
   <link name="spam">
     <contact>
-      <lateral_friction value="1.0"/>
+      <lateral_friction value="0.5"/>
       <rolling_friction value="0.0"/>
       <contact_cfm value="0.0"/>
       <contact_erp value="1.0"/>
@@ -26,7 +26,7 @@
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
 	 	   <!-- <mesh filename="/Users/janner/Desktop/" scale=".05 .05 .05"/> -->
-       <box size="1.75 1.75 1.75"/>
+       <box size="1.95 1.95 1.95"/>
       </geometry>
     </collision>
   </link>
