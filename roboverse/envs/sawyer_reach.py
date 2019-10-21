@@ -59,6 +59,7 @@ class SawyerReachEnv(gym.Env):
         self._sawyer_urdf_path = os.path.join(
             model_dir, 'sawyer_description/urdf/sawyer_xacro.urdf')
         self._pybullet_data_dir = pybullet_data.getDataPath()
+        self._object_path = '/home/jonathan/Desktop/ShapeNetSemTemp'
 
     def reset(self):
         p.resetSimulation()
@@ -78,8 +79,7 @@ class SawyerReachEnv(gym.Env):
             scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
-        #self._object = load_obj('/home/jonathan/Desktop/ShapeNetSemTemp/models_vhacd/1d039d24ce67c8c5ff59f04994ef1f0c/model_vhacd.obj', '/home/jonathan/Desktop/ShapeNetSemTemp/models/1d039d24ce67c8c5ff59f04994ef1f0c.obj', [.75, .3, .3], [0, 0, 1, 0], scale=0.00250657255290433)
-        load_random_objects('/home/jonathan/Desktop/ShapeNetSemTemp', 3)
+        load_random_objects(self._object_path, 3)
 
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._time_step)
