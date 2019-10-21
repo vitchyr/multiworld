@@ -101,7 +101,7 @@ class SawyerBaseEnv(gym.Env):
 
     def _simulate(self, pos, theta, gripper):
         for _ in range(self._action_repeat):
-            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper)
+            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, gripper_close_thresh=0)
             bullet.step_ik()
 
     def render(self, mode='rgb_array'):
