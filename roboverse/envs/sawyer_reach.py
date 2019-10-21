@@ -59,7 +59,7 @@ class SawyerReachEnv(gym.Env):
         self._sawyer_urdf_path = os.path.join(
             model_dir, 'sawyer_description/urdf/sawyer_xacro.urdf')
         self._pybullet_data_dir = pybullet_data.getDataPath()
-        self._object_path = '/home/jonathan/Desktop/ShapeNetSemTemp'
+        self._object_path = 'assets/ShapeNetSem'
 
     def reset(self):
         p.resetSimulation()
