@@ -207,7 +207,7 @@ def load_random_objects(filePath, number):
             objects.append(str(d))
         break
     try:
-        chosen_objects = random.sample(range(len(d)), number) 
+        chosen_objects = random.sample(range(len(objects)), number) 
     except ValueError:
         print('Sample size exceeded population size')
     
@@ -215,11 +215,11 @@ def load_random_objects(filePath, number):
     for i in chosen_objects:
         f = open(filePath+'/models_vhacd/{0}/scale.txt'.format(objects[i]), 'r')
         scaling = float(f.read())
-        obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]), 
-            filePath+'/models/{0}.obj'.format(objects[i]),
-            [random.uniform(0.65, 0.85), random.uniform(-0.5, 0.3), 1], [0, 0, 1, 0], scale=scaling)
-        #obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
-            #filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
-            #[random.uniform(0.65, 0.85), random.uniform(-0.4, 0.3), 0.2], [0, 0, 1, 0], scale=scaling)
+        #obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]), 
+            #filePath+'/models/{0}.obj'.format(objects[i]),
+            #[random.uniform(0.65, 0.85), random.uniform(-0.5, 0.3), 0], [0, 0, 0, 1], scale=scaling)
+        obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
+            filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
+            [random.uniform(0.65, 0.85), random.uniform(-0.4, 0.3), 0.2], [0, 0, 1, 0], scale=scaling)
         object_ids.append(obj)
     return object_ids
