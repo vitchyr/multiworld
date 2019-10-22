@@ -46,7 +46,7 @@ class SawyerReachEnv(gym.Env):
 
         observation_high = np.array([LARGE_VAL_OBSERVATION] * observation_dim)
 
-        action_dim = 5
+        action_dim = 7
         self._action_bound = 1
         action_high = np.array([self._action_bound] * action_dim)
         self.action_space = spaces.Box(-action_high, action_high)
@@ -94,12 +94,13 @@ class SawyerReachEnv(gym.Env):
         observation = get_link_state(self._sawyer, self._end_effector, 'pos')
         return np.asarray(observation)
 
-    def step(self, action, angle):
+    def step(self, action):
         pos = get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += action[:3] * 0.1
         if not self._control_xyz_position_only:
             if not hasattr(self, 'theta'):
                 self.theta = [0.7071, 0.7071, 0, 0]
+            angle = action[3:]
             self.theta += angle[:4] * 0.1
         else:
             self.theta = [0.7071, 0.7071, 0, 0]
