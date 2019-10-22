@@ -225,8 +225,8 @@ def load_random_objects(filePath, number):
     count = 1
     for i in chosen_objects:
         path = objects[i].split('/')
-        dirName = path[11]
-        objectName = path[12]
+        dirName = path[-2]
+        objectName = path[-1]
         f = open(filePath+'/ShapeNetCore_vhacd/{0}/{1}/scale.txt'.format(dirName, objectName), 'r')
         scaling = float(f.read()) 
         obj = load_obj(filePath+'/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dirName, objectName),
