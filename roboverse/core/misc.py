@@ -144,7 +144,7 @@ def get_bbox(body, draw=False):
 
 def get_midpoint(body):
     xyz_min, xyz_max = get_bbox(body)
-    midpoint = (xyz_min + xyz_min) / 2.
+    midpoint = (xyz_min + xyz_max) / 2.
     return midpoint
 
 def draw_bbox(aabbMin, aabbMax):
