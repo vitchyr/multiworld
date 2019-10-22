@@ -8,7 +8,7 @@ import pybullet_data
 from gym import spaces
 
 from roboverse.core.ik import sawyer_ik, position_control
-from roboverse.core.misc import load_urdf
+from roboverse.core.misc import load_urdf, load_obj, load_random_objects
 from roboverse.core.queries import get_index_by_attribute, get_link_state
 
 LARGE_VAL_OBSERVATION = 100
@@ -46,7 +46,7 @@ class SawyerReachEnv(gym.Env):
 
         observation_high = np.array([LARGE_VAL_OBSERVATION] * observation_dim)
 
-        action_dim = 5
+        action_dim = 7
         self._action_bound = 1
         action_high = np.array([self._action_bound] * action_dim)
         self.action_space = spaces.Box(-action_high, action_high)
@@ -59,6 +59,7 @@ class SawyerReachEnv(gym.Env):
         self._sawyer_urdf_path = os.path.join(
             model_dir, 'sawyer_description/urdf/sawyer_xacro.urdf')
         self._pybullet_data_dir = pybullet_data.getDataPath()
+        self._object_path = os.path.join(curr_dir, 'assets/ShapeNetCore')
 
     def reset(self):
         p.resetSimulation()
@@ -78,7 +79,8 @@ class SawyerReachEnv(gym.Env):
             scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
-
+        load_random_objects(self._object_path, 3) 
+       
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._time_step)
         p.setGravity(0, 0, -10)
@@ -98,6 +100,7 @@ class SawyerReachEnv(gym.Env):
         if not self._control_xyz_position_only:
             if not hasattr(self, 'theta'):
                 self.theta = [0.7071, 0.7071, 0, 0]
+            angle = action[3:]
             self.theta += angle[:4] * 0.1
         else:
             self.theta = [0.7071, 0.7071, 0, 0]

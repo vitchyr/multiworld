@@ -1,4 +1,6 @@
 import numpy as np
+import random
+import os
 import pdb
 
 import pybullet as p
@@ -60,6 +62,14 @@ def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
     if rgba is not None:
         p.changeVisualShape(body, -1, rgbaColor=rgba)
     return body
+
+def load_obj(filepathcollision, filepathvisual, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
+    collisionid= p.createCollisionShape(p.GEOM_MESH, fileName=filepathcollision, meshScale=scale * np.array([1, 1, 1]))
+    visualid = p.createVisualShape(p.GEOM_MESH, fileName=filepathvisual, meshScale=scale * np.array([1, 1, 1]))
+    body = p.createMultiBody(0.05, collisionid, visualid)
+    p.resetBasePositionAndOrientation(body, pos, quat)
+    return body
+
 
 #############################
 #### rendering functions ####
@@ -195,3 +205,33 @@ def draw_bbox(aabbMin, aabbMax):
     t = [aabbMax[0], aabbMax[1], aabbMin[2]]
     p.addUserDebugLine(f, t, [1, 1, 1])
 
+def load_random_objects(filePath, number):
+    objects = []
+    chosen_objects = []
+    print(filePath)
+    for root, dirs, files in os.walk(filePath+'/ShapeNetCore.v2'):
+        for d in dirs:
+            for modelroot, modeldirs, modelfiles in os.walk(os.path.join(root, d)):
+                for md in modeldirs:
+                    objects.append(os.path.join(modelroot, md))
+                break
+        break
+    try:
+        chosen_objects = random.sample(range(len(objects)), number) 
+    except ValueError:
+        print('Sample size exceeded population size')
+    
+    object_ids = []
+    count = 1
+    for i in chosen_objects:
+        path = objects[i].split('/')
+        dirName = path[-2]
+        objectName = path[-1]
+        f = open(filePath+'/ShapeNetCore_vhacd/{0}/{1}/scale.txt'.format(dirName, objectName), 'r')
+        scaling = float(f.read()) 
+        obj = load_obj(filePath+'/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dirName, objectName),
+            filePath+'/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(dirName, objectName),
+            [random.uniform(0.65, 0.85), random.uniform(-0.5, 0.5), 0], [0, 0, 1, 0], scale=scaling)
+        object_ids.append(obj)
+        count += 1
+    return object_ids

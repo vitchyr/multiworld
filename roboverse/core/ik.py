@@ -29,7 +29,7 @@ def ik(body, link, pos, theta, damping):
                                                jointDamping=damping)
     return np.array(ik_solution)
 
-def ee_approx_eq(pos_a, theta_a, pos_b, theta_b, pos_eps=1e-5, theta_eps=1):
+def ee_approx_eq(pos_a, theta_a, pos_b, theta_b, pos_eps=1e-3, theta_eps=1):
     '''
         theta_a and theta_b : euler angles in degrees
         returns True if ||pos_a-pos_b||_2 <= pos_eps
