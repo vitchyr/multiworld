@@ -47,7 +47,7 @@ class SawyerBaseEnv(gym.Env):
         bullet.reset()
         self._load_meshes()
         self._end_effector = bullet.get_index_by_attribute(
-            self._sawyer, 'link_name', 'right_l6')
+            self._sawyer, 'link_name', 'gripper_site')
         self._format_state_query()
 
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
