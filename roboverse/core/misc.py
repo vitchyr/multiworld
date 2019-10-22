@@ -208,9 +208,13 @@ def draw_bbox(aabbMin, aabbMax):
 def load_random_objects(filePath, number):
     objects = []
     chosen_objects = []
-    for root, dirs, files in os.walk(filePath+'/models_vhacd'):
+    print(filePath)
+    for root, dirs, files in os.walk(filePath+'/ShapeNetCore.v2'):
         for d in dirs:
-            objects.append(str(d))
+            for modelroot, modeldirs, modelfiles in os.walk(os.path.join(root, d)):
+                for md in modeldirs:
+                    objects.append(os.path.join(modelroot, md))
+                break
         break
     try:
         chosen_objects = random.sample(range(len(objects)), number) 
@@ -218,11 +222,16 @@ def load_random_objects(filePath, number):
         print('Sample size exceeded population size')
     
     object_ids = []
+    count = 1
     for i in chosen_objects:
-        f = open(filePath+'/models_vhacd/{0}/scale.txt'.format(objects[i]), 'r')
+        path = objects[i].split('/')
+        dirName = path[11]
+        objectName = path[12]
+        f = open(filePath+'/ShapeNetCore_vhacd/{0}/{1}/scale.txt'.format(dirName, objectName), 'r')
         scaling = float(f.read()) 
-        obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
-            filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
-            [random.uniform(0.65, 0.85), random.uniform(-0.4, 0.3), 0.1], [0, 0, 1, 0], scale=scaling)
+        obj = load_obj(filePath+'/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dirName, objectName),
+            filePath+'/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(dirName, objectName),
+            [random.uniform(0.65, 0.85), random.uniform(-0.5, 0.5), 0], [0, 0, 1, 0], scale=scaling)
         object_ids.append(obj)
+        count += 1
     return object_ids
