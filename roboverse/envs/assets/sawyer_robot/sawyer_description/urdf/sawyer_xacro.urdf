@@ -655,6 +655,27 @@
       <child link="right_gripper_r_finger_tip"/>
     </joint>
 
+  <!-- #### EDIT : add in gripper site #### -->
+  <link name="gripper_site">
+      <visual>
+        <origin rpy="0 0 0" xyz="0 0 0"/>
+        <geometry>
+          <box size=".01 .01 .01"/>
+        </geometry>
+          <material name="green">
+            <color rgba="0 1 0 0"/>
+          </material>
+      </visual> 
+  </link>
+    
+  <joint name="right_electric_gripper_base" type="fixed">
+    <!-- <xacro:insert_block name="joint_origin" /> -->
+    <origin rpy="0 0 0" xyz="0 0 0.1"/>
+    <parent link="right_electric_gripper_base"/>
+    <child link="gripper_site"/>
+  </joint>
+  <!-- #### #### -->
+
   <!-- #### -->
 
   <link name="screen">

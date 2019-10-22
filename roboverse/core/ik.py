@@ -79,16 +79,8 @@ def position_control(body, link, pos, theta, damping=1e-3):
 
 
 def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
-              gripper_close_thresh=0.5, arm_vel_mult=3, gripper_vel_mult=10):
-    #### get gripper state position
-    l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
-                              ['low', 'high'])
-    r_limits = get_joint_info(body, 'right_gripper_r_finger_joint',
-                              ['low', 'high'])
-    if gripper > gripper_close_thresh:
-        gripper_state = [l_limits['low'], r_limits['high']]
-    else:
-        gripper_state = [l_limits['high'], r_limits['low']]
+              gripper_bounds=(0,1), arm_vel_mult=3, gripper_vel_mult=10, discrete_gripper=True):
+    gripper_state = get_gripper_state(body, gripper, gripper_bounds, discrete_gripper)
     #### ik
     ik_solution = ik(body, link, pos, theta, damping)
     ik_solution[-2:] = gripper_state
@@ -115,6 +107,38 @@ def step_ik(body=0):
         pos = np.clip(pos, low, high)
         p.resetJointState(body, joint, pos)
 
+## gripper
 
+def get_gripper_state(body, gripper, gripper_bounds, discrete_gripper):
+    l_limits, r_limits = _get_gripper_limits(body)
+    if discrete_gripper:
+        return _get_discrete_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
+    else:
+        return _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
+
+def _get_gripper_limits(body):
+    l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
+                              ['low', 'high'])
+    r_limits = get_joint_info(body, 'right_gripper_r_finger_joint',
+                              ['low', 'high'])
+    return l_limits, r_limits
+
+def _get_discrete_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
+    low, high = gripper_bounds
+    gripper_close_thresh = (low + high) / 2.
+    if gripper > gripper_close_thresh:
+        ## close gripper
+        gripper_state = [l_limits['low'], r_limits['high']]
+    else:
+        ## open gripper
+        gripper_state = [l_limits['high'], r_limits['low']]
+    return gripper_state
+
+def _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
+    low, high = gripper_bounds
+    percent_closed = (gripper - low) / (high - low)
+    l_state = l_limits['high'] + percent_closed * (l_limits['low'] - l_limits['high'])
+    r_state = r_limits['low'] + percent_closed * (r_limits['high'] - r_limits['low'])
+    return [l_state, r_state]
 
 

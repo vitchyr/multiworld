@@ -16,3 +16,7 @@ def register_bullet_environments():
         for environment_spec in  BULLET_ENVIRONMENT_SPECS)
 
     return gym_ids
+
+def make(env_name, *args, **kwargs):
+    env = gym.make(env_name, *args, **kwargs)
+    return env

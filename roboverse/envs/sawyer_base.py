@@ -5,7 +5,6 @@ import gym
 import pdb
 
 import roboverse.core as bullet
-import roboverse.core.objects as objects
 
 
 class SawyerBaseEnv(gym.Env):
@@ -58,11 +57,25 @@ class SawyerBaseEnv(gym.Env):
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
         return self.get_observation()
 
+    def get_gripper_width(self):
+        l_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_l_finger_tip')
+        r_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger_tip')
+        l_pos = bullet.get_link_state(self._sawyer, l_finger, 'pos')
+        r_pos = bullet.get_link_state(self._sawyer, r_finger, 'pos')
+        gripper_width = r_pos[1] - l_pos[1]
+        return gripper_width 
+    
+    def open_gripper(self, act_repeat=10):
+        delta_pos = [0,0,0]
+        gripper = 0
+        for _ in range(act_repeat):
+            self.step(delta_pos, gripper)
+
     def _load_meshes(self):
-        self._sawyer = objects.sawyer()
-        self._table = objects.table()
-        self._bowl = objects.bowl()
-        self._cube = objects.cube()
+        self._sawyer = bullet.objects.sawyer()
+        self._table = bullet.objects.table()
+        self._bowl = bullet.objects.bowl()
+        self._cube = bullet.objects.spam()
 
     def _format_state_query(self):
         ## position and orientation of body root
@@ -81,7 +94,7 @@ class SawyerBaseEnv(gym.Env):
             delta_pos, gripper = action[0], action[1]
         else:
             raise RuntimeError('Unrecognized action: {}'.format(action))
-        return delta_pos, gripper
+        return np.array(delta_pos), gripper
 
     def get_observation(self):
         observation = bullet.get_sim_state(*self._state_query)
@@ -91,7 +104,7 @@ class SawyerBaseEnv(gym.Env):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
-
+        
         self._simulate(pos, self.theta, gripper)
 
         observation = self.get_observation()
@@ -101,7 +114,7 @@ class SawyerBaseEnv(gym.Env):
 
     def _simulate(self, pos, theta, gripper):
         for _ in range(self._action_repeat):
-            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper)
+            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, gripper_bounds=[-1,1], discrete_gripper=False)
             bullet.step_ik()
 
     def render(self, mode='rgb_array'):
