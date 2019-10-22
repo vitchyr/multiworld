@@ -57,8 +57,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             reset_high=None,
             reset_and_goal_mode=None,
 
-            v_func_heatmap_bounds=(-4.0, 0.0),
+            v_func_heatmap_bounds=(-2.5, 0.0),
             wall_collision_buffer=0.0,
+
+            sparsity_threshold=1.5,
             *args,
             **kwargs):
         assert init_xy_mode in {
@@ -102,6 +104,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
         self.action_space = Box(-np.ones(8), np.ones(8), dtype=np.float32)
         self.reward_type = reward_type
+        self.sparsity_threshold = sparsity_threshold
         self.norm_order = norm_order
         self.goal_is_xy = goal_is_xy
         self.goal_is_qpos = goal_is_qpos
@@ -199,6 +202,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.wall_collision_buffer = wall_collision_buffer
 
         self.sweep_goal = None
+
         # self.reset()
 
     def step(self, action):
@@ -219,6 +223,10 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         info['epos-distance'] = self._compute_epos_distances(
             self.numpy_batchify_dict(ob)
         )
+        info['epos-sparse'] = self._compute_epos_distances(
+            self.numpy_batchify_dict(ob),
+            vectorized=False, sparse=True,
+        )
         info['quat-distance'] = self._compute_quat_distances(
             self.numpy_batchify_dict(ob)
         )
@@ -232,6 +240,12 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             self.numpy_batchify_dict(ob)
         )
         info['xy-success2'] = self._compute_xy_successes2(
+            self.numpy_batchify_dict(ob)
+        )
+        info['xy-success3'] = self._compute_xy_successes3(
+            self.numpy_batchify_dict(ob)
+        )
+        info['xy-success4'] = self._compute_xy_successes4(
             self.numpy_batchify_dict(ob)
         )
         info['leg-distance'] = self._compute_leg_distances(
@@ -262,11 +276,14 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             'full-state-distance',
             'qpos-distance',
             'epos-distance',
+            'epos-sparse',
             'quat-distance',
             'euler-distance',
             'xy-distance',
             'xy-success',
             'xy-success2',
+            'xy-success3',
+            'xy-success4',
             'leg-distance',
             'is_not_healthy',
             'is_flipped',
@@ -344,12 +361,51 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
 
     def get_image_v(self, agent, qf, vf, obs, tau=None, imsize=None):
         nx, ny = (50, 50)
-        x = np.linspace(-4, 4, nx)
-        y = np.linspace(-4, 4, ny)
-        xv, yv = np.meshgrid(x, y)
-
         sweep_obs = np.tile(obs.reshape((1, -1)), (nx * ny, 1))
+
         if self.sweep_goal is None:
+            if self.model_path in [
+                'classic_mujoco/ant_maze2_gear30_small_dt3.xml',
+                'classic_mujoco/ant_gear30_dt3_u_small.xml',
+            ]:
+                extent = [-3.5, 3.5, -3.5, 3.5]
+            elif self.model_path in [
+                'classic_mujoco/ant_gear30_dt3_u_med.xml',
+                'classic_mujoco/ant_gear15_dt3_u_med.xml',
+                'classic_mujoco/ant_gear10_dt3_u_med.xml',
+                'classic_mujoco/ant_gear30_dt2_u_med.xml',
+                'classic_mujoco/ant_gear15_dt2_u_med.xml',
+                'classic_mujoco/ant_gear10_dt2_u_med.xml',
+                'classic_mujoco/ant_gear30_u_med.xml',
+            ]:
+                extent = [-4.5, 4.5, -4.5, 4.5]
+            elif self.model_path in [
+                'classic_mujoco/ant_fb_gear30_med_dt3.xml',
+                'classic_mujoco/ant_gear30_dt3_fb_med.xml',
+                'classic_mujoco/ant_gear15_dt3_fb_med.xml',
+                'classic_mujoco/ant_gear10_dt3_fb_med.xml',
+            ]:
+                extent = [-6.0, 6.0, -6.0, 6.0]
+            elif self.model_path in [
+                'classic_mujoco/ant_gear10_dt3_u_long.xml',
+                'classic_mujoco/ant_gear15_dt3_u_long.xml',
+            ]:
+                extent = [-3.75, 3.75, -9.0, 9.0]
+            elif self.model_path in [
+                'classic_mujoco/ant_gear10_dt3_maze_med.xml',
+            ]:
+                extent = [-8.0, 8.0, -8.0, 8.0]
+            elif self.model_path in [
+                'classic_mujoco/ant_gear10_dt3_fg_med.xml',
+            ]:
+                extent = [-8.0, 8.0, -8.0, 8.0]
+            else:
+                extent = [-5.5, 5.5, -5.5, 5.5]
+
+            x = np.linspace(extent[0], extent[1], nx)
+            y = np.linspace(extent[2], extent[3], ny)
+            xv, yv = np.meshgrid(x, y)
+
             sweep_goal_xy = np.stack((xv, yv), axis=2).reshape((-1, 2))
             init_epos = self._qpos_to_epos(self.init_qpos)
             sweep_goal_rest = np.tile(np.concatenate((init_epos[2:], np.zeros(14)))[None], (nx*ny, 1))
@@ -644,6 +700,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             r = - self._compute_qpos_distances(obs)
         elif self.reward_type in ['epos_dense', 'epos']:
             r = - self._compute_epos_distances(obs)
+        elif self.reward_type in ['epos_sparse']:
+            r = - self._compute_epos_distances(obs, vectorized=False, sparse=True)
         elif self.reward_type in ['vectorized_epos']:
             r = - self._compute_epos_distances(obs, vectorized=True)
         elif self.reward_type == 'epos_weighted_euler':
@@ -706,6 +764,20 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         desired_goals = obs['state_desired_goal'][:, :2]
         diff = achieved_goals - desired_goals
         return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 2.50).astype(int)
+
+    def _compute_xy_successes3(self, obs):
+        assert not self.two_frames
+        achieved_goals = obs['state_achieved_goal'][:, :2]
+        desired_goals = obs['state_desired_goal'][:, :2]
+        diff = achieved_goals - desired_goals
+        return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 2.75).astype(int)
+
+    def _compute_xy_successes4(self, obs):
+        assert not self.two_frames
+        achieved_goals = obs['state_achieved_goal'][:, :2]
+        desired_goals = obs['state_desired_goal'][:, :2]
+        diff = achieved_goals - desired_goals
+        return (np.linalg.norm(diff, ord=self.norm_order, axis=1) < 3.00).astype(int)
 
     def _compute_leg_distances(self, obs):
         if self.use_euler:
@@ -863,7 +935,8 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             achieved_goals - desired_goals, ord=self.norm_order, axis=1
         )
 
-    def _compute_epos_distances(self, obs, vectorized=False):
+    def _compute_epos_distances(self, obs, vectorized=False, sparse=False):
+        assert not (sparse and vectorized)
         if not self.use_euler:
             if self.two_frames:
                 state_size = obs['state_achieved_goal'].shape[1] // 2
@@ -898,12 +971,14 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
                 desired_goals = obs['state_desired_goal'][:, :self.pos_dim]
         if desired_goals.shape == (1,):
             return -1000
-        if vectorized:
-            return np.abs(achieved_goals - desired_goals)
+
+        d = np.linalg.norm(achieved_goals - desired_goals, ord=self.norm_order, axis=1)
+        if sparse:
+            return (d > self.sparsity_threshold).astype(np.float32)
+        elif not vectorized:
+            return d
         else:
-            return np.linalg.norm(
-                achieved_goals - desired_goals, ord=self.norm_order, axis=1
-            )
+            return np.abs(achieved_goals - desired_goals)
 
     def _compute_epos_weighted_euler_distances(self, obs):
         if not self.use_euler:

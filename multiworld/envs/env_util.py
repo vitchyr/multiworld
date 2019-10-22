@@ -15,6 +15,7 @@ def create_stats_ordered_dict(
         stat_prefix=None,
         always_show_all_stats=True,
         exclude_max_min=False,
+        only_show_mean=False,
 ):
     if stat_prefix is not None:
         name = "{} {}".format(stat_prefix, name)
@@ -50,6 +51,12 @@ def create_stats_ordered_dict(
         mean_trimmed = np.mean(np.sort(data))
     else:
         mean_trimmed = np.mean(np.sort(data)[len(data)//10:-len(data)//10])
+
+    if only_show_mean:
+        stats = OrderedDict([
+            (name + ' Mean', np.mean(data)),
+        ])
+        return stats
 
     stats = OrderedDict([
         (name + ' p10', np.percentile(data, 10)),

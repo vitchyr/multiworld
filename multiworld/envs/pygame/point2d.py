@@ -7,7 +7,6 @@ from pygame import Color
 
 from multiworld.envs.env_util import get_stat_in_paths, \
     create_stats_ordered_dict
-from multiworld.core.image_env import ImageEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.serializable import Serializable
 from multiworld.envs.env_util import (
@@ -22,8 +21,6 @@ from railrl.pythonplusplus import identity
 import matplotlib
 matplotlib.use('agg')
 import matplotlib.pyplot as plt
-
-from railrl.torch import pytorch_util as ptu
 
 
 class Point2DEnv(MultitaskEnv, Serializable):
@@ -769,6 +766,8 @@ class Point2DWallEnv(Point2DEnv):
         return self.get_image_plt(rew_vals)
 
     def get_image_realistic_rew(self):
+        from railrl.torch import pytorch_util as ptu
+
         nx, ny = (50, 50)
         x = np.linspace(-4, 4, nx)
         y = np.linspace(-4, 4, ny)
@@ -914,6 +913,7 @@ class PointmassExpertPolicy:
 if __name__ == "__main__":
     # e = Point2DEnv()
     import matplotlib.pyplot as plt
+    from multiworld.core.image_env import ImageEnv
 
     # e = Point2DWallEnv("-", render_size=84)
     e = ImageEnv(Point2DWallEnv(wall_shape="u", render_size=84))
