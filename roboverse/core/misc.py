@@ -220,12 +220,9 @@ def load_random_objects(filePath, number):
     object_ids = []
     for i in chosen_objects:
         f = open(filePath+'/models_vhacd/{0}/scale.txt'.format(objects[i]), 'r')
-        scaling = float(f.read())
-        #obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]), 
-            #filePath+'/models/{0}.obj'.format(objects[i]),
-            #[random.uniform(0.65, 0.85), random.uniform(-0.5, 0.3), 0], [0, 0, 0, 1], scale=scaling)
+        scaling = float(f.read()) 
         obj = load_obj(filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
             filePath+'/models_vhacd/{0}/model_vhacd.obj'.format(objects[i]),
-            [random.uniform(0.65, 0.85), random.uniform(-0.4, 0.3), 0.2], [0, 0, 1, 0], scale=scaling)
+            [random.uniform(0.65, 0.85), random.uniform(-0.4, 0.3), 0.1], [0, 0, 1, 0], scale=scaling)
         object_ids.append(obj)
     return object_ids
