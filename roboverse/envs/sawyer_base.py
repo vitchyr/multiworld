@@ -4,7 +4,7 @@ import numpy as np
 import gym
 import pdb
 
-import roboverse.core as bullet
+import roboverse.bullet as bullet
 
 
 class SawyerBaseEnv(gym.Env):

@@ -1,5 +1,5 @@
 from roboverse.envs.sawyer_reach import SawyerReachEnv
-import roboverse.core
+import roboverse.bullet
 import sys
 import numpy as np 
 import pygame

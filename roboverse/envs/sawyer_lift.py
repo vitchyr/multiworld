@@ -1,7 +1,7 @@
 import numpy as np
 import pdb
 
-import roboverse.core as bullet
+import roboverse.bullet as bullet
 from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 class SawyerLiftEnv(SawyerBaseEnv):

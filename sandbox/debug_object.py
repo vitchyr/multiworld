@@ -2,7 +2,7 @@ import time
 import numpy as np
 import pdb
 
-import roboverse.core as bullet
+import roboverse.bullet as bullet
 import roboverse.devices as devices
 
 space_mouse = devices.SpaceMouse()

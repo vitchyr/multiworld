@@ -1,5 +1,5 @@
 import numpy as np
-import roboverse.core as bullet
+import roboverse.bullet as bullet
 
 import pdb
 
