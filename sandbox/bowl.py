@@ -26,10 +26,13 @@ bullet.position_control(sawyer, end_effector, pos, theta)
 while True:
 
     delta = space_mouse.control
+    z = delta[2]
+    delta[2] = 0
     pos += delta * 0.1
     print(delta, pos)
 
-    bullet.sawyer_ik(sawyer, end_effector, pos, theta, space_mouse.control_gripper)
+    # bullet.sawyer_ik(sawyer, end_effector, pos, theta, space_mouse.control_gripper)
+    bullet.sawyer_ik(sawyer, end_effector, pos, theta, z, gripper_bounds=[-1,1], discrete_gripper=False)
     bullet.step_ik()
     pos = bullet.get_link_state(sawyer, end_effector, 'pos')
 

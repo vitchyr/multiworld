@@ -111,13 +111,10 @@ def step_ik(body=0):
 
 def get_gripper_state(body, gripper, gripper_bounds, discrete_gripper):
     l_limits, r_limits = _get_gripper_limits(body)
-    low, high = gripper_bounds
     if discrete_gripper:
-        gripper_close_thresh = (low + high) / 2.
-        _get_discrete_gripper_state(body, gripper, gripper_close_thresh, l_limits, r_limits)
+        return _get_discrete_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
     else:
-        percent_closed = (gripper - low) / (high - low)
-        pdb.set_trace()
+        return _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
 
 def _get_gripper_limits(body):
     l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
@@ -126,7 +123,9 @@ def _get_gripper_limits(body):
                               ['low', 'high'])
     return l_limits, r_limits
 
-def _get_discrete_gripper_state(body, gripper, gripper_close_thresh, l_limits, r_limits):
+def _get_discrete_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
+    low, high = gripper_bounds
+    gripper_close_thresh = (low + high) / 2.
     if gripper > gripper_close_thresh:
         ## close gripper
         gripper_state = [l_limits['low'], r_limits['high']]
@@ -134,5 +133,12 @@ def _get_discrete_gripper_state(body, gripper, gripper_close_thresh, l_limits, r
         ## open gripper
         gripper_state = [l_limits['high'], r_limits['low']]
     return gripper_state
+
+def _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
+    low, high = gripper_bounds
+    percent_closed = (gripper - low) / (high - low)
+    l_state = l_limits['high'] + percent_closed * (l_limits['low'] - l_limits['high'])
+    r_state = r_limits['low'] + percent_closed * (r_limits['high'] - r_limits['low'])
+    return [l_state, r_state]
 
 
