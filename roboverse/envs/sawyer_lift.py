@@ -16,10 +16,12 @@ class SawyerLiftEnv(SawyerBaseEnv):
         cube_pos = bullet.get_body_info(self._cube, 'pos')
         l_finger_pos = bullet.get_link_state(self._sawyer, self._l_finger_tip, 'pos')
         r_finger_pos = bullet.get_link_state(self._sawyer, self._r_finger_tip, 'pos')
-        pdb.set_trace()
+        ee_pos = (np.array(l_finger_pos) + np.array(r_finger_pos)) / 2.
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
         reward = -(ee_dist + 2*goal_dist)
+        midpoint = bullet.get_midpoint(self._cube)
+        pdb.set_trace()
         return reward
 
 if __name__ == "__main__":

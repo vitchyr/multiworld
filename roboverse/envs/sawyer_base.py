@@ -105,6 +105,7 @@ class SawyerBaseEnv(gym.Env):
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
 
+        print('pos: {} | gripper: {}'.format(delta_pos, gripper))
         self._simulate(pos, self.theta, gripper)
 
         observation = self.get_observation()
