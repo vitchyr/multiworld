@@ -82,5 +82,5 @@ while True:
                 dtheta += new_action[0]
             elif new_action[1] == 'gripper':
                 gripper = new_action[0]
-    
-    obs, reward, done, info = env.step(0.5 * dx, 0.2 * dtheta)
+    action = np.concatenate((0.5 * dx, 0.2 * dtheta), axis=0)
+    obs, reward, done, info = env.step(action)
