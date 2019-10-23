@@ -28,7 +28,7 @@ class SawyerBaseEnv(gym.Env):
 
         bullet.connect_headless(self._render)
         self._set_spaces()
-        
+
         self._img_dim = img_dim
         self._view_matrix = bullet.get_view_matrix()
         self._projection_matrix = bullet.get_projection_matrix(self._img_dim, self._img_dim)
@@ -68,14 +68,15 @@ class SawyerBaseEnv(gym.Env):
     def _load_meshes(self):
         self._sawyer = bullet.objects.sawyer()
         self._table = bullet.objects.table()
+        self._objects = {}
 
     def _format_state_query(self):
         ## position and orientation of body root
-        bodies = [self._cube]
+        bodies = [v for k,v in self._objects.items()]
         ## position and orientation of link
         links = [(self._sawyer, self._end_effector)]
         ## position and velocity of prismatic joint
-        joints = [(self._sawyer, None), (self._bowl, 'lid_joint')]
+        joints = [(self._sawyer, None)]
         # joints = [(self._bowl, 'lid_joint')]
         self._state_query = bullet.format_sim_query(bodies, links, joints)
 

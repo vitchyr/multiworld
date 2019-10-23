@@ -15,9 +15,20 @@ class SawyerLiftEnv(SawyerBaseEnv):
         self._bowl = bullet.objects.bowl()
         self._cube = bullet.objects.spam()
 
+    def _load_meshes(self):
+        super()._load_meshes()
+        self._objects = {
+            'bowl':  bullet.objects.bowl(),
+            'cube': bullet.objects.spam()
+        }
+
     def get_reward(self, observation):
-        cube_pos = bullet.get_midpoint(self._cube)
-        ee_pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
+        # cube_pos = bullet.get_body_info(self._objects['cube'], 'pos')
+        # l_finger_pos = bullet.get_link_state(self._sawyer, self._l_finger_tip, 'pos')
+        # r_finger_pos = bullet.get_link_state(self._sawyer, self._r_finger_tip, 'pos')
+        # ee_pos = (np.array(l_finger_pos) + np.array(r_finger_pos)) / 2.
+        cube_pos = bullet.get_midpoint(self._objects['cube'])
+        ee_pos = bullet.get_link_state(self._sawyer, self._gripper_site, 'pos')
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
         reward = -(ee_dist + 2*goal_dist)
