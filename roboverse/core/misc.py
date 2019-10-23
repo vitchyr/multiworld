@@ -239,12 +239,11 @@ def load_random_objects(filePath, number):
                     return False
         return True
 
-    for c in range(100):
+    for c in range(1000):
         positions = []
         for i in range(number):
-            positions.append((random.uniform(0.6, 0.85), random.uniform(-0.42, 0.42)))
+            positions.append((random.uniform(0.6, 0.85), random.uniform(-0.45, 0.25)))
         if valid_positioning(positions, 1 / number):
-            print(positions)
             break
     
     object_ids = []
