@@ -70,16 +70,16 @@ class SawyerReachEnv(gym.Env):
             os.path.join(self._pybullet_data_dir, 'table/table.urdf'),
             [.75, -.2, -1], [0, 0, 0.707107, 0.707107],
             scale=1.0)
-        self._duck = load_urdf(
-            os.path.join(self._pybullet_data_dir, 'duck_vhacd.urdf'),
-            [.75, -.2, 0], [0, 0, 1, 0], scale=0.8)
-        self._lego = load_urdf(
-            os.path.join(self._pybullet_data_dir, 'lego/lego.urdf'),
-            [.75, .2, 0], [0, 0, 1, 0], rgba=[1, 0, 0, 1],
-            scale=1.5)
+        #self._duck = load_urdf(
+            #os.path.join(self._pybullet_data_dir, 'duck_vhacd.urdf'),
+            #[.75, -.2, 0], [0, 0, 1, 0], scale=0.8)
+        #self._lego = load_urdf(
+            #os.path.join(self._pybullet_data_dir, 'lego/lego.urdf'),
+            #[.75, .2, 0], [0, 0, 1, 0], rgba=[1, 0, 0, 1],
+            #scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
-        load_random_objects(self._object_path, 3) 
+        load_random_objects(self._object_path, 4) 
        
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._time_step)

@@ -2,6 +2,8 @@ import numpy as np
 import random
 import os
 import pdb
+import json
+import math 
 
 import pybullet as p
 import pybullet_data as pdata
@@ -206,6 +208,10 @@ def draw_bbox(aabbMin, aabbMax):
     p.addUserDebugLine(f, t, [1, 1, 1])
 
 def load_random_objects(filePath, number):
+    if number > 5:
+        print("Don't load more than 4 objects!")
+        return None
+
     objects = []
     chosen_objects = []
     print(filePath)
@@ -221,17 +227,34 @@ def load_random_objects(filePath, number):
     except ValueError:
         print('Sample size exceeded population size')
     
+    with open('{0}/scaling.json'.format(filePath), 'r') as fp:
+        scaling = json.load(fp)
+
+    def valid_positioning(pos, offset):
+        if len(pos) <= 1:
+            return True
+        for i in range(len(pos)):
+            for j in range(i + 1, len(pos)):
+                if math.sqrt(sum([(a-b)**2 for a, b in zip(pos[i], pos[j])])) < offset:
+                    return False
+        return True
+
+    while True:
+        positions = []
+        for i in range(number):
+            positions.append((random.uniform(0.6, 0.85), random.uniform(-0.6, 0.3)))
+        if valid_positioning(positions, 1 / number):
+            break
+    
     object_ids = []
-    count = 1
+    count = 0
     for i in chosen_objects:
         path = objects[i].split('/')
         dirName = path[-2]
         objectName = path[-1]
-        f = open(filePath+'/ShapeNetCore_vhacd/{0}/{1}/scale.txt'.format(dirName, objectName), 'r')
-        scaling = float(f.read()) 
         obj = load_obj(filePath+'/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dirName, objectName),
             filePath+'/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(dirName, objectName),
-            [random.uniform(0.65, 0.85), random.uniform(-0.5, 0.5), 0], [0, 0, 1, 0], scale=scaling)
+            [positions[count][0], positions[count][1], 0], [0, 0, 1, 0], scale=random.uniform(0.5, 1) * scaling['{0}/{1}'.format(dirName, objectName)])
         object_ids.append(obj)
         count += 1
     return object_ids
