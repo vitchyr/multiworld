@@ -55,6 +55,11 @@ class SawyerBaseEnv(gym.Env):
         pos = np.array([0.5, 0, 0])
         self.theta = [0.7071, 0.7071, 0, 0]
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
+
+        # Allow the objects to settle down after they are dropped in sim
+        for _ in range(50):
+            bullet.step()
+
         return self.get_observation()
 
     def get_gripper_width(self):
@@ -70,6 +75,12 @@ class SawyerBaseEnv(gym.Env):
         gripper = 0
         for _ in range(act_repeat):
             self.step(delta_pos, gripper)
+
+    def get_object_midpoint(self, object_key):
+        return bullet.get_midpoint(self._objects[object_key])
+
+    def get_end_effector_pos(self):
+        return bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
 
     def _load_meshes(self):
         self._sawyer = bullet.objects.sawyer()
