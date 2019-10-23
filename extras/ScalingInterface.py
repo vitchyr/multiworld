@@ -11,22 +11,23 @@ from roboverse.envs.sawyer_reach import SawyerReachEnv
 import roboverse.core
 import pygame
 from pygame.locals import QUIT, KEYDOWN, KEYUP
+import json
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 home_dir = os.path.dirname(curr_dir)
 filePath = home_dir + '/roboverse/envs/assets/ShapeNetCore'
+jsonPath = filePath + '/scaling.json'
 
 objects = []
-scaling = []
+with open(jsonPath, 'r') as fp:
+    scaling = json.load(fp)
+    
 chosen_objects = []
 for root, dirs, files in os.walk(filePath+'/ShapeNetCore_vhacd'):
     for d in dirs:
         for modelroot, modeldirs, modelfiles in os.walk(os.path.join(root, d)):
             for md in modeldirs:
                 objects.append(os.path.join(modelroot, md))
-                f = open(os.path.join(modelroot, md) + '/scale.txt')
-                scaling.append(float(f.read()))
-                f.close()
             break
     break
 
@@ -60,6 +61,16 @@ def render_object(objectPath, scaling):
     load_obj(collisionPath, visualPath, [.75, 0, 0.15], [0, 0, 0, 1], scale=scaling)
     p.stepSimulation()
 
+def json_key(i):
+    objectName = os.path.basename(objects[i])
+    dirName = os.path.basename(os.path.dirname(objects[i]))
+    return '{0}/{1}'.format(dirName, objectName)
+    
+def json_dump():
+    global jsonPath, scaling 
+    with open(jsonPath, 'w') as fp:
+        json.dump(scaling, fp)
+
 SawyerReachEnv.reset = new_reset
 env = SawyerReachEnv(renders=True, control_xyz_position_only=False)
 env.reset()
@@ -69,50 +80,42 @@ time = pygame.time.get_ticks()
 index = 0
 scaleAmount = 0.1
 indexStep = 1
-render_object(objects[index], scaling[index])
+render_object(objects[index], scaling[json_key(index)])
 
 while True:
     for event in pygame.event.get():
         event_happened = True
         if event.type == QUIT:
-            f = open(objects[index] + '/scale.txt', 'w')
-            f.write(str(scaling[index]))   
-            f.close()
+            json_dump()
             sys.exit()
         if event.type == KEYDOWN:
             if event.key == pygame.K_LEFT:
-                f = open(objects[index] + '/scale.txt', 'w')
-                f.write(str(scaling[index]))   
-                f.close()
+                json_dump()
                 index -= indexStep
                 index %= len(objects)
                 while index < 0:
                     index += len(objects)
                 env.reset()
-                render_object(objects[index], scaling[index])
+                render_object(objects[index], scaling[json_key(index)])
                 print('Index: ', index)
             elif event.key == pygame.K_RIGHT:
-                f = open(objects[index] + '/scale.txt', 'w')
-                f.write(str(scaling[index]))   
-                f.close()
+                json_dump()
                 index += indexStep
                 index %= len(objects)
                 env.reset()
-                render_object(objects[index], scaling[index])
+                render_object(objects[index], scaling[json_key(index)])
                 print('Index: ', index)
             elif event.key == pygame.K_UP:
-                scaling[index] += scaleAmount
+                scaling[json_key(index)] += scaleAmount
             elif event.key == pygame.K_DOWN:
-                scaling[index] -= scaleAmount
+                scaling[json_key(index)] -= scaleAmount
             else:
                 pressed = chr(event.dict['key'])
                 if pressed == 's':
-                    f = open(objects[index] + '/scale.txt', 'w')
-                    f.write(str(scaling[index]))   
-                    f.close()
+                    json_dump() 
                 elif pressed == 'r':
                     env.reset()
-                    render_object(objects[index], scaling[index])
+                    render_object(objects[index], scaling[json_key(index)])
                 elif pressed == 'o':
                     scaleAmount /= 2
                     print('Scale Amount: ',scaleAmount)
@@ -129,9 +132,7 @@ while True:
                     indexStep *= 5
                     print('Index Step: ', indexStep)  
                 elif pressed == 'q':
-                    f = open(objects[index] + '/scale.txt', 'w')
-                    f.write(str(scaling[index]))   
-                    f.close()
+                    json_dump()
                     sys.exit()
     
                           
