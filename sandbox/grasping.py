@@ -6,7 +6,8 @@ import roboverse.policies as policies
 import roboverse.utils as utils
 
 
-env = roboverse.make('SawyerLift-v0', render=True)
+env = roboverse.make('SawyerLift-v0', render=True, gripper_bounds=[0,1])
+# env.open_gripper()
 
 policy = policies.GraspingPolicy(env, env._sawyer, env._cube)
 

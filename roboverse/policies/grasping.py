@@ -67,7 +67,7 @@ class GraspingPolicy:
         pos = ee_pos + delta_pos
 
         for _ in range(self._env._action_repeat):
-            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self._theta, gripper, gripper_close_thresh=0)
+            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self._theta, gripper, gripper_bounds=[0,1])
             bullet.step_ik()
 
         # delta = np.array(obj_pos) - np.array(ee_pos)

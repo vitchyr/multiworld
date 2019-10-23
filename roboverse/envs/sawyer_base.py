@@ -16,6 +16,7 @@ class SawyerBaseEnv(gym.Env):
                  action_repeat=4,
                  timestep=1./120,
                  solver_iterations=150,
+                 gripper_bounds=[-1,1],
                  ):
 
         self._render = render
@@ -23,6 +24,7 @@ class SawyerBaseEnv(gym.Env):
         self._action_repeat = action_repeat
         self._timestep = timestep
         self._solver_iterations = solver_iterations
+        self._gripper_bounds = gripper_bounds
 
         bullet.connect_headless(self._render)
         self._set_spaces()
@@ -47,7 +49,7 @@ class SawyerBaseEnv(gym.Env):
         bullet.reset()
         self._load_meshes()
         self._end_effector = bullet.get_index_by_attribute(
-            self._sawyer, 'link_name', 'gripper_site')
+            self._sawyer, 'link_name', 'right_l6')
         self._format_state_query()
 
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
@@ -74,8 +76,6 @@ class SawyerBaseEnv(gym.Env):
     def _load_meshes(self):
         self._sawyer = bullet.objects.sawyer()
         self._table = bullet.objects.table()
-        self._bowl = bullet.objects.bowl()
-        self._cube = bullet.objects.spam()
 
     def _format_state_query(self):
         ## position and orientation of body root
@@ -114,7 +114,7 @@ class SawyerBaseEnv(gym.Env):
 
     def _simulate(self, pos, theta, gripper):
         for _ in range(self._action_repeat):
-            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, gripper_bounds=[-1,1], discrete_gripper=False)
+            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, gripper_bounds=self._gripper_bounds, discrete_gripper=False)
             bullet.step_ik()
 
     def render(self, mode='rgb_array'):

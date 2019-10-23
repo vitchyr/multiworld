@@ -13,6 +13,11 @@ class SawyerLiftEnv(SawyerBaseEnv):
         # self._r_finger_tip = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger_tip')
         self._gripper_site = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'gripper_site')
 
+    def _load_meshes(self):
+        super()._load_meshes()
+        self._bowl = bullet.objects.bowl()
+        self._cube = bullet.objects.spam()
+
     def get_reward(self, observation):
         # cube_pos = bullet.get_body_info(self._cube, 'pos')
         # l_finger_pos = bullet.get_link_state(self._sawyer, self._l_finger_tip, 'pos')
