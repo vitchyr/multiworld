@@ -2,6 +2,7 @@ import numpy as np
 import random
 import os
 import pdb
+import json
 
 import pybullet as p
 import pybullet_data as pdata
@@ -223,15 +224,15 @@ def load_random_objects(filePath, number):
     
     object_ids = []
     count = 1
+    with open('{0}/scaling.json'.format(filePath), 'r') as fp:
+        scaling = json.load(fp)
     for i in chosen_objects:
         path = objects[i].split('/')
         dirName = path[-2]
         objectName = path[-1]
-        f = open(filePath+'/ShapeNetCore_vhacd/{0}/{1}/scale.txt'.format(dirName, objectName), 'r')
-        scaling = float(f.read()) 
         obj = load_obj(filePath+'/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dirName, objectName),
             filePath+'/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(dirName, objectName),
-            [random.uniform(0.65, 0.85), random.uniform(-0.5, 0.5), 0], [0, 0, 1, 0], scale=scaling)
+            [random.uniform(0.65, 0.85), random.uniform(-0.5, 0.5), 0.15], [0, 0, 1, 0], scale=scaling['{0}/{1}'.format(dirName, objectName)])
         object_ids.append(obj)
         count += 1
     return object_ids
