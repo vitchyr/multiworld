@@ -15,9 +15,9 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         }
 
     def get_reward(self, observation):
-        cube_pos = self.get_object_midpoint('duck')
-        ee_pos = self.get_end_effector_pos()
-        ee_dist = bullet.l2_dist(cube_pos, ee_pos)
-        goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
-        reward = -(ee_dist + 2*goal_dist)
+        object_pos = self.get_object_midpoint('duck')
+        if object_pos[2] > -0.1:
+            reward = 1
+        else:
+            reward = 0
         return reward

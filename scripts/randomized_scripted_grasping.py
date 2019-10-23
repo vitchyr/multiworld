@@ -46,6 +46,11 @@ for j in range(100):
     if object_pos[2] > -0.1:
         num_grasps += 1
 
+    # TODO write code to save trajectories
+    # a list of dictionaries, each dictionary is one trajectory
+    # elements of dictionary: np arrays storing state, next_state, action, reward, done
+    # can also have images later, so image, next_image, and so on
+
     if save_video:
         utils.save_video('dump/grasp_duck_randomized/{}.avi'.format(j), images)
 
