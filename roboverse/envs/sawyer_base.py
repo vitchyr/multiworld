@@ -58,14 +58,6 @@ class SawyerBaseEnv(gym.Env):
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
         return self.get_observation()
-
-    def get_gripper_width(self):
-        l_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_l_finger_tip')
-        r_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger_tip')
-        l_pos = bullet.get_link_state(self._sawyer, l_finger, 'pos')
-        r_pos = bullet.get_link_state(self._sawyer, r_finger, 'pos')
-        gripper_width = r_pos[1] - l_pos[1]
-        return gripper_width 
     
     def open_gripper(self, act_repeat=10):
         delta_pos = [0,0,0]

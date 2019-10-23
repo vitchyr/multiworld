@@ -11,7 +11,6 @@ class GraspingPolicy:
         self._obj = obj
 
         self._env.open_gripper()
-        self._gripper_width = self._env.get_gripper_width()
 
         self._end_effector = bullet.get_index_by_attribute(sawyer, 'link_name', 'right_gripper_l_finger_tip')
         self._ee_pos_fn = lambda: bullet.get_link_state(sawyer, self._end_effector, 'pos')
@@ -26,7 +25,7 @@ class GraspingPolicy:
         obj_pos = np.array(self._obj_pos_fn())
 
         l_finger_target = obj_pos.copy()
-        l_finger_target[1] -= self._gripper_width / .4
+        l_finger_target[1] -= .2
         
         if self._mode == 0:
             l_finger_target[2] += 0.25
