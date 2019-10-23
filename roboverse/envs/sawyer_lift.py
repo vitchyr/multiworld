@@ -22,6 +22,13 @@ class SawyerLiftEnv(SawyerBaseEnv):
             'cube': bullet.objects.spam()
         }
 
+    def _load_meshes(self):
+        super()._load_meshes()
+        self._objects = {
+            'bowl':  bullet.objects.bowl(),
+            'cube': bullet.objects.spam()
+        }
+
     def get_reward(self, observation):
         # cube_pos = bullet.get_body_info(self._objects['cube'], 'pos')
         # l_finger_pos = bullet.get_link_state(self._sawyer, self._l_finger_tip, 'pos')

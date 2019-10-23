@@ -5,6 +5,11 @@ BULLET_ENVIRONMENT_SPECS = (
         'id': 'SawyerLift-v0',
         'entry_point': ('roboverse.envs.sawyer_lift:SawyerLiftEnv'),
     },
+    {
+        'id': 'SawyerGraspOne-v0',
+        'entry_point': ('roboverse.envs.sawyer_grasp:SawyerGraspOneEnv'),
+        'kwargs': {'action_repeat': 10}
+    },
 )
 
 def register_bullet_environments():
