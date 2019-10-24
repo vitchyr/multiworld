@@ -62,7 +62,7 @@ for j in range(100):
         trajectory.append(grasping_data)
 
     trajectories.append(trajectory)
-    image_data.apend(images)
+    image_data.append(images)
 
     object_pos = env.get_object_midpoint('duck')
     if object_pos[2] > -0.1:
