@@ -73,7 +73,7 @@ for j in range(100):
     # elements of dictionary: np arrays storing state, action, next_state, reward, done
     # can also have images later, so image, next_image, and so on
     
-    with open(pklPath + 'randomized_scripted_duck.p', 'wb') as fp:
+    with open(pklPath + '/randomized_scripted_duck.p', 'wb') as fp:
         pickle.dump(trajectories, fp)
 
     #with open(pklPath + 'data/randomized_scripted_duck_images.p', 'wb') as fp:
