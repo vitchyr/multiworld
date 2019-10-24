@@ -5,7 +5,7 @@ import roboverse.utils as utils
 import pickle
 import os
 
-env = roboverse.make('SawyerGraspOne-v0', render=True)
+env = roboverse.make('SawyerGraspOne-v0', render=False)
 
 num_grasps = 0
 save_video = False
@@ -15,7 +15,7 @@ pklPath = home_dir + '/data'
 trajectories = []
 image_data = []
 
-for j in range(100):
+for j in range(100000):
     env.reset()
     target_pos = env.get_object_midpoint('duck')
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
@@ -62,7 +62,7 @@ for j in range(100):
         trajectory.append(grasping_data)
 
     trajectories.append(trajectory)
-    image_data.apend(images)
+    image_data.append(images)
 
     object_pos = env.get_object_midpoint('duck')
     if object_pos[2] > -0.1:
@@ -73,7 +73,7 @@ for j in range(100):
     # elements of dictionary: np arrays storing state, action, next_state, reward, done
     # can also have images later, so image, next_image, and so on
     
-    with open(pklPath + 'randomized_scripted_duck.p', 'wb') as fp:
+    with open(pklPath + '/randomized_scripted_duck.p', 'wb') as fp:
         pickle.dump(trajectories, fp)
 
     #with open(pklPath + 'data/randomized_scripted_duck_images.p', 'wb') as fp:
@@ -82,6 +82,6 @@ for j in range(100):
     if save_video:
         utils.save_video('dump/grasp_duck_randomized/{}.avi'.format(j), images)
 
-    print('\nNum attempts: {}'.format(j))
+    print('Num attempts: {}'.format(j))
     print('Num grasps: {}'.format(num_grasps))
 
