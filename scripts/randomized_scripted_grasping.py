@@ -15,7 +15,7 @@ pklPath = home_dir + '/data'
 trajectories = []
 image_data = []
 
-for j in range(100):
+for j in range(100000):
     env.reset()
     target_pos = env.get_object_midpoint('duck')
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
@@ -47,8 +47,8 @@ for j in range(100):
             action[2] = 1.0
             grip=1.
 
-        #img = env.render()
-        #images.append(img)
+        img = env.render()
+        images.append(img)
 
         env.step(action, grip)
         grasping_data.append(action)
@@ -73,11 +73,11 @@ for j in range(100):
     # elements of dictionary: np arrays storing state, action, next_state, reward, done
     # can also have images later, so image, next_image, and so on
     
-    with open(pklPath + '/randomized_scripted_duck.p', 'wb') as fp:
+    with open(pklPath + '/randomized_scripted_duck.p', 'wb+') as fp:
         pickle.dump(trajectories, fp)
 
-    #with open(pklPath + 'data/randomized_scripted_duck_images.p', 'wb') as fp:
-        #pickle.dump(image_data, fp)
+    with open(pklPath + '/randomized_scripted_duck_images.p', 'wb+') as fp:
+        pickle.dump(image_data, fp)
 
     if save_video:
         utils.save_video('dump/grasp_duck_randomized/{}.avi'.format(j), images)
