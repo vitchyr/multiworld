@@ -8,7 +8,6 @@ from multiworld.envs.mujoco.mujoco_env import MujocoEnv
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.envs.env_util import get_asset_full_path
 import os.path as osp
-from railrl.misc.asset_loader import load_local_or_remote_file
 
 import matplotlib
 matplotlib.use('agg')
@@ -126,6 +125,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.goal_sampling_strategy = goal_sampling_strategy
         if self.goal_sampling_strategy == 'presampled':
             assert presampled_goal_paths is not None
+            from railrl.misc.asset_loader import load_local_or_remote_file
             self.presampled_goals = load_local_or_remote_file(presampled_goal_paths)
         else:
             self.presampled_goals = None
