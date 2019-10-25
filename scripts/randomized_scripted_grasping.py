@@ -47,22 +47,18 @@ for j in range(100000):
             action[2] = 1.0
             grip=1.
 
-        img = env.render()
-        images.append(img)
+        #img = env.render()
+        #images.append(img)
 
         env.step(action, grip)
         grasping_data.append(action)
         grasping_data.append(np.array(env.get_end_effector_pos()))
-        if i == num_timesteps - 1:
-            grasping_data.append(env.get_reward(None))
-            grasping_data.append(True)
-        else:
-            grasping_data.append(0)
-            grasping_data.append(False)
+        grasping_data.append(env.get_reward(None))
+        grasping_data.append(False)
         trajectory.append(grasping_data)
 
     trajectories.append(trajectory)
-    image_data.append(images)
+    #image_data.append(images)
 
     object_pos = env.get_object_midpoint('duck')
     if object_pos[2] > -0.1:
@@ -73,15 +69,15 @@ for j in range(100000):
     # elements of dictionary: np arrays storing state, action, next_state, reward, done
     # can also have images later, so image, next_image, and so on
     
+    if j % 10 == 1:
+        with open(pklPath + '/randomized_scripted_duck1.p', 'wb+') as fp:
+            pickle.dump(trajectories, fp)
 
-    with open(pklPath + '/randomized_scripted_duck.p', 'wb+') as fp:
-        pickle.dump(trajectories, fp)
+        #with open(pklPath + '/randomized_scripted_duck_images.p', 'wb+') as fp:
+            #pickle.dump(image_data, fp)
 
-    with open(pklPath + '/randomized_scripted_duck_images.p', 'wb+') as fp:
-        pickle.dump(image_data, fp)
-
-    if save_video:
-        utils.save_video('dump/grasp_duck_randomized/{}.avi'.format(j), images)
+        if save_video:
+            utils.save_video('dump/grasp_duck_randomized/{}.avi'.format(j), images)
 
     print('Num attempts: {}'.format(j))
     print('Num grasps: {}'.format(num_grasps))
