@@ -107,7 +107,9 @@ def step_ik(body=0):
         pos = np.clip(pos, low, high)
         p.resetJointState(body, joint, pos)
 
-## gripper
+#################
+#### gripper ####
+#################
 
 def get_gripper_state(body, gripper, gripper_bounds, discrete_gripper):
     l_limits, r_limits = _get_gripper_limits(body)

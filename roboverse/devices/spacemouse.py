@@ -100,6 +100,7 @@ class SpaceMouse:
         self.thread = threading.Thread(target=self.run)
         self.thread.daemon = True
         self.thread.start()
+        self.start_control()
 
     def _display_controls(self):
         """

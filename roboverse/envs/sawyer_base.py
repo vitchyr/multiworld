@@ -17,6 +17,7 @@ class SawyerBaseEnv(gym.Env):
                  timestep=1./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
+                 visualize=True,
                  ):
 
         self._render = render
@@ -25,6 +26,7 @@ class SawyerBaseEnv(gym.Env):
         self._timestep = timestep
         self._solver_iterations = solver_iterations
         self._gripper_bounds = gripper_bounds
+        self._visualize = visualize
 
         bullet.connect_headless(self._render)
         self._set_spaces()
@@ -54,7 +56,7 @@ class SawyerBaseEnv(gym.Env):
 
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
 
-        pos = np.array([0.5, 0, 0])
+        self._prev_pos = pos = np.array([0.5, 0, 0])
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
         return self.get_observation()
@@ -99,9 +101,12 @@ class SawyerBaseEnv(gym.Env):
         
         self._simulate(pos, self.theta, gripper)
 
+        if self._visualize: self.visualize_targets(pos)
+
         observation = self.get_observation()
         reward = self.get_reward(observation)
         done = False
+        self._prev_pos = pos
         return observation, reward, done, {}
 
     def _simulate(self, pos, theta, gripper):
@@ -116,6 +121,9 @@ class SawyerBaseEnv(gym.Env):
     def get_reward(self, observation):
         return 0
 
+    def visualize_targets(self, pos):
+        bullet.add_debug_line(self._prev_pos, pos)
+
 
 if __name__ == "__main__":
     env = SawyerBaseEnv(render=True)
@@ -124,26 +132,11 @@ if __name__ == "__main__":
     ## interactive
     import roboverse.devices as devices
     space_mouse = devices.SpaceMouse()
-    space_mouse.start_control()
 
     while True:
         delta = space_mouse.control
         gripper = space_mouse.control_gripper
-        # action = np.concatenate((delta, [gripper]))
-        # print(action)
         obs = env.step(delta, gripper)
-
-    ## drive toward cube
-    # for i in range(500):
-    #     cube_pos = np.array(bullet.get_body_info(env._cube, 'pos'))
-    #     ee_pos = np.array(bullet.get_link_state(env._sawyer, env._end_effector, 'pos'))
-    #     delta = cube_pos - ee_pos
-    #     delta = np.clip(delta, -1, 1)
-    #     print(delta)
-    #     gripper = 0
-    #     act = np.concatenate((delta, [gripper]))
-    #     env.step(act)
-    #     # pdb.set_trace()
 
 
     ## simple timing

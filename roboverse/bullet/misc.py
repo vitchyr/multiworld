@@ -146,6 +146,22 @@ def rot_diff_deg(a, b):
     diff = np.minimum(diff, 360-diff)
     return np.linalg.norm(diff, 1)
 
+def add_debug_line(x, y, rgb=[1,0,0], duration=5):
+    p.addUserDebugLine(x, y, rgb, duration)
+
+# def is_contacting(body_1, body_2, link_1=-1, link_2=-1):
+#     points = p.getContactPoints(body_1, body_2, link_1, link_2)
+#     return len(points) > 0
+
+def is_contacting(body_1, body_2, link_1=-1, link_2=-1, threshold=.005):
+    dist = get_link_dist(body_1, body_2, link_1=link_1, link_2=link_2)
+    return dist < threshold
+
+def get_link_dist(body_1, body_2, link_1=-1, link_2=-1, threshold=1):
+    points = p.getClosestPoints(body_1, body_2, threshold, link_1, link_2)
+    distances = [point[8] for point in points] + [np.float('inf')]
+    return min(distances)
+
 def get_bbox(body, draw=False):
     xyz_min, xyz_max = p.getAABB(body)
     if draw:

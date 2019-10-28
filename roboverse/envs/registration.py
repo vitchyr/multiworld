@@ -2,6 +2,10 @@ import gym
 
 BULLET_ENVIRONMENT_SPECS = (
     {
+        'id': 'SawyerBase-v0',
+        'entry_point': ('roboverse.envs.sawyer_base:SawyerBaseEnv'),
+    },
+    {
         'id': 'SawyerLift-v0',
         'entry_point': ('roboverse.envs.sawyer_lift:SawyerLiftEnv'),
     },

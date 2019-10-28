@@ -14,11 +14,9 @@ class GraspingPolicy:
 
         self._end_effector = bullet.get_index_by_attribute(sawyer, 'link_name', 'right_gripper_l_finger_tip')
         self._ee_pos_fn = lambda: bullet.get_link_state(sawyer, self._end_effector, 'pos')
-        # pdb.set_trace()
         self._obj_pos_fn = lambda: bullet.get_body_info(obj, 'pos')
         self._theta = bullet.deg_to_quat([180,0,180])
         self._mode = 0
-        # pdb.set_trace()
 
     def control(self):
         ee_pos = np.array(self._ee_pos_fn())
@@ -50,17 +48,6 @@ class GraspingPolicy:
         if self._mode > 3:
             delta_pos[:] = 0
             gripper = 1
-        # if self._mode > 0 or np.linalg.norm(delta_pos) < 1e-2:
-            ## on top of object
-            # delta_pos = obj_pos - ee_pos
-            # delta_pos[1] -= 0.05
-            # delta_pos[2] -= 0.25
-            # delta_pos[2] = np.clip(delta_pos[2], -.05, .05)
-            # delta_pos = np.array([0,0,-0.01])
-            # self._mode = 1
-        # else:
-            # delta_pos = delta_pos / np.linalg.norm(delta_pos, 2) / 4.
-            # pass
 
         print(self._mode, delta_pos)
         pos = ee_pos + delta_pos
@@ -68,6 +55,3 @@ class GraspingPolicy:
         for _ in range(self._env._action_repeat):
             bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self._theta, gripper, gripper_bounds=[0,1])
             bullet.step_ik()
-
-        # delta = np.array(obj_pos) - np.array(ee_pos)
-        # pdb.set_trace()

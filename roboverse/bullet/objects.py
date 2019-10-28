@@ -40,8 +40,8 @@ table = loader(PDATA_PATH, 'table/table.urdf',
                scale=1.0)
 
 duck = loader(PDATA_PATH, 'duck_vhacd.urdf',
-              pos=[.75, -.2, 0], 
-              quat=[0, 0, 1, 0], 
+              pos=[.75, -.4, -.3], 
+              deg=[0,0,0],
               scale=0.8)
 
 lego = loader(PDATA_PATH, 'lego/lego.urdf',
