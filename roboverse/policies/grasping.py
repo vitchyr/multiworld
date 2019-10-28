@@ -5,53 +5,42 @@ import pdb
 
 class GraspingPolicy:
 
-    def __init__(self, env, sawyer, obj):
+    def __init__(self, env, sawyer, obj, sigma=0.1, verbose=False):
         self._env = env
         self._sawyer = sawyer
         self._obj = obj
+        self._sigma = sigma
+        self._verbose = verbose
+        self._goal_pos = np.array(env._goal_pos)
+        self._gripper = -1
+        self._l_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_l_finger')
+        self._r_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger')
+        self._ee_pos_fn = lambda: np.array(bullet.get_link_state(sawyer, env._end_effector, 'pos'))
+        self._obj_pos_fn = lambda: np.array(bullet.get_midpoint(self._obj))
 
-        self._env.open_gripper()
+    def get_action(self, obs):
+        obj_pos = self._obj_pos_fn()
+        ee_pos = self._ee_pos_fn()
 
-        self._end_effector = bullet.get_index_by_attribute(sawyer, 'link_name', 'right_gripper_l_finger_tip')
-        self._ee_pos_fn = lambda: bullet.get_link_state(sawyer, self._end_effector, 'pos')
-        self._obj_pos_fn = lambda: bullet.get_body_info(obj, 'pos')
-        self._theta = bullet.deg_to_quat([180,0,180])
-        self._mode = 0
+        delta_pos = obj_pos - ee_pos
+        max_xy_delta = np.abs(delta_pos[:-1]).max()
+        max_delta = np.abs(delta_pos).max()
 
-    def control(self):
-        ee_pos = np.array(self._ee_pos_fn())
-        obj_pos = np.array(self._obj_pos_fn())
+        if max_xy_delta > .01:
+            delta_pos[-1] = 0
 
-        l_finger_target = obj_pos.copy()
-        l_finger_target[1] -= .2
-        
-        if self._mode == 0:
-            l_finger_target[2] += 0.25
-            gripper = -1
-        elif self._mode == 1:
-            gripper = -1
-            l_finger_target[2] -= 0.03
-            delta_pos = l_finger_target - ee_pos
-            if np.abs(delta_pos)[2] < 0.015: self._mode += 1
-        elif self._mode == 2:
-            gripper = 1
-            self._mode += 1
-        elif self._mode == 3:
-            l_finger_target[2] += 0.25
-            l_finger_target[2] = np.clip(l_finger_target[2], 0, 0.25)
-            gripper = 1
+        if (not self._gripper and max_delta < .01) or (self._gripper and max_delta < .04):
+            self._gripper = 1
+            delta_pos = np.clip((self._goal_pos - ee_pos), -1, 1)
+        else:
+            self._gripper = 0
+            delta_pos = np.clip(delta_pos * 10, -1, 1)
 
+        if self._verbose:
+            print(delta_pos, self._gripper, max_delta)
 
-        delta_pos = l_finger_target - ee_pos
-        if np.abs(delta_pos).max() < 9e-2: self._mode += 1
+        noise = np.random.randn(3) * self._sigma
+        delta_pos += noise  
 
-        if self._mode > 3:
-            delta_pos[:] = 0
-            gripper = 1
+        return delta_pos, self._gripper
 
-        print(self._mode, delta_pos)
-        pos = ee_pos + delta_pos
-
-        for _ in range(self._env._action_repeat):
-            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self._theta, gripper, gripper_bounds=[0,1])
-            bullet.step_ik()

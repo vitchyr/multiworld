@@ -8,7 +8,7 @@ import roboverse.utils as utils
 
 env = roboverse.make('SawyerLift-v0', render=True, gripper_bounds=[0,1])
 
-policy = policies.NoisyGraspingPolicy(env, env._sawyer, env._cube)
+policy = policies.GraspingPolicy(env, env._sawyer, env._cube)
 
 images = []
 for i in range(350):
