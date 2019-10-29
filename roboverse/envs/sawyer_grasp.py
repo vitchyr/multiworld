@@ -8,6 +8,8 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
     def __init__(self, goal_pos=(.75,-.4,.2), *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
+        self._max_episode_steps = 200
+        self._elapsed_steps = 0
 
     def _load_meshes(self):
         super()._load_meshes()

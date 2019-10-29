@@ -32,6 +32,8 @@ class SawyerBaseEnv(gym.Env):
         self._img_dim = img_dim
         self._view_matrix = bullet.get_view_matrix()
         self._projection_matrix = bullet.get_projection_matrix(self._img_dim, self._img_dim)
+        self._max_episode_steps = None
+        self._elapsed_steps = None
 
     def _set_spaces(self):
         act_dim = 4
@@ -46,6 +48,7 @@ class SawyerBaseEnv(gym.Env):
         self.observation_space = gym.spaces.Box(-obs_high, obs_high)
 
     def reset(self):
+        self._elapsed_steps = 0
         bullet.reset()
         self._load_meshes()
         self._end_effector = bullet.get_index_by_attribute(
