@@ -11,7 +11,7 @@ class SawyerBaseEnv(gym.Env):
 
     def __init__(self,
                  img_dim=256,
-                 render=False,
+                 gui=False,
                  action_scale=.1,
                  action_repeat=4,
                  timestep=1./120,
@@ -20,7 +20,7 @@ class SawyerBaseEnv(gym.Env):
                  visualize=True,
                  ):
 
-        self._render = render
+        self._gui = gui
         self._action_scale = action_scale
         self._action_repeat = action_repeat
         self._timestep = timestep
@@ -28,7 +28,7 @@ class SawyerBaseEnv(gym.Env):
         self._gripper_bounds = gripper_bounds
         self._visualize = visualize
 
-        bullet.connect_headless(self._render)
+        bullet.connect_headless(self._gui)
         self._set_spaces()
         
         self._img_dim = img_dim

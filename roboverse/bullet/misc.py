@@ -22,8 +22,8 @@ def connect():
     p.setAdditionalSearchPath(pdata.getDataPath())
     # p.setAdditionalSearchPath('roboverse/envs/assets/')
 
-def connect_headless(render=False):
-    if render:
+def connect_headless(gui=False):
+    if gui:
         cid = p.connect(p.SHARED_MEMORY)
         if cid < 0:
             p.connect(p.GUI)

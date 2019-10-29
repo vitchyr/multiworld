@@ -9,6 +9,7 @@ class GraspingPolicy:
         self._env = env
         self._sawyer = sawyer
         self._obj = obj
+        self._gripper_open, self._gripper_close = self._env._gripper_bounds
         self._sigma = sigma
         self._verbose = verbose
         self._goal_pos = np.array(env._goal_pos)
@@ -30,10 +31,10 @@ class GraspingPolicy:
             delta_pos[-1] = 0
 
         if (not self._gripper and max_delta < .01) or (self._gripper and max_delta < .04):
-            self._gripper = 1
+            self._gripper = self._gripper_close
             delta_pos = np.clip((self._goal_pos - ee_pos), -1, 1)
         else:
-            self._gripper = 0
+            self._gripper = self._gripper_open
             delta_pos = np.clip(delta_pos * 10, -1, 1)
 
         if self._verbose:
@@ -42,5 +43,8 @@ class GraspingPolicy:
         noise = np.random.randn(3) * self._sigma
         delta_pos += noise  
 
-        return delta_pos, self._gripper
+        action = np.concatenate((delta_pos, np.array([self._gripper])))
+        # pdb.set_trace()
+        # return delta_pos, self._gripper
+        return action
 

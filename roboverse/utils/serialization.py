@@ -9,15 +9,16 @@ def save_image(filepath, img):
 
 ## from softlearning/misc/utils.py
 
-def _make_dir(filename):
-    folder = os.path.dirname(filename)
+def make_dir(*folder):
+    folder = os.path.join(*folder)
     if not os.path.exists(folder):
         os.makedirs(folder)
 
 
 def save_video(filename, video_frames):
     video_frames = np.array(video_frames)
-    _make_dir(filename)
+    folder = os.path.dirname(filename)
+    make_dir(folder)
 
     video_frames = np.flip(video_frames, axis=-1)
 
