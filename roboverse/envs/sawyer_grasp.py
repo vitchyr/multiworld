@@ -1,3 +1,4 @@
+import numpy as np
 import roboverse.bullet as bullet
 from roboverse.envs.sawyer_base import SawyerBaseEnv
 
@@ -21,3 +22,6 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         else:
             reward = 0
         return reward
+
+    def get_observation(self):
+        return np.array(self.get_end_effector_pos())
