@@ -50,7 +50,9 @@ for j in range(100000):
         img = env.render()
         images.append(img)
 
-        env.step(action, grip)
+        action = np.append(action, [grip])
+
+        env.step(action)
         grasping_data.append(action)
         grasping_data.append(np.array(env.get_end_effector_pos()))
         if i == num_timesteps - 1:
