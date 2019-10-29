@@ -48,6 +48,7 @@ class SawyerBaseEnv(gym.Env):
         self.observation_space = gym.spaces.Box(-obs_high, obs_high)
 
     def reset(self):
+        print('[ SawyerBase ] Resetting')
         bullet.reset()
         self._load_meshes()
         self._end_effector = bullet.get_index_by_attribute(
