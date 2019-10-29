@@ -27,7 +27,7 @@ for j in range(2000):
         ee_pos = env.get_end_effector_pos()
         
         grasping_data = []
-        grasping_data.append(np.array(ee_pos))
+        grasping_data.append(env.get_observation())
 
         if i < 50:
             action = target_pos - ee_pos
@@ -56,6 +56,7 @@ for j in range(2000):
         grasping_data.append(action)
         grasping_data.append(reward)
         grasping_data.append(done)
+        print(grasping_data)
         trajectory.append(grasping_data)
 
     trajectories.append(trajectory)
@@ -71,7 +72,7 @@ for j in range(2000):
     # can also have images later, so image, next_image, and so on
     
     if j % 10 == 1:
-        with open(pklPath + '/randomized_scripted_duck_dump.p', 'wb+') as fp:
+        with open(pklPath + '/randomized_scripted_duck_gt.p', 'wb+') as fp:
             pickle.dump(trajectories, fp)
 
         #with open(pklPath + '/randomized_scripted_duck_images.p', 'wb+') as fp:
