@@ -18,15 +18,6 @@ import threading
 from collections import namedtuple
 import numpy as np
 import pdb
-try:
-    import hid
-except ModuleNotFoundError as exc:
-    raise ImportError("Unable to load module hid, required to interface with SpaceMouse. "
-                      "Only Mac OS X is officially supported. Install the additional "
-                      "requirements with `pip install -r requirements-ik.txt`") from exc
-
-# from robosuite.utils.transform_utils import rotation_matrix
-# from robosuite.devices import Device
 
 from roboverse.devices.transform_utils import rotation_matrix
 
@@ -75,6 +66,13 @@ class SpaceMouse:
             Make sure SpaceMouse is detected before running the script.
             You can look up its vendor/product id from this method.
         """
+
+        try:
+            import hid
+        except ModuleNotFoundError as exc:
+            raise ImportError("Unable to load module hid, required to interface with SpaceMouse. "
+                              "Only Mac OS X is officially supported. Install the additional "
+                              "requirements with `pip install -r requirements-ik.txt`") from exc
 
         product_id =  50741
 
