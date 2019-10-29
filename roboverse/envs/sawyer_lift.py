@@ -6,9 +6,10 @@ from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 class SawyerLiftEnv(SawyerBaseEnv):
 
-    def __init__(self, goal_pos=[.75,-.4,.2], *args, **kwargs):
+    def __init__(self, goal_pos=[.75,-.4,.2], *args, min_reward=-3., **kwargs):
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
+        self._min_reward = min_reward
 
     def _load_meshes(self):
         super()._load_meshes()
@@ -21,6 +22,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
         reward = -(ee_dist + 2*goal_dist)
+        reward = max(reward, self._min_reward)
         return reward
 
 if __name__ == "__main__":
