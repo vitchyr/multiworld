@@ -111,3 +111,6 @@ auto_gen*.xml
 
 # multiworld/envs/assets/classic_mujoco/*.npy
 *.npy
+
+# Mujoco generated files
+MUJOCO_LOG.TXT
