@@ -59,11 +59,11 @@ def create_stats_ordered_dict(
         return stats
 
     stats = OrderedDict([
-        (name + ' p10', np.percentile(data, 10)),
-        (name + ' p90', np.percentile(data, 90)),
-        (name + ' p25', np.percentile(data, 25)),
-        (name + ' p75', np.percentile(data, 75)),
-        (name + ' MeanTrimmed', mean_trimmed),
+        # (name + ' p10', np.percentile(data, 10)),
+        # (name + ' p90', np.percentile(data, 90)),
+        # (name + ' p25', np.percentile(data, 25)),
+        # (name + ' p75', np.percentile(data, 75)),
+        # (name + ' MeanTrimmed', mean_trimmed),
         (name + ' Med', np.median(data)),
         (name + ' Mean', np.mean(data)),
         (name + ' Std', np.std(data)),
