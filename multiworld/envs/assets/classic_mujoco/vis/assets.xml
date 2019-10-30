@@ -1,0 +1,21 @@
+<mujoco>
+    <asset>
+        <texture builtin="gradient" height="100" rgb1="1 1 1" rgb2="0 0 0" type="skybox" width="100"/>
+        <texture builtin="flat" height="1278" mark="cross" markrgb="1 1 1" name="texgeom" random="0.01" rgb1="0.8 0.6 0.4" rgb2="0.8 0.6 0.4" type="cube" width="127"/>
+        <texture builtin="checker" height="100" width="100" name="texplane" rgb1="0.5 0.5 0.5" rgb2="0.8 0.8 0.8" type="2d"/>
+
+        <material name="MatPlane" reflectance="0.5" shininess="1" specular="1" texrepeat="60 60" texture="texplane"/>
+        <material name="geom" texture="texgeom" texuniform="true"/>
+
+        <!--<texture name="wood" file="../texture/wood.png" type="cube"/>-->
+        <!--<material shininess=".1" name="wood" texture="wood" specular="0.4"/>-->
+        <!--<texture name="medium_wood" file="../texture/medium_wood.png" type="cube"/>-->
+        <!--<material shininess=".1" name="medium_wood" texture="medium_wood" specular="0.4"/>-->
+        <!--<texture name="light_wood" file="../texture/light_wood.png" type="cube"/>-->
+        <!--<material shininess=".1" name="light_wood" texture="light_wood" specular="0.4"/>-->
+        <!--<texture name="darkwood" file="../texture/darkwood.png" type="cube"/>-->
+        <!--<material shininess=".1" name="darkwood" texture="darkwood" specular="0.4"/>-->
+        <!--<texture name="granite" file="../texture/granite.png" type="cube"/>-->
+        <!--<material shininess=".1" name="granite" texture="granite" specular="0.4"/>-->
+    </asset>
+</mujoco>

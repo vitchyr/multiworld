@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Same a gym ant but with gear ratio of 30 and sites -->
+<mujoco model="ant">
+    <body name="s4_torso" pos="2.25 -3.50 0.75">
+      <geom name="s4_torso_geom" pos="0 0 0" size="0.25" type="sphere" rgba="0.40 0.0 0.0 1.0"/>
+      <joint armature="0" damping="0" limited="false" margin="0.01" name="s4_root" pos="0 0 0" type="free"/>
+      <body name="s4_front_left_leg" pos="0 0 0">
+        <geom fromto="0.0 0.0 0.0 0.2 0.2 0.0" name="s4_aux_1_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+        <body name="s4_aux_1" pos="0.2 0.2 0">
+          <joint axis="0 0 1" name="s4_hip_1" pos="0.0 0.0 0.0" range="-30 30" type="hinge"/>
+          <geom fromto="0.0 0.0 0.0 0.2 0.2 0.0" name="s4_left_leg_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+          <body pos="0.2 0.2 0">
+            <joint axis="-1 1 0" name="s4_ankle_1" pos="0.0 0.0 0.0" range="30 70" type="hinge"/>
+            <geom fromto="0.0 0.0 0.0 0.4 0.4 0.0" name="s4_left_ankle_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+          </body>
+        </body>
+      </body>
+      <body name="s4_front_right_leg" pos="0 0 0">
+        <geom fromto="0.0 0.0 0.0 -0.2 0.2 0.0" name="s4_aux_2_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+        <body name="s4_aux_2" pos="-0.2 0.2 0">
+          <joint axis="0 0 1" name="s4_hip_2" pos="0.0 0.0 0.0" range="-30 30" type="hinge"/>
+          <geom fromto="0.0 0.0 0.0 -0.2 0.2 0.0" name="s4_right_leg_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+          <body pos="-0.2 0.2 0">
+            <joint axis="1 1 0" name="s4_ankle_2" pos="0.0 0.0 0.0" range="-70 -30" type="hinge"/>
+            <geom fromto="0.0 0.0 0.0 -0.4 0.4 0.0" name="s4_right_ankle_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+          </body>
+        </body>
+      </body>
+      <body name="s4_back_leg" pos="0 0 0">
+        <geom fromto="0.0 0.0 0.0 -0.2 -0.2 0.0" name="s4_aux_3_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+        <body name="s4_aux_3" pos="-0.2 -0.2 0">
+          <joint axis="0 0 1" name="s4_hip_3" pos="0.0 0.0 0.0" range="-30 30" type="hinge"/>
+          <geom fromto="0.0 0.0 0.0 -0.2 -0.2 0.0" name="s4_back_leg_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+          <body pos="-0.2 -0.2 0">
+            <joint axis="-1 1 0" name="s4_ankle_3" pos="0.0 0.0 0.0" range="-70 -30" type="hinge"/>
+            <geom fromto="0.0 0.0 0.0 -0.4 -0.4 0.0" name="s4_third_ankle_geom" size="0.08" type="capsule"
+            rgba="0.40 0.0 0.0 1.0"/>
+          </body>
+        </body>
+      </body>
+      <body name="s4_right_back_leg" pos="0 0 0">
+        <geom fromto="0.0 0.0 0.0 0.2 -0.2 0.0" name="s4_aux_4_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+        <body name="s4_aux_4" pos="0.2 -0.2 0">
+          <joint axis="0 0 1" name="s4_hip_4" pos="0.0 0.0 0.0" range="-30 30" type="hinge"/>
+          <geom fromto="0.0 0.0 0.0 0.2 -0.2 0.0" name="s4_rightback_leg_geom" size="0.08" type="capsule" rgba="0.40 0.0 0.0 1.0"/>
+          <body pos="0.2 -0.2 0">
+            <joint axis="1 1 0" name="s4_ankle_4" pos="0.0 0.0 0.0" range="30 70" type="hinge"/>
+            <geom fromto="0.0 0.0 0.0 0.4 -0.4 0.0" name="s4_fourth_ankle_geom" size="0.08" type="capsule"
+                rgba="0.40 0.0 0.0 1.0"/>
+          </body>
+        </body>
+      </body>
+    </body>
+</mujoco>
