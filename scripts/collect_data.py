@@ -9,7 +9,7 @@ parser.add_argument('--savepath', type=str, default='data/grasping/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=500)
-parser.add_argument('--num_episodes', type=int, default=50)
+parser.add_argument('--num_episodes', type=int, default=200)
 args = parser.parse_args()
 
 rv.utils.make_dir(args.savepath)
