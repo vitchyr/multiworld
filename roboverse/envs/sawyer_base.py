@@ -114,6 +114,7 @@ class SawyerBaseEnv(gym.Env):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
+        gripper = 1 if gripper > 0.5 else 0
         self._current_gripper_target = gripper
         
         self._simulate(pos, self.theta, gripper)
