@@ -56,7 +56,6 @@ for j in range(2000):
         grasping_data.append(action)
         grasping_data.append(reward)
         grasping_data.append(done)
-        print(grasping_data)
         trajectory.append(grasping_data)
 
     trajectories.append(trajectory)

@@ -34,6 +34,7 @@ class SawyerBaseEnv(gym.Env):
         self._projection_matrix = bullet.get_projection_matrix(self._img_dim, self._img_dim)
         self._max_episode_steps = None
         self._elapsed_steps = None
+        self._current_gripper_target = 0
 
     def _set_spaces(self):
         act_dim = 4
@@ -60,6 +61,7 @@ class SawyerBaseEnv(gym.Env):
         pos = np.array([0.5, 0, 0])
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
+        self._current_gripper_target = 0
 
         # Allow the objects to settle down after they are dropped in sim
         for _ in range(50):
@@ -112,6 +114,7 @@ class SawyerBaseEnv(gym.Env):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
+        self._current_gripper_target = gripper
         
         self._simulate(pos, self.theta, gripper)
 
