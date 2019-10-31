@@ -5,7 +5,7 @@ import roboverse.utils as utils
 import pickle
 import os
 
-env = roboverse.make('SawyerGraspOne-v0', render=False)
+env = roboverse.make('SawyerGraspOne-v0', render=True)
 
 num_grasps = 0
 save_video = False
