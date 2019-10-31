@@ -57,6 +57,10 @@ bowl = loader(ASSET_PATH, 'objects/bowl/bowl.urdf',
               pos=[.75, 0, -.3],
               scale=0.25)
 
+lid = loader(ASSET_PATH, 'objects/bowl/lid.urdf', 
+              pos=[.75, 0, -.3],
+              scale=0.25)
+
 cube = loader(ASSET_PATH, 'objects/cube/cube.urdf', 
               pos=[.75, -.4, -.3],
               scale=0.05)

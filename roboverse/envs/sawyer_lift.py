@@ -14,6 +14,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
     def _load_meshes(self):
         super()._load_meshes()
         self._bowl = bullet.objects.bowl()
+        self._lid = bullet.objects.lid()
         self._cube = bullet.objects.spam()
 
     def get_reward(self, observation):
