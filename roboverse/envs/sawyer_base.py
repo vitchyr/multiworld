@@ -12,11 +12,13 @@ class SawyerBaseEnv(gym.Env):
     def __init__(self,
                  img_dim=256,
                  gui=False,
-                 action_scale=.2,
-                 action_repeat=8,
-                 timestep=1./120,
+                 action_scale=.3,
+                 action_repeat=1,
+                 timestep=2./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
+                 pos_high=[1, .4, .25],
+                 pos_low=[.4, -.6, -.36],
                  visualize=False,
                  ):
 
@@ -26,6 +28,8 @@ class SawyerBaseEnv(gym.Env):
         self._timestep = timestep
         self._solver_iterations = solver_iterations
         self._gripper_bounds = gripper_bounds
+        self._pos_low = pos_low
+        self._pos_high = pos_high
         self._visualize = visualize
 
         bullet.connect_headless(self._gui)
@@ -71,6 +75,9 @@ class SawyerBaseEnv(gym.Env):
     def _load_meshes(self):
         self._sawyer = bullet.objects.sawyer()
         self._table = bullet.objects.table()
+        self._workspace = bullet.Sensor(self._sawyer, 
+            xyz_min=self._pos_low, xyz_max=self._pos_high, 
+            visualize=False, rgba=[0,1,0,.1])
 
     def _format_state_query(self):
         ## position and orientation of body root
@@ -99,6 +106,7 @@ class SawyerBaseEnv(gym.Env):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
+        pos = np.clip(pos, self._pos_low, self._pos_high)
         
         self._simulate(pos, self.theta, gripper)
 
