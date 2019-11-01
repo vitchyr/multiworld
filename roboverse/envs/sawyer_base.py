@@ -75,11 +75,11 @@ class SawyerBaseEnv(gym.Env):
 
     def _format_state_query(self):
         ## position and orientation of body root
-        bodies = [self._cube]
+        bodies = [self._cube, self._lid]
         ## position and orientation of link
         links = [(self._sawyer, self._end_effector)]
         ## position and velocity of prismatic joint
-        # joints = [(self._sawyer, None), (self._bowl, 'lid_joint')]
+        # joints = [(self._sawyer, None)]
         joints = []
         self._state_query = bullet.format_sim_query(bodies, links, joints)
 
