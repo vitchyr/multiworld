@@ -17,8 +17,8 @@ class SawyerBaseEnv(gym.Env):
                  timestep=2./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
-                 pos_high=[1, .4, .25],
-                 pos_low=[.4, -.6, -.36],
+                 pos_high=[1,.4,.25],
+                 pos_low=[.4,-.6,-.36],
                  visualize=False,
                  ):
 
