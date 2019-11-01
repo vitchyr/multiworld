@@ -13,5 +13,3 @@ while True:
 	next_obs, rew, term, info = env.step(space_mouse.control, space_mouse.control_gripper)
 	print(rew)
 	if term: break
-# pdb.set_trace()
-

@@ -17,7 +17,7 @@ class SawyerBaseEnv(gym.Env):
                  timestep=1./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
-                 visualize=True,
+                 visualize=False,
                  ):
 
         self._gui = gui
