@@ -29,7 +29,6 @@ class SawyerBaseEnv(gym.Env):
         self._visualize = visualize
 
         bullet.connect_headless(self._gui)
-        print('connected')
         self._set_spaces()
         
         self._img_dim = img_dim
@@ -129,31 +128,3 @@ class SawyerBaseEnv(gym.Env):
     def visualize_targets(self, pos):
         bullet.add_debug_line(self._prev_pos, pos)
 
-
-if __name__ == "__main__":
-    env = SawyerBaseEnv(render=True)
-    # env.reset()
-
-    ## interactive
-    import roboverse.devices as devices
-    space_mouse = devices.SpaceMouse()
-
-    while True:
-        delta = space_mouse.control
-        gripper = space_mouse.control_gripper
-        obs = env.step(delta, gripper)
-
-
-    ## simple timing
-    # num_steps = 100
-    # t0 = time.time()
-    # for i in range(num_steps):
-    #     act = np.array([1.0, 0.0, 0.0, 0.0])
-    #     obs = env.step(act)
-    #     print(i, obs)
-    # t1 = time.time()
-
-    # tot_time = t1 - t0
-    # fps = num_steps / tot_time
-    # print('{} steps in {} seconds'.format(num_steps, tot_time))
-    # print('{} fps'.format(fps))

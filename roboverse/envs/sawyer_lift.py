@@ -16,8 +16,6 @@ class SawyerLiftEnv(SawyerBaseEnv):
         self._bowl = bullet.objects.bowl()
         self._lid = bullet.objects.lid()
         self._cube = bullet.objects.spam()
-        # self._sensor_lid = bullet.Sensor(self._lid, xyz_min=[.6, .2, -.38], xyz_max=[.9, .5, -.35], visualize=True)
-        # self._sensor_cube = bullet.Sensor(self._cube, xyz_min=[.7, -.1, -.38], xyz_max=[.8, .1, -.35], visualize=True)
 
     def get_reward(self, observation):
         cube_pos = bullet.get_midpoint(self._cube)
@@ -28,40 +26,4 @@ class SawyerLiftEnv(SawyerBaseEnv):
         reward = max(reward, self._min_reward)
         # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
-
-if __name__ == "__main__":
-    import time
-
-    env = SawyerLiftEnv([.75,-.4,.2], img_dim=256, render=False)
-    # env.reset()
-
-    ## interactive
-    # import roboverse.devices as devices
-    # space_mouse = devices.SpaceMouse()
-    # space_mouse.start_control()
-
-    # while True:
-    #     delta = space_mouse.control
-    #     gripper = space_mouse.control_gripper
-    #     obs, rew, term, info = env.step(delta, gripper)
-    #     img = env.render()
-    #     # pdb.set_trace()
-    #     print(rew, img.shape)
-
-    ## simple timing
-    num_steps = 100
-    t0 = time.time()
-    for i in range(num_steps):
-        act = np.array([1.0, 0.0, 0.0, 0.0])
-        obs, rew, term, info = env.step(act)
-        print(i, obs.shape, rew, term)
-        img = env.render()
-    t1 = time.time()
-
-    tot_time = t1 - t0
-    fps = num_steps / tot_time
-    print('{} steps in {} seconds'.format(num_steps, tot_time))
-    print('{} fps'.format(fps))
-
-
 
