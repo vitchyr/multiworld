@@ -13,7 +13,7 @@ class SawyerBaseEnv(gym.Env):
                  img_dim=256,
                  gui=False,
                  action_scale=.2,
-                 action_repeat=10,
+                 action_repeat=8,
                  timestep=1./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
