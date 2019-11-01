@@ -168,6 +168,13 @@ def get_bbox(body, draw=False):
         draw_bbox(xyz_min, xyz_max)
     return np.array(xyz_min), np.array(xyz_max)
 
+def bbox_intersecting(bbox_1, bbox_2):
+    min_1, max_1 = bbox_1
+    min_2, max_2 = bbox_2
+    # print(min_1, max_1, min_2, max_2)
+    intersecting = (min_1 <= max_2).all() and (min_2 <= max_1).all()
+    return intersecting
+
 def get_midpoint(body):
     xyz_min, xyz_max = get_bbox(body)
     midpoint = (xyz_min + xyz_max) / 2.

@@ -16,6 +16,8 @@ class SawyerLiftEnv(SawyerBaseEnv):
         self._bowl = bullet.objects.bowl()
         self._lid = bullet.objects.lid()
         self._cube = bullet.objects.spam()
+        # self._sensor_lid = bullet.Sensor(self._lid, xyz_min=[.6, .2, -.38], xyz_max=[.9, .5, -.35], visualize=True)
+        # self._sensor_cube = bullet.Sensor(self._cube, xyz_min=[.7, -.1, -.38], xyz_max=[.8, .1, -.35], visualize=True)
 
     def get_reward(self, observation):
         cube_pos = bullet.get_midpoint(self._cube)
@@ -24,6 +26,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
         reward = -(ee_dist + 2*goal_dist)
         reward = max(reward, self._min_reward)
+        # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
 
 if __name__ == "__main__":

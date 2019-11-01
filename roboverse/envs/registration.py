@@ -9,6 +9,10 @@ BULLET_ENVIRONMENT_SPECS = (
         'id': 'SawyerLift-v0',
         'entry_point': ('roboverse.envs.sawyer_lift:SawyerLiftEnv'),
     },
+    {
+        'id': 'SawyerLid-v0',
+        'entry_point': ('roboverse.envs.sawyer_lid:SawyerLidEnv'),
+    },
 )
 
 def register_bullet_environments():

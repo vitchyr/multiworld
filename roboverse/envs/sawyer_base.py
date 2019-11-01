@@ -29,6 +29,7 @@ class SawyerBaseEnv(gym.Env):
         self._visualize = visualize
 
         bullet.connect_headless(self._gui)
+        print('connected')
         self._set_spaces()
         
         self._img_dim = img_dim
@@ -106,7 +107,7 @@ class SawyerBaseEnv(gym.Env):
 
         observation = self.get_observation()
         reward = self.get_reward(observation)
-        done = False
+        done = self.get_termination(observation)
         self._prev_pos = pos
         return observation, reward, done, {}
 
@@ -118,6 +119,9 @@ class SawyerBaseEnv(gym.Env):
     def render(self, mode='rgb_array'):
         img, depth, segmentation = bullet.render(self._img_dim, self._img_dim, self._view_matrix, self._projection_matrix)
         return img
+
+    def get_termination(self, observation):
+        return False
 
     def get_reward(self, observation):
         return 0
