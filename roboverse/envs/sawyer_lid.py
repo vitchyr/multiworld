@@ -6,7 +6,7 @@ from roboverse.envs.sawyer_lift import SawyerLiftEnv
 
 class SawyerLidEnv(SawyerLiftEnv):
 
-    def __init__(self, goal_pos=[.75,-.4,.2], *args, min_reward=-3., **kwargs):
+    def __init__(self, goal_pos=[.8,.4,-.1], *args, min_reward=-3., **kwargs):
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
         self._min_reward = min_reward
@@ -26,6 +26,7 @@ class SawyerLidEnv(SawyerLiftEnv):
         reward = -ee_dist + lid_reward
         reward = max(reward, self._min_reward)
         return reward
+        # return lid_reward
 
     def get_termination(self, observation):
         return self._sensor_lid.sense()
