@@ -28,6 +28,7 @@ for ep in range(args.num_episodes):
 		act = policy.get_action(obs)
 		if act[-1] > 0 and min_grasp_step is None:
 			min_grasp_step = i
+			print(min_grasp_step)
 		next_obs, rew, term, info = env.step(act)
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs
