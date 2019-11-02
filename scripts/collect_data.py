@@ -25,6 +25,8 @@ for ep in range(args.num_episodes):
 	images = []
 	for i in range(args.horizon):
 		act = policy.get_action(obs)
+		if act[-1] > .5:
+			print(i)
 		next_obs, rew, term, info = env.step(act)
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs

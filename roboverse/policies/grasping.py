@@ -17,7 +17,7 @@ class GraspingPolicy:
         self._l_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_l_finger')
         self._r_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger')
         self._ee_pos_fn = lambda: np.array(bullet.get_link_state(sawyer, env._end_effector, 'pos'))
-        self._obj_pos_fn = lambda: np.array(bullet.get_midpoint(self._obj))
+        self._obj_pos_fn = lambda: np.array(bullet.get_midpoint(self._obj, weights=[.5,.5,.5]))
 
     def get_action(self, obs):
         obj_pos = self._obj_pos_fn()
