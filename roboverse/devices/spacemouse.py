@@ -214,6 +214,13 @@ class SpaceMouse:
             return 1.0
         return 0
 
+    def get_action(self):
+        ## [0, 1] --> [-1, 1]
+        dpos = self.control
+        gripper = np.array([self.control_gripper * 2 - 1])
+        action = np.concatenate([dpos, gripper])
+        return action
+
 
 if __name__ == "__main__":
 

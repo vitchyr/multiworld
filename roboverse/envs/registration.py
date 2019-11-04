@@ -13,6 +13,10 @@ BULLET_ENVIRONMENT_SPECS = (
         'id': 'SawyerLid-v0',
         'entry_point': ('roboverse.envs.sawyer_lid:SawyerLidEnv'),
     },
+    {
+        'id': 'SawyerSoup-v0',
+        'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
+    },
 )
 
 def register_bullet_environments():

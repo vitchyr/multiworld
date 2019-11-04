@@ -4,7 +4,7 @@ import pdb
 import roboverse.bullet as bullet
 from roboverse.envs.sawyer_lift import SawyerLiftEnv
 
-class SawyerLidEnv(SawyerLiftEnv):
+class SawyerSoupEnv(SawyerLiftEnv):
 
     def __init__(self, *args, min_reward=-3., **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,14 +21,13 @@ class SawyerLidEnv(SawyerLiftEnv):
         ee_dist = bullet.l2_dist(lid_pos, ee_pos)
 
         lid_reward = self._sensor_lid.sense()
-
-        reward = -ee_dist + lid_reward
-        reward = max(reward, self._min_reward)
+        cube_reward = self._sensor_cube.sense()
+        print(lid_reward, cube_reward)
+        reward = lid_reward and cube_reward
         return reward
-        # return lid_reward
 
     def get_termination(self, observation):
-        return self._sensor_lid.sense()
+        return self._sensor_lid.sense() and self._sensor_cube.sense()
 
 
 
