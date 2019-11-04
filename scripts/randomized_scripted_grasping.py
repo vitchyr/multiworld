@@ -8,7 +8,7 @@ import os
 env = roboverse.make('SawyerGraspOne-v0', render=True)
 
 num_grasps = 0
-save_video = False
+save_video = True
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 home_dir = os.path.dirname(curr_dir)
 pklPath = home_dir + '/data'
@@ -48,8 +48,8 @@ for j in range(2000):
             grip=1.
 
         action = np.append(action, [grip])
-        #img = env.render()
-        #images.append(img)
+        img = env.render()
+        images.append(np.uint8(img))
 
         next_state, reward, done, info = env.step(action)
         grasping_data.append(next_state)
@@ -59,6 +59,7 @@ for j in range(2000):
         trajectory.append(grasping_data)
 
     trajectories.append(trajectory)
+    #print(env.render())
     #image_data.append(images)
 
     object_pos = env.get_object_midpoint('duck')
