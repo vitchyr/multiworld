@@ -22,7 +22,6 @@ class SawyerSoupEnv(SawyerLiftEnv):
 
         lid_reward = self._sensor_lid.sense()
         cube_reward = self._sensor_cube.sense()
-        print(lid_reward, cube_reward)
         reward = lid_reward and cube_reward
         return reward
 
