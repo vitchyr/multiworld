@@ -1,6 +1,7 @@
-import numpy as np
-import random
 import os
+import random
+import numpy as np
+import cv2
 import pdb
 
 import pybullet as p
@@ -87,7 +88,7 @@ def get_projection_matrix(height, width, fov=60, near_plane=0.1, far_plane=2):
     return projection_matrix
 
 def render(height, width, view_matrix, projection_matrix, 
-           shadow=1, light_direction=[1,1,1], renderer=p.ER_BULLET_HARDWARE_OPENGL):
+           shadow=1, light_direction=[1,1,1], renderer=p.ER_BULLET_HARDWARE_OPENGL, gaussian_width=5):
     ## ER_BULLET_HARDWARE_OPENGL
     img_tuple = p.getCameraImage(width,
                                  height,
@@ -98,6 +99,8 @@ def render(height, width, view_matrix, projection_matrix,
                                  renderer=renderer)
     _, _, img, depth, segmentation = img_tuple
     img = img[:,:,:-1]
+    if gaussian_width > 0:
+        img = cv2.GaussianBlur(img, (gaussian_width, gaussian_width), 0)
     return img, depth, segmentation
 
 ############################
