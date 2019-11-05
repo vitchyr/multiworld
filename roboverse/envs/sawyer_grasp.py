@@ -26,4 +26,5 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         return reward
 
     def get_observation(self):
-        return np.append(np.append(np.array(self.get_end_effector_pos()), np.array(self.get_object_midpoint('duck'))), np.array([self._current_gripper_target]))
+        duck_info = bullet.get_body_info(self._objects['duck'])
+        return np.append(np.append(np.array(self.get_end_effector_pos()), np.append(duck_info['pos'], duck_info['theta'])), np.array([self._current_gripper_target]))
