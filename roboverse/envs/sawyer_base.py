@@ -13,7 +13,7 @@ class SawyerBaseEnv(gym.Env):
                  img_dim=256,
                  gui=False,
                  action_scale=.2,
-                 action_repeat=10,
+                 action_repeat=4,
                  timestep=2./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
@@ -38,6 +38,17 @@ class SawyerBaseEnv(gym.Env):
         self._img_dim = img_dim
         self._view_matrix = bullet.get_view_matrix()
         self._projection_matrix = bullet.get_projection_matrix(self._img_dim, self._img_dim)
+
+    def get_params(self):
+        labels = ['_action_scale', '_action_repeat', 
+                  '_timestep', '_solver_iterations',
+                  '_gripper_bounds', '_pos_low', '_pos_high']
+        params = {label: getattr(self, label) for label in labels}
+        return params
+
+    def check_params(self, other):
+        params = self.get_params()
+        pdb.set_trace()
 
     def _set_spaces(self):
         act_dim = 4

@@ -26,6 +26,11 @@ class DemoPool:
 	def size(self):
 		return self._size
 	
+	def add_field(self, key, val):
+		assert key not in self._keys
+		self._keys = tuple(list(self._keys) + [key])
+		self._fields[key] = val
+
 	def add_sample(self, *arrays):
 		if self._size:
 			self._add(arrays)
