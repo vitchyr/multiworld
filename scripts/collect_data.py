@@ -5,11 +5,11 @@ import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', type=str, default='SawyerLift-v0')
-parser.add_argument('--savepath', type=str, default='data/scale2-rep4-step2-lift/')
+parser.add_argument('--savepath', type=str, default='data/mult4-scale2-rep10-step2-lift/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=250)
-parser.add_argument('--num_episodes', type=int, default=1000)
+parser.add_argument('--num_episodes', type=int, default=100)
 args = parser.parse_args()
 
 rv.utils.make_dir(args.savepath)
@@ -17,7 +17,7 @@ rv.utils.make_dir(args.savepath)
 ## 2 / 10 / 2 : 1, 1.25, 1.5, 1.75, 2
 ## 1 / 4 / 2 : 1.5, 2
 
-env = rv.make(args.env, action_scale=.2, action_repeat=4, timestep=2./120, gui=args.gui,)
+env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=2./120, gui=args.gui,)
 policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
 pool = rv.utils.DemoPool()
 print('Observation space: {} | Action space: {}'.format(env.observation_space, env.action_space))

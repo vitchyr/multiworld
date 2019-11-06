@@ -22,7 +22,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
         ee_pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
-        reward = -(ee_dist + 2*goal_dist)
+        reward = -(ee_dist + 4*goal_dist)
         reward = max(reward, self._min_reward)
         # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
