@@ -13,13 +13,13 @@ class SawyerBaseEnv(gym.Env):
                  img_dim=256,
                  gui=False,
                  action_scale=.2,
-                 action_repeat=4,
+                 action_repeat=10,
                  timestep=2./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
                  pos_high=[1,.4,.25],
                  pos_low=[.4,-.6,-.36],
-                 visualize=False,
+                 visualize=True,
                  ):
 
         self._gui = gui
@@ -131,7 +131,7 @@ class SawyerBaseEnv(gym.Env):
         observation = self.get_observation()
         reward = self.get_reward(observation)
         done = self.get_termination(observation)
-        self._prev_pos = pos
+        self._prev_pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         return observation, reward, done, {}
 
     def _simulate(self, pos, theta, gripper):
