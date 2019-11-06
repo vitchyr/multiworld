@@ -5,10 +5,10 @@ import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', type=str, default='SawyerLift-v0')
-parser.add_argument('--savepath', type=str, default='data/field-test/')
+parser.add_argument('--savepath', type=str, default='data/scale2-rep10-step2-lift/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
-parser.add_argument('--horizon', type=int, default=500)
+parser.add_argument('--horizon', type=int, default=250)
 parser.add_argument('--num_episodes', type=int, default=100)
 args = parser.parse_args()
 
@@ -28,7 +28,7 @@ for ep in range(args.num_episodes):
 		act = policy.get_action(obs)
 		if act[-1] > 0 and min_grasp_step is None:
 			min_grasp_step = i
-			print(min_grasp_step)
+			# print(min_grasp_step)
 		next_obs, rew, term, info = env.step(act)
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs

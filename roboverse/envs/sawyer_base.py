@@ -54,7 +54,7 @@ class SawyerBaseEnv(gym.Env):
                     key, val, other[key]
                 )
                 raise RuntimeError(message)
-                
+
     def _set_spaces(self):
         act_dim = 4
         act_bound = 1
