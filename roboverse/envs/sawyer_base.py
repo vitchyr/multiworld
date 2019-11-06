@@ -48,8 +48,13 @@ class SawyerBaseEnv(gym.Env):
 
     def check_params(self, other):
         params = self.get_params()
-        pdb.set_trace()
-
+        for key, val in params.items():
+            if val != other[key]:
+                message = 'Found mismatch in {} | env : {} | demos : {}'.format(
+                    key, val, other[key]
+                )
+                raise RuntimeError(message)
+                
     def _set_spaces(self):
         act_dim = 4
         act_bound = 1

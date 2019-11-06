@@ -5,7 +5,7 @@ import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', type=str, default='SawyerLift-v0')
-parser.add_argument('--savepath', type=str, default='data/field_test/')
+parser.add_argument('--savepath', type=str, default='data/field-test/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=500)
@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 rv.utils.make_dir(args.savepath)
 
-env = rv.make(args.env, gui=args.gui, gripper_bounds=[0,1])
+env = rv.make(args.env, gui=args.gui)
 policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
 pool = rv.utils.DemoPool()
 print('Observation space: {} | Action space: {}'.format(env.observation_space, env.action_space))
@@ -47,5 +47,6 @@ for ep in range(args.num_episodes):
 		rv.utils.save_video('{}/{}.avi'.format(args.savepath, ep), images)
 
 params = env.get_params()
-pool.add_field(params)
-pool.save(args.savepath, '{}_pool_{}.pkl'.format(rv.utils.timestamp(), pool.size))
+timestamp = rv.utils.timestamp()
+pool.save(params, args.savepath, '{}_pool_{}.pkl'.format(timestamp, pool.size))
+

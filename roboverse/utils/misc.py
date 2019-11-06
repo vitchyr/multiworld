@@ -25,11 +25,7 @@ class DemoPool:
 	@property
 	def size(self):
 		return self._size
-	
-	def add_field(self, key, val):
-		assert key not in self._keys
-		self._keys = tuple(list(self._keys) + [key])
-		self._fields[key] = val
+
 
 	def add_sample(self, *arrays):
 		if self._size:
@@ -40,12 +36,16 @@ class DemoPool:
 		self._advance()
 		# print(self._size, self._pointer)
 
-	def save(self, *savepath):
+	def save(self, params, *savepath):
 		savepath = os.path.join(*savepath)
 		self._prune()
-		save_info = [(key, self._fields[key].shape) for key, array in self._fields.items()]
+		save_info = [(key, self._fields[key].shape) for key in self._keys]
 		print('[ DemoPool ] Saving to: {} | {}'.format(savepath, save_info))
 		pickle.dump(self._fields, open(savepath, 'wb'))
+
+		## save params
+		params_path = savepath.replace('pool', 'params')
+		pickle.dump(params, open(params_path, 'wb'))
 
 	def _add(self, arrays):
 		for key, array in zip(self._keys, arrays):

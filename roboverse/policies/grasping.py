@@ -13,7 +13,7 @@ class GraspingPolicy:
         self._sigma = sigma
         self._verbose = verbose
         self._goal_pos = np.array(env._goal_pos)
-        self._gripper = -1
+        self._gripper = self._gripper_open
         self._l_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_l_finger')
         self._r_finger = bullet.get_index_by_attribute(self._sawyer, 'link_name', 'right_gripper_r_finger')
         self._ee_pos_fn = lambda: np.array(bullet.get_link_state(sawyer, env._end_effector, 'pos'))
@@ -30,7 +30,8 @@ class GraspingPolicy:
         if max_xy_delta > .01:
             delta_pos[-1] = 0
 
-        if (not self._gripper and max_delta < .01) or (self._gripper and max_delta < .04):
+        if (self._gripper == self._gripper_open and max_delta < .01) or \
+           (self._gripper == self._gripper_close and max_delta < .04):
             self._gripper = self._gripper_close
             delta_pos = np.clip((self._goal_pos - ee_pos), -1, 1)
         else:
