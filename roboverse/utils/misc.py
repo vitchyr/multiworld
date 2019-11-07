@@ -67,6 +67,16 @@ class DemoPool:
 		for key in self._keys:
 			self._fields[key] = self._fields[key][:self._size]
 
+class Meta:
+
+	def __init__(self, fn, *args, **kwargs):
+		self._fn = fn
+		self._args = args
+		self._kwargs = kwargs
+
+	def __call__(self, *args, **kwargs):
+		self._kwargs.update(**kwargs)
+		return self._fn(*args, *self._args, **self._kwargs)
 
 
 

@@ -2,7 +2,7 @@ import time
 import roboverse as rv
 
 num_steps = 100
-env = rv.make('SawyerLift-v0', gui=False, gripper_bounds=[0,1])
+env = rv.make('SawyerLift-v0', gui=False, gripper_bounds=[-1,1], action_scale=.2, action_repeat=10, timestep=1./120)
 
 t0 = time.time()
 for _ in range(num_steps):
