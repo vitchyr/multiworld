@@ -67,6 +67,10 @@ class DemoPool:
 		for key in self._keys:
 			self._fields[key] = self._fields[key][:self._size]
 
+	def get_samples(self):
+		self._prune()
+		return self._fields
+		
 class Meta:
 
 	def __init__(self, fn, *args, **kwargs):
