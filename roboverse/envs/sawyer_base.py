@@ -49,6 +49,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
     def check_params(self, other):
         params = self.get_params()
+        assert set(params.keys()) == set(other.keys())
         for key, val in params.items():
             if val != other[key]:
                 message = 'Found mismatch in {} | env : {} | demos : {}'.format(
@@ -72,7 +73,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self.observation_space = gym.spaces.Box(-obs_high, obs_high)
 
     def reset(self):
-        print('[ SawyerBase ] Resetting')
+        # print('[ SawyerBase ] Resetting')
         bullet.reset()
         self._load_meshes()
         self._end_effector = bullet.get_index_by_attribute(

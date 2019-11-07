@@ -2,102 +2,85 @@ import time
 import argparse
 import numpy as np
 import multiprocessing as mp
-import roboverse as rv
+import gym
 import pdb
+
+import roboverse as rv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', type=str, default='SawyerLift-v0')
 parser.add_argument('--savepath', type=str, default='data/dump/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
-parser.add_argument('--horizon', type=int, default=500)
+parser.add_argument('--horizon', type=int, default=10)
 parser.add_argument('--num_episodes', type=int, default=1)
-parser.add_argument('--num_processes', type=int, default=10)
+parser.add_argument('--num_processes', type=int, default=3)
 args = parser.parse_args()
 
-class ParallelEnv:
+# class ParallelEnv:
 
-	def __init__(self, env_fn, num_processes):
-		self._num_processes = num_processes
-		self._act_queues = [mp.Queue() for _ in range(num_processes)]
-		self._obs_queues = [mp.Queue() for _ in range(num_processes)]
-		self._processes = [mp.Process(target=worker, args=(env_fn, q1, q2)) 
-			for q1, q2 in zip(self._act_queues, self._obs_queues)]
-		[p.start() for p in self._processes]
+# 	def __init__(self, env, num_processes=1, **kwargs):
+# 		self._env_fn = lambda: gym.make(env, **kwargs)
+# 		self._num_processes = num_processes
+# 		self._act_queues = [mp.Queue() for _ in range(num_processes)]
+# 		self._obs_queues = [mp.Queue() for _ in range(num_processes)]
+# 		self._processes = [mp.Process(target=worker, args=(self._env_fn, q1, q2)) 
+# 			for q1, q2 in zip(self._act_queues, self._obs_queues)]
+# 		[p.start() for p in self._processes]
+# 		self._set_spaces()
 
-	def step(self, vec_action):
-		act = vec_action
-		for act_queue in self._act_queues:
-			act_queue.put(act)
-		outs = [obs_queue.get() for obs_queue in self._obs_queues]
+# 	def _set_spaces(self):
+# 		env = self._env_fn()
+# 		obs_space = env.observation_space
+# 		act_space = env.action_space
 
-		obs = np.stack([out[0] for out in outs])
-		rew = np.stack([out[1] for out in outs])
-		term = np.stack([out[2] for out in outs])
-		info = {}
-		return obs, rew, term, info
+# 		obs_low = obs_space.low[None].repeat(self._num_processes, 0)
+# 		obs_high = obs_space.high[None].repeat(self._num_processes, 0)
+
+# 		act_low = act_space.low[None].repeat(self._num_processes, 0)
+# 		act_high = act_space.high[None].repeat(self._num_processes, 0)
+
+# 		self.observation_space = type(obs_space)(obs_low, obs_high)
+# 		self.action_space = type(act_space)(act_low, act_high)
+# 		env.close()
+
+# 	def step(self, vec_action):
+# 		for act, act_queue in zip(vec_action, self._act_queues):
+# 			act_queue.put(act)
+# 		outs = [obs_queue.get() for obs_queue in self._obs_queues]
+
+# 		obs = np.stack([out[0] for out in outs])
+# 		rew = np.stack([out[1] for out in outs])
+# 		term = np.stack([out[2] for out in outs])
+# 		info = [out[3] for out in outs]
+# 		return obs, rew, term, info
 
 
 
-def worker(env_fn, act_queue, obs_queue):
-	env = env_fn()
-	while True:
-		action = act_queue.get()
-		obs, rew, term, info = env.step(action)
-		obs_queue.put((obs, rew, term, info))
-
-# def sample(proc_num, env_fn, policy_fn, return_dict):
-# 	seed = int( (time.time() % 1)*1e9 )
-# 	np.random.seed(seed)
-# 	# print(np.random.randn(5), t)
+# def worker(env_fn, act_queue, obs_queue):
+# 	# seed = int( (time.time() % 1)*1e9 )
+# 	# np.random.seed(seed)
 
 # 	env = env_fn()
-# 	policy = policy_fn(env, env._sawyer, env._cube)
+# 	while True:
+# 		action = act_queue.get()
+# 		obs, rew, term, info = env.step(action)
+# 		obs_queue.put((obs, rew, term, info))
 
-# 	pool = rv.utils.DemoPool()
-# 	print('Observation space: {} | Action space: {}'.format(env.observation_space, env.action_space))
 
-# 	for ep in range(args.num_episodes):
-# 		obs = env.reset()
-# 		ep_rew = 0
-# 		min_grasp_step = None
-# 		images = []
-# 		for i in range(args.horizon):
-# 			act = policy.get_action(obs)
-# 			if act[-1] > 0 and min_grasp_step is None:
-# 				min_grasp_step = i
-# 				print('min_grasp_step: ', min_grasp_step)
-# 			next_obs, rew, term, info = env.step(act)
-# 			pool.add_sample(obs, act, next_obs, rew, term)
-# 			obs = next_obs
-
-# 			print(i, rew, term)
-# 			ep_rew += rew
-# 			if args.render:
-# 				img = env.render()
-# 				images.append(img)
-# 				# rv.utils.save_image('{}/{}.png'.format(args.savepath, i), img)
-
-# 			if term: break
-
-# 		print('Episode: {} | steps: {} | return: {} | min grasp step: {}'.format(ep, i+1, ep_rew, min_grasp_step))
-# 		if args.render:
-# 			rv.utils.save_video('{}/{}.avi'.format(args.savepath, ep), images)
-
-# 	# pool._prune()
-# 	# obs = pool._fields['observations']
-# 	samples = pool.get_samples()
-# 	return_dict[proc_num] = samples
-
-env = rv.make(args.env, action_scale=.2, action_repeat=20, timestep=1./120, gui=args.gui,)
-env_fn = env.get_constructor()
-
-parallel_env = ParallelEnv(env_fn, args.num_processes)
+env = gym.make('ParallelSawyerLift-v0', num_processes=args.num_processes, action_scale=.2, action_repeat=20, timestep=1./120, gui=args.gui)
+# env = ParallelEnv(args.env, args.num_processes, action_scale=.2, action_repeat=20, timestep=1./120, gui=args.gui)
+# parallel_env = env_fn()
 
 t0 = time.time()
 for i in range(args.horizon):
-	parallel_env.step(env.action_space.sample())
-	print(i)
+	act = env.action_space.sample()[0]
+	act = [act for _ in range(args.num_processes)]
+	next_obs, rew, term, info = env.step(act)
+	print(i, rew)
+
+obs = env.reset([0,2])
+pdb.set_trace()
 
 
 # pdb.set_trace()

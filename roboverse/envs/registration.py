@@ -17,6 +17,11 @@ BULLET_ENVIRONMENT_SPECS = (
         'id': 'SawyerSoup-v0',
         'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
     },
+    {
+        'id': 'ParallelSawyerLift-v0',
+        'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
+        'kwargs': {'env': 'SawyerLift-v0'},
+    }
 )
 
 def register_bullet_environments():

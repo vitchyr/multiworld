@@ -13,6 +13,12 @@ class SawyerLiftEnv(SawyerBaseEnv):
         self._goal_mult = goal_mult
         self._min_reward = min_reward
 
+    def get_params(self):
+        params = super().get_params()
+        labels = ['_goal_pos', '_goal_mult', '_min_reward']
+        params.update({label: getattr(self, label) for label in labels})
+        return params
+
     def _load_meshes(self):
         super()._load_meshes()
         self._bowl = bullet.objects.bowl()
@@ -28,3 +34,4 @@ class SawyerLiftEnv(SawyerBaseEnv):
         reward = max(reward, self._min_reward)
         # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
+
