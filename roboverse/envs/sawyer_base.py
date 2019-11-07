@@ -5,9 +5,10 @@ import gym
 import pdb
 
 import roboverse.bullet as bullet
+from roboverse.envs.serializable import Serializable
 
 
-class SawyerBaseEnv(gym.Env):
+class SawyerBaseEnv(gym.Env, Serializable):
 
     def __init__(self,
                  img_dim=256,
@@ -54,6 +55,9 @@ class SawyerBaseEnv(gym.Env):
                     key, val, other[key]
                 )
                 raise RuntimeError(message)
+
+    def get_constructor(self):
+        return lambda: self.__class__(*self.args_, **self.kwargs_)
 
     def _set_spaces(self):
         act_dim = 4

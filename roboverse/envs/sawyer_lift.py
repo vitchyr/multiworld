@@ -7,6 +7,7 @@ from roboverse.envs.sawyer_base import SawyerBaseEnv
 class SawyerLiftEnv(SawyerBaseEnv):
 
     def __init__(self, goal_pos=[.75,-.4,.2], *args, goal_mult=4, min_reward=-3., **kwargs):
+        self.record_args(locals())
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
         self._goal_mult = goal_mult
@@ -27,4 +28,3 @@ class SawyerLiftEnv(SawyerBaseEnv):
         reward = max(reward, self._min_reward)
         # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
-

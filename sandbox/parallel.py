@@ -58,9 +58,13 @@ def sample(proc_num, env_fn, policy_fn, return_dict):
 	samples = pool.get_samples()
 	return_dict[proc_num] = samples
 
-# env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui,)
+env = rv.make(args.env, action_scale=.2, action_repeat=20, timestep=1./120, gui=args.gui,)
+env_fn = env.get_constructor()
+
+# pdb.set_trace()
+
 # policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
-env_fn = rv.utils.Meta(rv.make, args.env, action_scale=.2, action_repeat=20, timestep=1./120, gui=args.gui)
+# env_fn = rv.utils.Meta(rv.make, args.env, action_scale=.2, action_repeat=20, timestep=1./120, gui=args.gui)
 
 policy_fn = rv.utils.Meta(rv.policies.GraspingPolicy)
 
