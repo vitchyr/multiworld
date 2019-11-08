@@ -767,13 +767,13 @@ def register_custom_envs():
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
             model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-3, -3],
-            goal_high=[3, 3],
+            goal_low=[-6, -6],
+            goal_high=[6, 6],
             goal_is_xy=False,
             goal_is_qpos=True,
             frame_skip=5,
             init_qpos=[
-                -2, -2, 0.565, 1,
+                -5, 5, 0.565, 1,
                 0, 0, 0,
                 0, 1., 0., -1., 0., -1., 0., 1.,
             ],
