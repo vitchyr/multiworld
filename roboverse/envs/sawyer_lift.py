@@ -32,6 +32,8 @@ class SawyerLiftEnv(SawyerBaseEnv):
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
         reward = -(ee_dist + self._goal_mult * goal_dist)
         reward = max(reward, self._min_reward)
+        if goal_dist < 0.25:
+            reward += 1
         # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
 

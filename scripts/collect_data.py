@@ -36,7 +36,7 @@ for ep in range(args.num_episodes):
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs
 
-		# print(i, rew, term)
+		print(i, rew, term)
 		ep_rew += rew
 		if args.render:
 			img = env.render()
