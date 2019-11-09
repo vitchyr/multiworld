@@ -5,12 +5,16 @@ import pdb
 
 class GraspingPolicy:
 
-    def __init__(self, env, sawyer, obj, sigma=0.1, verbose=False):
+    def __init__(self, env, sawyer, obj, sigma=0.1, 
+                 gripper_close_delta=0.01, gripper_remain_closed_delta=0.04, 
+                 verbose=False):
         self._env = env
         self._sawyer = sawyer
         self._obj = obj
         self._gripper_open, self._gripper_close = self._env._gripper_bounds
         self._sigma = sigma
+        self._gripper_close_delta = gripper_close_delta
+        self._gripper_remain_closed_delta = gripper_remain_closed_delta
         self._verbose = verbose
         self._goal_pos = np.array(env._goal_pos)
         self._gripper = self._gripper_open
@@ -30,8 +34,8 @@ class GraspingPolicy:
         if max_xy_delta > .01:
             delta_pos[-1] = 0
 
-        if (self._gripper == self._gripper_open and max_delta < .01) or \
-           (self._gripper == self._gripper_close and max_delta < .04):
+        if (self._gripper == self._gripper_open and max_delta < self._gripper_close_delta) or \
+           (self._gripper == self._gripper_close and max_delta < self._gripper_remain_closed_delta):
             self._gripper = self._gripper_close
             delta_pos = np.clip((self._goal_pos - ee_pos), -1, 1)
         else:

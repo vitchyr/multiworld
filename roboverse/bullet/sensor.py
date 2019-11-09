@@ -20,6 +20,8 @@ class Sensor:
     if visualize:
       self._create_visual_shape()
 
+  def get_pos(self):
+    return self._base_position
   def _create_visual_shape(self):
     visual_shape = p.createVisualShape(shapeType=p.GEOM_BOX,
                       rgbaColor=self._rgba,

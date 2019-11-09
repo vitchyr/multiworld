@@ -14,6 +14,8 @@ class SawyerLidEnv(SawyerLiftEnv):
         super()._load_meshes()
         self._sensor_lid = bullet.Sensor(self._lid, xyz_min=[.6, .2, -.38], xyz_max=[.9, .5, -.35], visualize=True)
         self._sensor_cube = bullet.Sensor(self._cube, xyz_min=[.7, -.1, -.38], xyz_max=[.8, .1, -.35], visualize=True)
+        self._goal_pos = self._sensor_lid.get_pos()
+        self._goal_pos[-1] += 0.3
 
     def get_reward(self, observation):
         lid_pos = bullet.get_midpoint(self._lid)
