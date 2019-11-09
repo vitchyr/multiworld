@@ -1,6 +1,6 @@
 import gym
 
-BULLET_ENVIRONMENT_SPECS = (
+SEQUENTIAL_ENVIRONMENT_SPECS = (
     {
         'id': 'SawyerBase-v0',
         'entry_point': ('roboverse.envs.sawyer_base:SawyerBaseEnv'),
@@ -17,12 +17,27 @@ BULLET_ENVIRONMENT_SPECS = (
         'id': 'SawyerSoup-v0',
         'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
     },
-    {
-        'id': 'ParallelSawyerLift-v0',
-        'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
-        'kwargs': {'env': 'SawyerLift-v0'},
-    }
+    # {
+    #     'id': 'ParallelSawyerLift-v0',
+    #     'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
+    #     'kwargs': {'env': 'SawyerLift-v0'},
+    # },    
+    # {
+    #     'id': 'ParallelSawyerLid-v0',
+    #     'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
+    #     'kwargs': {'env': 'SawyerLid-v0'},
+    # },
 )
+
+PARALLEL_ENVIRONMENT_SPECS = tuple(
+    {
+        'id': 'Parallel' + env['id'],
+        'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
+        'kwargs': {'env': env['id']},
+    } for env in SEQUENTIAL_ENVIRONMENT_SPECS
+)
+
+BULLET_ENVIRONMENT_SPECS = SEQUENTIAL_ENVIRONMENT_SPECS + PARALLEL_ENVIRONMENT_SPECS
 
 def register_bullet_environments():
     for bullet_environment in BULLET_ENVIRONMENT_SPECS:
