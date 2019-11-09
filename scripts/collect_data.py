@@ -4,8 +4,8 @@ import roboverse as rv
 import pdb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerLift-v0')
-parser.add_argument('--savepath', type=str, default='data/mult4-bonus1-scale2-rep10-step1-lift/')
+parser.add_argument('--env', type=str, default='SawyerLid-v0')
+parser.add_argument('--savepath', type=str, default='data/scale2-rep10-step1-lid/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=200)
@@ -22,7 +22,6 @@ if args.env == 'SawyerLift-v0':
 	policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
 elif args.env == 'SawyerLid-v0':
 	env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
-	env.reset()
 	policy = rv.policies.LidGraspingPolicy(env, env._sawyer, env._lid)
 else:
 	raise RuntimeError('Unrecognized environment: {}'.format(args.env))
