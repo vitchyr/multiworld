@@ -17,16 +17,6 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
         'id': 'SawyerSoup-v0',
         'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
     },
-    # {
-    #     'id': 'ParallelSawyerLift-v0',
-    #     'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
-    #     'kwargs': {'env': 'SawyerLift-v0'},
-    # },    
-    # {
-    #     'id': 'ParallelSawyerLid-v0',
-    #     'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
-    #     'kwargs': {'env': 'SawyerLid-v0'},
-    # },
 )
 
 PARALLEL_ENVIRONMENT_SPECS = tuple(
