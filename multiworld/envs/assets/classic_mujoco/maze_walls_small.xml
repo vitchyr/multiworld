@@ -34,9 +34,21 @@
             <geom type="box" pos="-2.75 1.5 0" size="1.25 4 1"
                   rgba=".12 .4 .9 1"
                   contype="3" conaffinity="3" />
+              <!--<geom type="sphere" pos="-4 -2.5 0" size=".3"-->
+                  <!--rgba="1 1 1 1"-->
+                  <!--contype="3" conaffinity="3" />-->
+              <!--<geom type="sphere" pos="-1.5 5.5 0" size=".3"-->
+                  <!--rgba="1 1 1 1"-->
+                  <!--contype="3" conaffinity="3" />-->
             <geom type="box" pos="2.75 -1.5 0" size="1.25 4 1"
                   rgba=".12 .4 .9 1"
                   contype="3" conaffinity="3" />
+              <!--<geom type="sphere" pos="1.5 -5.5 0" size=".3"-->
+                  <!--rgba="1 1 1 1"-->
+                  <!--contype="3" conaffinity="3" />-->
+              <!--<geom type="sphere" pos="4 2.5 0" size=".3"-->
+                  <!--rgba="1 1 1 1"-->
+                  <!--contype="3" conaffinity="3" />-->
         </body>
         <body name="outerwall" pos="0 0 0">
             <!-- pos = 1 + 3*(inner wall size) -->
@@ -55,6 +67,9 @@
             <geom type="box" pos="8 0 0" size="1 7.5 1"
                   rgba=".12 .4 .9 1"
                   contype="2" conaffinity="3" />
+            <!--<geom type="sphere" pos="7 2.5 0" size=".3"-->
+                  <!--rgba="1 1 1 1"-->
+                  <!--contype="3" conaffinity="3" />-->
         </body>
     </body>
         <!--<body name="walls" pos="2 2 0">-->

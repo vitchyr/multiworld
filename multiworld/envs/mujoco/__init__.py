@@ -758,7 +758,7 @@ def register_custom_envs():
         ),
     )
     register(
-        id='AntMazeQposRewSmall30Fs5Dt3NoTermEnv-v0',
+        id='AntMazeSEnv-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
@@ -767,20 +767,20 @@ def register_custom_envs():
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
             model_path='classic_mujoco/ant_maze_gear30_small_dt3_with_invis.xml',
-            goal_low=[-6, -6],
-            goal_high=[6, 6],
-            goal_is_xy=False,
-            goal_is_qpos=True,
+            goal_low=[-7, -5.5],
+            goal_high=[7, 5.5],
+            goal_is_xy=True,
+            goal_is_qpos=False,
             frame_skip=5,
             init_qpos=[
-                -5, 5, 0.565, 1,
+                -6, 4.5, 0.565, 1,
                 0, 0, 0,
                 0, 1., 0., -1., 0., -1., 0., 1.,
             ],
             init_xy_mode='corner',
-            goal_sampling_strategy='presampled',
+            goal_sampling_strategy='uniform',
             presampled_goal_paths='classic_mujoco/AntMazeSmall30RandomInitFs5Dt3Env-v0-states.npy',
-            reward_type='qpos_dense',
+            reward_type='xy_dense',
             terminate_when_unhealthy=False,
         ),
     )

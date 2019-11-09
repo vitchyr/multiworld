@@ -157,14 +157,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         ob = self._get_obs()
         reward = self.compute_reward(action, ob)
         info = {}
-        if self._full_state_goal is not None:
-            info['full-state-distance'] = self._compute_state_distances(
-                self.numpy_batchify_dict(ob)
-            )
-        if self._qpos_goal is not None:
-            info['qpos-distance'] = self._compute_qpos_distances(
-                self.numpy_batchify_dict(ob)
-            )
         if self._xy_goal is not None:
             info['xy-distance'] = self._compute_xy_distances(
                 self.numpy_batchify_dict(ob)
@@ -257,6 +249,7 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         if self.goal_sampling_strategy == 'uniform':
             assert self.goal_is_xy
             xy_goals = self._sample_uniform_xy(batch_size)
+            state_goals = xy_goals
         elif self.goal_sampling_strategy == 'preset1':
             assert self.goal_is_xy
             xy_goals = PRESET1[
@@ -274,7 +267,6 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         goals_dict = {
             'desired_goal': state_goals.copy(),
             'xy_desired_goal': xy_goals.copy(),
-            'qpos_desired_goal': qpos_goals.copy(),
             'state_desired_goal': state_goals.copy(),
         }
 
