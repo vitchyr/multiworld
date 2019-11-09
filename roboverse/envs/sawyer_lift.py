@@ -6,11 +6,12 @@ from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 class SawyerLiftEnv(SawyerBaseEnv):
 
-    def __init__(self, goal_pos=[.75,-.4,.2], *args, goal_mult=4, min_reward=-3., **kwargs):
+    def __init__(self, goal_pos=[.75,-.4,.2], *args, goal_mult=4, bonus=1, min_reward=-3., **kwargs):
         self.record_args(locals())
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
         self._goal_mult = goal_mult
+        self._bonus = bonus
         self._min_reward = min_reward
 
     def get_params(self):
@@ -33,7 +34,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
         reward = -(ee_dist + self._goal_mult * goal_dist)
         reward = max(reward, self._min_reward)
         if goal_dist < 0.25:
-            reward += 1
+            reward += self._bonus
         # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
 

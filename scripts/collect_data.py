@@ -18,7 +18,7 @@ rv.utils.make_dir(args.savepath)
 ## 1 / 4 / 2 : 1.5, 2
 
 if args.env == 'SawyerLift-v0':
-	env = rv.make(args.env, goal_mult=4, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
+	env = rv.make(args.env, goal_mult=4, bonus=1, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
 	policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
 elif args.env == 'SawyerLid-v0':
 	env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
