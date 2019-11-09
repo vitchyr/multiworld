@@ -13,6 +13,7 @@ class SawyerLiftEnv(SawyerBaseEnv):
         self._goal_mult = goal_mult
         self._bonus = bonus
         self._min_reward = min_reward
+        self._id = 'SawyerLiftEnv'
 
     def get_params(self):
         params = super().get_params()

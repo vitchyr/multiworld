@@ -10,6 +10,7 @@ class SawyerLidEnv(SawyerLiftEnv):
         super().__init__(*args, **kwargs)
         self._min_reward = min_reward
         self._goal_pos = goal_pos
+        self._id = 'SawyerLidEnv'
 
     def _load_meshes(self):
         super()._load_meshes()

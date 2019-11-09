@@ -32,6 +32,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._pos_low = pos_low
         self._pos_high = pos_high
         self._visualize = visualize
+        self._id = 'SawyerBaseEnv'
 
         bullet.connect_headless(self._gui)
         self._set_spaces()
@@ -43,7 +44,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
     def get_params(self):
         labels = ['_action_scale', '_action_repeat', 
                   '_timestep', '_solver_iterations',
-                  '_gripper_bounds', '_pos_low', '_pos_high']
+                  '_gripper_bounds', '_pos_low', '_pos_high', '_id']
         params = {label: getattr(self, label) for label in labels}
         return params
 
