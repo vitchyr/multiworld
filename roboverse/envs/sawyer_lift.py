@@ -6,7 +6,7 @@ from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 class SawyerLiftEnv(SawyerBaseEnv):
 
-    def __init__(self, goal_pos=[.75,-.4,.2], *args, goal_mult=4, bonus=1, min_reward=-3., **kwargs):
+    def __init__(self, goal_pos=[.75,-.4,.2], *args, goal_mult=4, bonus=0, min_reward=-3., **kwargs):
         self.record_args(locals())
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
