@@ -157,3 +157,11 @@ class SawyerBaseEnv(gym.Env, Serializable):
     def visualize_targets(self, pos):
         bullet.add_debug_line(self._prev_pos, pos)
 
+    '''
+        prevents always needing a gym adapter in softlearning
+        @TODO : remove need for this method
+    '''
+    def convert_to_active_observation(self, obs):
+        return obs
+
+

@@ -12,9 +12,9 @@ parser.add_argument('--env', type=str, default='SawyerLift-v0')
 parser.add_argument('--savepath', type=str, default='data/dump/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
-parser.add_argument('--horizon', type=int, default=10)
+parser.add_argument('--horizon', type=int, default=100)
 parser.add_argument('--num_episodes', type=int, default=1)
-parser.add_argument('--num_processes', type=int, default=3)
+parser.add_argument('--num_processes', type=int, default=20)
 args = parser.parse_args()
 
 # class ParallelEnv:
@@ -74,13 +74,13 @@ env = gym.make('ParallelSawyerLift-v0', num_processes=args.num_processes, action
 
 t0 = time.time()
 for i in range(args.horizon):
-	act = env.action_space.sample()[0]
+	act = env.action_space.sample()
 	act = [act for _ in range(args.num_processes)]
 	next_obs, rew, term, info = env.step(act)
-	print(i, rew)
+	print(i, rew.shape)
 
-obs = env.reset([0,2])
-pdb.set_trace()
+# obs = env.reset([0,2])
+# pdb.set_trace()
 
 
 # pdb.set_trace()
