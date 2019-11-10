@@ -1,3 +1,4 @@
+import os
 import argparse
 import numpy as np
 import roboverse as rv
@@ -5,14 +6,18 @@ import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', type=str, default='SawyerLift-v0')
-parser.add_argument('--savepath', type=str, default='data/mult4-scale2-rep10-step1-lift/')
+parser.add_argument('--savepath', type=str, default='mult4-scale2-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=200)
 parser.add_argument('--num_episodes', type=int, default=100)
 args = parser.parse_args()
 
+args.savepath = os.path.join('data', args.env, args.savepath)
 rv.utils.make_dir(args.savepath)
+
+timestamp = rv.utils.timestamp()
+print('timestamp: {}'.format(timestamp))
 
 ## 2 / 10 / 2 : 1, 1.25, 1.5, 1.75, 2
 ## 1 / 4 / 2 : 1.5, 2
@@ -57,6 +62,5 @@ for ep in range(args.num_episodes):
 		rv.utils.save_video('{}/{}.avi'.format(args.savepath, ep), images)
 
 params = env.get_params()
-timestamp = rv.utils.timestamp()
 pool.save(params, args.savepath, '{}_pool_{}.pkl'.format(timestamp, pool.size))
 

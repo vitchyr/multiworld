@@ -9,6 +9,7 @@ class SawyerSoupEnv(SawyerLiftEnv):
     def __init__(self, *args, min_reward=-3., **kwargs):
         super().__init__(*args, **kwargs)
         self._min_reward = min_reward
+        self._id = 'SawyerSoupEnv'
 
     def _load_meshes(self):
         super()._load_meshes()
