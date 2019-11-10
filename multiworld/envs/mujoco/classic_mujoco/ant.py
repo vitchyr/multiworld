@@ -390,11 +390,13 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
         self.set_state(qpos, qvel)
 
     def set_to_goal(self, goal):
-        qpos = self.data.qpos.flat.copy()
-        qvel = self.data.qvel.flat.copy()
-        qpos[:15] = goal['qpos_desired_goal']
-        qvel[:15] = 0
-        self.set_state(qpos, qvel)
+        import warnings
+        warnings.warn("Ignoring set to goal")
+        # qpos = self.data.qpos.flat.copy()
+        # qvel = self.data.qvel.flat.copy()
+        # qpos[:15] = goal['qpos_desired_goal']
+        # qvel[:15] = 0
+        # self.set_state(qpos, qvel)
 
 
 if __name__ == '__main__':
