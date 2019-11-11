@@ -209,9 +209,9 @@ def draw_bbox(aabbMin, aabbMax):
     p.addUserDebugLine(f, t, [1, 1, 1])
 
 def load_random_objects(filePath, number):
-    if number > 5:
-        print("Don't load more than 4 objects!")
-        return None
+    #if number > 5:
+        #print("Don't load more than 4 objects!")
+        #return None
 
     objects = []
     chosen_objects = []
