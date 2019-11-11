@@ -52,6 +52,7 @@ env.reset()
 pygame.init()
 screen = pygame.display.set_mode((100, 100))
 time = pygame.time.get_ticks()
+gripper = 0
 
 while True:
     dx = np.array([0, 0, 0])
@@ -83,4 +84,4 @@ while True:
             elif new_action[1] == 'gripper':
                 gripper = new_action[0]
     action = np.concatenate((0.5 * dx, 0.2 * dtheta), axis=0)
-    obs, reward, done, info = env.step(action)
+    obs, reward, done, info = env.step(action, gripper)

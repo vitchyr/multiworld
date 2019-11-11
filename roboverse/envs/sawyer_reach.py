@@ -79,7 +79,7 @@ class SawyerReachEnv(gym.Env):
             #scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
-        load_random_objects(self._object_path, 4) 
+        load_random_objects(self._object_path, 10) 
        
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._time_step)
@@ -94,9 +94,10 @@ class SawyerReachEnv(gym.Env):
         observation = get_link_state(self._sawyer, self._end_effector, 'pos')
         return np.asarray(observation)
 
-    def step(self, action):
+    def step(self, action, gripper):
         pos = get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += action[:3] * 0.1
+        gripper = 1 if gripper > 0.5 else 0 
         if not self._control_xyz_position_only:
             if not hasattr(self, 'theta'):
                 self.theta = [0.7071, 0.7071, 0, 0]
@@ -104,7 +105,6 @@ class SawyerReachEnv(gym.Env):
             self.theta += angle[:4] * 0.1
         else:
             self.theta = [0.7071, 0.7071, 0, 0]
-        gripper = 0
         done = False
         for _ in range(self._action_repeat):
             sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper)
