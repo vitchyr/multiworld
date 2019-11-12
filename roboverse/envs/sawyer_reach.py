@@ -8,7 +8,8 @@ import pybullet_data
 from gym import spaces
 
 from roboverse.bullet.ik import sawyer_ik, position_control
-from roboverse.bullet.misc import load_urdf, load_obj, load_random_objects
+from roboverse.bullet.misc import load_urdf
+from roboverse.utils.shapenet_utils import load_random_objects
 from roboverse.bullet.queries import get_index_by_attribute, get_link_state
 
 LARGE_VAL_OBSERVATION = 100
@@ -79,7 +80,7 @@ class SawyerReachEnv(gym.Env):
             #scale=1.5)
         self._end_effector = get_index_by_attribute(
             self._sawyer, 'link_name', 'right_l6')
-        load_random_objects(self._object_path, 10) 
+        load_random_objects(self._object_path, 4)
        
         p.setPhysicsEngineParameter(numSolverIterations=150)
         p.setTimeStep(self._time_step)
