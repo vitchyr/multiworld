@@ -18,15 +18,6 @@ import threading
 from collections import namedtuple
 import numpy as np
 import pdb
-try:
-    import hid
-except ModuleNotFoundError as exc:
-    raise ImportError("Unable to load module hid, required to interface with SpaceMouse. "
-                      "Only Mac OS X is officially supported. Install the additional "
-                      "requirements with `pip install -r requirements-ik.txt`") from exc
-
-# from robosuite.utils.transform_utils import rotation_matrix
-# from robosuite.devices import Device
 
 from roboverse.devices.transform_utils import rotation_matrix
 
@@ -76,6 +67,13 @@ class SpaceMouse:
             You can look up its vendor/product id from this method.
         """
 
+        try:
+            import hid
+        except ModuleNotFoundError as exc:
+            raise ImportError("Unable to load module hid, required to interface with SpaceMouse. "
+                              "Only Mac OS X is officially supported. Install the additional "
+                              "requirements with `pip install -r requirements-ik.txt`") from exc
+
         product_id =  50741
 
         print("Opening SpaceMouse device")
@@ -100,6 +98,7 @@ class SpaceMouse:
         self.thread = threading.Thread(target=self.run)
         self.thread.daemon = True
         self.thread.start()
+        self.start_control()
 
     def _display_controls(self):
         """
@@ -214,6 +213,13 @@ class SpaceMouse:
         if self.single_click_and_hold:
             return 1.0
         return 0
+
+    def get_action(self):
+        ## [0, 1] --> [-1, 1]
+        dpos = self.control
+        gripper = np.array([self.control_gripper * 2 - 1])
+        action = np.concatenate([dpos, gripper])
+        return action
 
 
 if __name__ == "__main__":

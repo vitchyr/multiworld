@@ -6,13 +6,23 @@ from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 class SawyerLiftEnv(SawyerBaseEnv):
 
-    def __init__(self, goal_pos=[.75,-.4,.2], *args, **kwargs):
+    def __init__(self, goal_pos=[.75,-.4,.2], *args, goal_mult=4, min_reward=-3., **kwargs):
+        self.record_args(locals())
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
+        self._goal_mult = goal_mult
+        self._min_reward = min_reward
+
+    def get_params(self):
+        params = super().get_params()
+        labels = ['_goal_pos', '_goal_mult', '_min_reward']
+        params.update({label: getattr(self, label) for label in labels})
+        return params
 
     def _load_meshes(self):
         super()._load_meshes()
         self._bowl = bullet.objects.bowl()
+        self._lid = bullet.objects.lid()
         self._cube = bullet.objects.spam()
 
     def _load_meshes(self):
@@ -38,42 +48,8 @@ class SawyerLiftEnv(SawyerBaseEnv):
         ee_pos = bullet.get_link_state(self._sawyer, self._gripper_site, 'pos')
         ee_dist = bullet.l2_dist(cube_pos, ee_pos)
         goal_dist = bullet.l2_dist(cube_pos, self._goal_pos)
-        reward = -(ee_dist + 2*goal_dist)
+        reward = -(ee_dist + self._goal_mult * goal_dist)
+        reward = max(reward, self._min_reward)
+        # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
-
-if __name__ == "__main__":
-    import time
-
-    env = SawyerLiftEnv([.75,-.4,.2], img_dim=256, render=False)
-    # env.reset()
-
-    ## interactive
-    # import roboverse.devices as devices
-    # space_mouse = devices.SpaceMouse()
-    # space_mouse.start_control()
-
-    # while True:
-    #     delta = space_mouse.control
-    #     gripper = space_mouse.control_gripper
-    #     obs, rew, term, info = env.step(delta, gripper)
-    #     img = env.render()
-    #     # pdb.set_trace()
-    #     print(rew, img.shape)
-
-    ## simple timing
-    num_steps = 100
-    t0 = time.time()
-    for i in range(num_steps):
-        act = np.array([1.0, 0.0, 0.0, 0.0])
-        obs, rew, term, info = env.step(act)
-        print(i, obs.shape, rew, term)
-        img = env.render()
-    t1 = time.time()
-
-    tot_time = t1 - t0
-    fps = num_steps / tot_time
-    print('{} steps in {} seconds'.format(num_steps, tot_time))
-    print('{} fps'.format(fps))
-
-
 

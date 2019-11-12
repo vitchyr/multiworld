@@ -1,6 +1,7 @@
-import numpy as np
-import random
 import os
+import random
+import numpy as np
+import cv2
 import pdb
 import json
 import math 
@@ -24,8 +25,8 @@ def connect():
     p.setAdditionalSearchPath(pdata.getDataPath())
     # p.setAdditionalSearchPath('roboverse/envs/assets/')
 
-def connect_headless(render=False):
-    if render:
+def connect_headless(gui=False):
+    if gui:
         cid = p.connect(p.SHARED_MEMORY)
         if cid < 0:
             p.connect(p.GUI)
@@ -89,7 +90,7 @@ def get_projection_matrix(height, width, fov=60, near_plane=0.1, far_plane=2):
     return projection_matrix
 
 def render(height, width, view_matrix, projection_matrix, 
-           shadow=1, light_direction=[1,1,1], renderer=p.ER_BULLET_HARDWARE_OPENGL):
+           shadow=1, light_direction=[1,1,1], renderer=p.ER_BULLET_HARDWARE_OPENGL, gaussian_width=5):
     ## ER_BULLET_HARDWARE_OPENGL
     img_tuple = p.getCameraImage(width,
                                  height,
@@ -101,6 +102,8 @@ def render(height, width, view_matrix, projection_matrix,
     _, _, img, depth, segmentation = img_tuple
     img = np.reshape(img, (height, width, 4))
     img = img[:,:,:-1]
+    if gaussian_width > 0:
+        img = cv2.GaussianBlur(img, (gaussian_width, gaussian_width), 0)
     return img, depth, segmentation
 
 ############################
@@ -149,15 +152,39 @@ def rot_diff_deg(a, b):
     diff = np.minimum(diff, 360-diff)
     return np.linalg.norm(diff, 1)
 
+def add_debug_line(x, y, rgb=[1,0,0], duration=5):
+    p.addUserDebugLine(x, y, rgb, duration)
+
+# def is_contacting(body_1, body_2, link_1=-1, link_2=-1):
+#     points = p.getContactPoints(body_1, body_2, link_1, link_2)
+#     return len(points) > 0
+
+def is_contacting(body_1, body_2, link_1=-1, link_2=-1, threshold=.005):
+    dist = get_link_dist(body_1, body_2, link_1=link_1, link_2=link_2)
+    return dist < threshold
+
+def get_link_dist(body_1, body_2, link_1=-1, link_2=-1, threshold=1):
+    points = p.getClosestPoints(body_1, body_2, threshold, link_1, link_2)
+    distances = [point[8] for point in points] + [np.float('inf')]
+    return min(distances)
+
 def get_bbox(body, draw=False):
     xyz_min, xyz_max = p.getAABB(body)
     if draw:
         draw_bbox(xyz_min, xyz_max)
     return np.array(xyz_min), np.array(xyz_max)
 
-def get_midpoint(body):
+def bbox_intersecting(bbox_1, bbox_2):
+    min_1, max_1 = bbox_1
+    min_2, max_2 = bbox_2
+    # print(min_1, max_1, min_2, max_2)
+    intersecting = (min_1 <= max_2).all() and (min_2 <= max_1).all()
+    return intersecting
+
+def get_midpoint(body, weights=[.5,.5,.5]):
+    weights = np.array(weights)
     xyz_min, xyz_max = get_bbox(body)
-    midpoint = (xyz_min + xyz_max) / 2.
+    midpoint = xyz_max * weights + xyz_min * (1 - weights)
     return midpoint
 
 def draw_bbox(aabbMin, aabbMax):

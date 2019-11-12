@@ -1,20 +1,17 @@
-# roboverse
+# bullet-manipulation
 
 ## Setup
 `pip install -r requirements.txt`
 
 ## Quick start
-```python
-from roboverse.envs.sawyer_reach import SawyerReachEnv
-env = SawyerReachEnv(renders=True)
-env.reset()
-for _ in range(1000):
-    env.step(env.action_space.sample())
+The best way to get started is to run:
+
+```
+python scripts/collect_smooth_data.py --gui True
 ```
 
-### TODO
-- [ ] Add vision API (cameras, observation dictionaries etc.)
-- [ ] Add keyboard control script
-- [ ] Add more environments - pushing, grasping
-- [ ] Clean up code to avoid code repetition when multiple envs are added
-- [ ] Add infrastructure for loading a large number of different objects from ShapeNet
+If you have a spacemouse, you can run the environments interactively with: 
+```
+python scripts/spacemouse_control.py
+```
+

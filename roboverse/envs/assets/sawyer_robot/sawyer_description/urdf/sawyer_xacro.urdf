@@ -346,14 +346,26 @@
     <axis xyz="0 0 1"/>
     <limit effort="9" lower="-2.9842" upper="2.9842" velocity="3.485"/>
   </joint>
-  <link name="right_hand_camera"/>
+  <link name="right_hand_camera">
+    <!-- defaults -->
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+  </link>
   <joint name="right_hand_camera" type="fixed">
     <origin rpy="0 1.5708 0" xyz="0.039552 -0.033 0.0695"/>
     <parent link="right_l5"/>
     <child link="right_hand_camera"/>
     <axis xyz="0 0 0"/>
   </joint>
-  <link name="right_wrist"/>
+  <link name="right_wrist">
+    <!-- defaults -->
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+  </link>
   <joint name="right_wrist" type="fixed">
     <origin rpy="1.5708 0 0" xyz="0 0 0.10541"/>
     <parent link="right_l5"/>
@@ -657,15 +669,20 @@
 
   <!-- #### EDIT : add in gripper site #### -->
   <link name="gripper_site">
-      <visual>
-        <origin rpy="0 0 0" xyz="0 0 0"/>
-        <geometry>
-          <box size=".01 .01 .01"/>
-        </geometry>
-          <material name="green">
-            <color rgba="0 1 0 0"/>
-          </material>
-      </visual> 
+    <!-- defaults -->
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <box size=".01 .01 .01"/>
+      </geometry>
+        <material name="green">
+          <color rgba="0 1 0 0"/>
+        </material>
+    </visual> 
   </link>
     
   <joint name="right_electric_gripper_base" type="fixed">
@@ -703,11 +720,17 @@
     <parent link="head"/>
     <child link="screen"/>
   </joint>
-  <link name="head_camera"/>
-    <joint name="head_camera" type="fixed">
-      <origin rpy="-2.1293 0 -1.5708" xyz="0.022803 0 0.21657"/>
-      <parent link="head"/>
-      <child link="head_camera"/>
-      <axis xyz="0 0 0"/>
-    </joint>
+  <link name="head_camera">
+    <!-- defaults -->
+    <inertial>
+      <mass value="1"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+  </link>
+  <joint name="head_camera" type="fixed">
+    <origin rpy="-2.1293 0 -1.5708" xyz="0.022803 0 0.21657"/>
+    <parent link="head"/>
+    <child link="head_camera"/>
+    <axis xyz="0 0 0"/>
+  </joint>
 </robot>
