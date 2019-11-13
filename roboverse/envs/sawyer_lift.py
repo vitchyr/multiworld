@@ -21,19 +21,6 @@ class SawyerLiftEnv(SawyerBaseEnv):
 
     def _load_meshes(self):
         super()._load_meshes()
-        self._bowl = bullet.objects.bowl()
-        self._lid = bullet.objects.lid()
-        self._cube = bullet.objects.spam()
-
-    def _load_meshes(self):
-        super()._load_meshes()
-        self._objects = {
-            'bowl':  bullet.objects.bowl(),
-            'cube': bullet.objects.spam()
-        }
-
-    def _load_meshes(self):
-        super()._load_meshes()
         self._objects = {
             'bowl':  bullet.objects.bowl(),
             'cube': bullet.objects.spam()

@@ -74,6 +74,11 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
         bullet.reset()
         self._load_meshes()
+
+        # Allow the objects to settle down after they are dropped in sim
+        for _ in range(50):
+            bullet.step()
+
         self._end_effector = bullet.get_index_by_attribute(
             self._sawyer, 'link_name', 'gripper_site')
         self._format_state_query()
@@ -84,10 +89,6 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
         self._current_gripper_target = 0
-
-        # Allow the objects to settle down after they are dropped in sim
-        for _ in range(50):
-            bullet.step()
 
         return self.get_observation()
     
@@ -107,13 +108,13 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._sawyer = bullet.objects.sawyer()
         self._table = bullet.objects.table()
         self._objects = {}
+        self._workspace = bullet.Sensor(self._sawyer,
+            xyz_min=self._pos_low, xyz_max=self._pos_high,
+            visualize=False, rgba=[0,1,0,.1])
 
     def _format_state_query(self):
         ## position and orientation of body root
         bodies = [v for k,v in self._objects.items()]
-        self._workspace = bullet.Sensor(self._sawyer,
-            xyz_min=self._pos_low, xyz_max=self._pos_high, 
-            visualize=False, rgba=[0,1,0,.1])
 
         ## position and orientation of link
         links = [(self._sawyer, self._end_effector)]
