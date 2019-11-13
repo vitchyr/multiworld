@@ -1,5 +1,3 @@
-import os
-import time
 import numpy as np
 import gym
 import pdb
@@ -36,7 +34,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
         bullet.connect_headless(self._gui)
         self._set_spaces()
-        
+
         self._img_dim = img_dim
         self._view_matrix = bullet.get_view_matrix()
         self._projection_matrix = bullet.get_projection_matrix(self._img_dim, self._img_dim)
@@ -74,9 +72,14 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self.observation_space = gym.spaces.Box(-obs_high, obs_high)
 
     def reset(self):
-        # print('[ SawyerBase ] Resetting')
+
         bullet.reset()
         self._load_meshes()
+
+        # Allow the objects to settle down after they are dropped in sim
+        for _ in range(50):
+            bullet.step()
+
         self._end_effector = bullet.get_index_by_attribute(
             self._sawyer, 'link_name', 'gripper_site')
         self._format_state_query()
@@ -86,6 +89,8 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._prev_pos = pos = np.array([0.5, 0, 0])
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
+        self._current_gripper_target = 0
+
         return self.get_observation()
     
     def open_gripper(self, act_repeat=10):
@@ -94,21 +99,28 @@ class SawyerBaseEnv(gym.Env, Serializable):
         for _ in range(act_repeat):
             self.step(delta_pos, gripper)
 
+    def get_object_midpoint(self, object_key):
+        return bullet.get_midpoint(self._objects[object_key])
+
+    def get_end_effector_pos(self):
+        return bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
+
     def _load_meshes(self):
         self._sawyer = bullet.objects.sawyer()
         self._table = bullet.objects.table()
-        self._workspace = bullet.Sensor(self._sawyer, 
-            xyz_min=self._pos_low, xyz_max=self._pos_high, 
+        self._objects = {}
+        self._workspace = bullet.Sensor(self._sawyer,
+            xyz_min=self._pos_low, xyz_max=self._pos_high,
             visualize=False, rgba=[0,1,0,.1])
 
     def _format_state_query(self):
         ## position and orientation of body root
-        bodies = [self._cube, self._lid]
+        bodies = [v for k,v in self._objects.items()]
+
         ## position and orientation of link
         links = [(self._sawyer, self._end_effector)]
         ## position and velocity of prismatic joint
         joints = [(self._sawyer, None)]
-        # joints = []
         self._state_query = bullet.format_sim_query(bodies, links, joints)
 
     def _format_action(self, *action):
@@ -124,12 +136,13 @@ class SawyerBaseEnv(gym.Env, Serializable):
         observation = bullet.get_sim_state(*self._state_query)
         return observation
 
+
     def step(self, *action):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
-        
+
         self._simulate(pos, self.theta, gripper)
 
         if self._visualize: self.visualize_targets(pos)
