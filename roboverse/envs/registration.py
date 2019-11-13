@@ -19,6 +19,14 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
     },
 )
 
+PROJECTION_ENVIRONMENT_SPECS = tuple(
+    {
+        'id': env['id'].split('-')[0] + '2d-' + env['id'].split('-')[1],
+        'entry_point': ('roboverse.envs.sawyer_2d:Sawyer2dEnv'),
+        'kwargs': {'env': env['id']},
+    } for env in SEQUENTIAL_ENVIRONMENT_SPECS
+)
+
 PARALLEL_ENVIRONMENT_SPECS = tuple(
     {
         'id': 'Parallel' + env['id'],
@@ -27,7 +35,7 @@ PARALLEL_ENVIRONMENT_SPECS = tuple(
     } for env in SEQUENTIAL_ENVIRONMENT_SPECS
 )
 
-BULLET_ENVIRONMENT_SPECS = SEQUENTIAL_ENVIRONMENT_SPECS + PARALLEL_ENVIRONMENT_SPECS
+BULLET_ENVIRONMENT_SPECS = SEQUENTIAL_ENVIRONMENT_SPECS + PROJECTION_ENVIRONMENT_SPECS + PARALLEL_ENVIRONMENT_SPECS
 
 def register_bullet_environments():
     for bullet_environment in BULLET_ENVIRONMENT_SPECS:

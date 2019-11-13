@@ -2,8 +2,8 @@ import time
 import numpy as np
 import roboverse as rv
 
-num_steps = 1000
-num_processes = 20
+num_steps = 100
+num_processes = 1
 
 if num_processes == 1:
 	env = rv.make('SawyerLift-v0', gui=False, gripper_bounds=[-1,1], action_scale=.2, action_repeat=20, timestep=1./120)

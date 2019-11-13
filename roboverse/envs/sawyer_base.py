@@ -18,6 +18,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
                  timestep=1./120,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
+                 pos_init=[0.5, 0, 0],
                  pos_high=[1,.4,.25],
                  pos_low=[.4,-.6,-.36],
                  visualize=True,
@@ -29,6 +30,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._timestep = timestep
         self._solver_iterations = solver_iterations
         self._gripper_bounds = gripper_bounds
+        self._pos_init = pos_init
         self._pos_low = pos_low
         self._pos_high = pos_high
         self._visualize = visualize
@@ -83,9 +85,9 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
 
-        self._prev_pos = pos = np.array([0.5, 0, 0])
+        self._prev_pos = np.array(self._pos_init)
         self.theta = bullet.deg_to_quat([180, 0, 0])
-        bullet.position_control(self._sawyer, self._end_effector, pos, self.theta)
+        bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
         return self.get_observation()
     
     def open_gripper(self, act_repeat=10):
@@ -99,7 +101,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._table = bullet.objects.table()
         self._workspace = bullet.Sensor(self._sawyer, 
             xyz_min=self._pos_low, xyz_max=self._pos_high, 
-            visualize=False, rgba=[0,1,0,.1])
+            visualize=True, rgba=[0,1,0,.1])
 
     def _format_state_query(self):
         ## position and orientation of body root
@@ -142,7 +144,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
     def _simulate(self, pos, theta, gripper):
         for _ in range(self._action_repeat):
-            bullet.sawyer_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, gripper_bounds=self._gripper_bounds, discrete_gripper=False)
+            bullet.sawyer_position_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, gripper_bounds=self._gripper_bounds, discrete_gripper=False)
             bullet.step_ik()
 
     def render(self, mode='rgb_array'):
