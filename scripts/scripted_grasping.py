@@ -3,7 +3,7 @@ import numpy as np
 import time
 import roboverse.utils as utils
 
-env = roboverse.make('SawyerGraspOne-v0', render=True)
+env = roboverse.make('SawyerGraspOne-v0', gui=True)
 
 num_grasps = 0
 save_video = True

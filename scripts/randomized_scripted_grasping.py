@@ -6,7 +6,7 @@ import pickle
 import os
 from PIL import Image, ImageDraw
 
-env = roboverse.make('SawyerGraspOne-v0', render=True)
+env = roboverse.make('SawyerGraspOne-v0', gui=True)
 
 num_grasps = 0
 save_video = True
@@ -81,7 +81,7 @@ for j in range(2000):
             #pickle.dump(image_data, fp)
         print("HI")
         if save_video:
-            images[0].save('dump/grasp_duck_randomized/{}.gif'.format(j), format='GIF', append_images=images[1:], save_all=True, duration=100, loop=0)
+            images[0].save('data/grasp_duck_randomized/{}.gif'.format(j), format='GIF', append_images=images[1:], save_all=True, duration=100, loop=0)
             #utils.save_video('dump/grasp_duck_randomized/{}.avi'.format(j), images)
 
     print('Num attempts: {}'.format(j))
