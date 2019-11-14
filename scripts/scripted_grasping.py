@@ -6,7 +6,7 @@ import roboverse.utils as utils
 env = roboverse.make('SawyerGraspOne-v0', gui=True)
 
 num_grasps = 0
-save_video = True
+save_video = False
 
 env.reset()
 #target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
