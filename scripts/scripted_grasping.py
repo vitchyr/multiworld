@@ -16,22 +16,22 @@ target_pos = env.get_object_midpoint('duck')
 target_pos[0] += -0.02
 target_pos[1] += 0.00
 
-for i in range(100):
+for i in range(50):
 
     ee_pos = env.get_end_effector_pos()
 
-    if i < 50:
+    if i < 25:
         action = target_pos - ee_pos
         action[2] = 0.
         action *= 3.0
         grip=0.
-    elif i < 70:
+    elif i < 35:
         action = target_pos - ee_pos
         action[2] -= 0.03
         action *= 3.0
         action[2] *= 2.0
         grip=0.
-    elif i < 85:
+    elif i < 42:
         action = np.zeros((3,))
         grip=0.5
     else:
