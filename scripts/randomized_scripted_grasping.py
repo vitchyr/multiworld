@@ -43,7 +43,6 @@ for j in tqdm(range(args.num_trajectories)):
     target_pos = env.get_object_midpoint(object_name)
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
     images = []
-    trajectory = roboverse.utils.Trajectory()
 
     for i in range(args.num_timesteps):
         ee_pos = env.get_end_effector_pos()
@@ -75,9 +74,8 @@ for j in tqdm(range(args.num_trajectories)):
 
         observation = env.get_observation()
         next_state, reward, done, info = env.step(action)
-        trajectory.add_sample(observation, action, next_state, reward, done)
+        pool.add_sample(observation, action, next_state, reward, done)
 
-    pool.add_trajectory(trajectory)
     object_pos = env.get_object_midpoint(object_name)
     if object_pos[2] > -0.1:
         num_grasps += 1
