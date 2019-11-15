@@ -49,7 +49,6 @@ for j in tqdm(range(args.num_trajectories)):
     target_pos = env.get_object_midpoint(object_name)
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
     images = []
-    trajectory = []
 
     for i in range(args.num_timesteps):
         ee_pos = env.get_end_effector_pos()
@@ -75,7 +74,7 @@ for j in tqdm(range(args.num_trajectories)):
 
         action = np.append(action, [grip])
 
-        if j > 0 and j % args.video_save_frequency == 0:
+        if args.video_save_frequency > 0 and j % args.video_save_frequency == 0:
             img = env.render()
             images.append(Image.fromarray(np.uint8(img)))
 
@@ -90,7 +89,7 @@ for j in tqdm(range(args.num_trajectories)):
         num_grasps += 1
         print('Num grasps: {}'.format(num_grasps))
 
-    if j > 0 and j % args.video_save_frequency == 0:
+    if args.video_save_frequency > 0 and j % args.video_save_frequency == 0:
         images[0].save('{}/{}.gif'.format(gif_dir, j),
                        format='GIF', append_images=images[1:],
                        save_all=True, duration=100, loop=0)
