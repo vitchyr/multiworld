@@ -16,7 +16,7 @@ parser.add_argument("--video_save_frequency", type=int,
                     default=0, help="Set to zero for no video saving")
 args = parser.parse_args()
 
-env = roboverse.make('SawyerGraspOne-v0', gui=True)
+env = roboverse.make('SawyerGraspOne-v0', gui=False)
 object_name = 'lego'
 
 num_grasps = 0
@@ -48,6 +48,8 @@ for j in tqdm(range(args.num_trajectories)):
     env.reset()
     target_pos = env.get_object_midpoint(object_name)
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
+    # the object is initialized above the table, so let's compensate for it
+    target_pos[2] += -0.05
     images = []
 
     for i in range(args.num_timesteps):
