@@ -7,6 +7,7 @@ import os
 from PIL import Image, ImageDraw
 
 env = roboverse.make('SawyerGraspOne-v0', gui=False)
+object='lego'
 
 num_grasps = 0
 save_video = False
@@ -18,7 +19,7 @@ image_data = []
 
 for j in range(2000):
     env.reset()
-    target_pos = env.get_object_midpoint('duck')
+    target_pos = env.get_object_midpoint(object)
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
     images = []
     trajectory = []
@@ -67,7 +68,7 @@ for j in range(2000):
     #print(env.render())
     #image_data.append(images)
 
-    object_pos = env.get_object_midpoint('duck')
+    object_pos = env.get_object_midpoint(object)
     if object_pos[2] > -0.1:
         num_grasps += 1
 
