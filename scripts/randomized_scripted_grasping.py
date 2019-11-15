@@ -31,7 +31,7 @@ assert(len(obs_dim) == 1)
 obs_dim = obs_dim[0]
 act_dim = env.action_space.shape[0]
 
-if not os.path.exists(args.video_save_directory):
+if not os.path.exists(args.video_save_directory) and args.video_save_frequency > 0:
     os.makedirs(args.video_save_directory)
 if not os.path.exists(args.data_save_directory):
     os.makedirs(args.data_save_directory)
