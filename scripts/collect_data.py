@@ -13,7 +13,7 @@ parser.add_argument('--horizon', type=int, default=200)
 parser.add_argument('--num_episodes', type=int, default=100)
 args = parser.parse_args()
 
-args.savepath = os.path.join('data', args.env, args.savepath)
+args.savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', args.env, args.savepath)
 rv.utils.make_dir(args.savepath)
 
 timestamp = rv.utils.timestamp()
@@ -63,4 +63,3 @@ for ep in range(args.num_episodes):
 
 params = env.get_params()
 pool.save(params, args.savepath, '{}_pool_{}.pkl'.format(timestamp, pool.size))
-

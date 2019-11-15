@@ -1,6 +1,5 @@
 import roboverse
 import numpy as np
-
 from tqdm import tqdm
 import pickle
 import os
@@ -9,16 +8,21 @@ import argparse
 import datetime
 
 parser = argparse.ArgumentParser()
-parser.add_argument("save_directory", type=str)
+parser.add_argument("--video_save_directory", type=str)
+parser.add_argument("--data_save_directory", type=str)
 parser.add_argument("--num_trajectories", type=int, default=2000)
 parser.add_argument("--num_timesteps", type=int, default=50)
 parser.add_argument("--video_save_frequency", type=int,
                     default=0, help="Set to zero for no video saving")
+parser.add_argument("--gui", dest="gui", action="store_true", default=False)
+
 args = parser.parse_args()
+timestamp = roboverse.utils.timestamp()
+args.video_save_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'SawyerGrasp', args.video_save_directory + "_" + timestamp)
+args.data_save_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'SawyerGrasp', args.data_save_directory)
 
-env = roboverse.make('SawyerGraspOne-v0', gui=True)
+env = roboverse.make('SawyerGraspOne-v0', gui=args.gui)
 object_name = 'lego'
-
 num_grasps = 0
 image_data = []
 
@@ -27,22 +31,12 @@ assert(len(obs_dim) == 1)
 obs_dim = obs_dim[0]
 act_dim = env.action_space.shape[0]
 
-dataset = {
-    'observations':  np.zeros(
-        (args.num_trajectories, args.num_timesteps, obs_dim)),
-    'next_observations': np.zeros(
-        (args.num_trajectories, args.num_timesteps, obs_dim)),
-    'actions': np.zeros(
-        (args.num_trajectories, args.num_timesteps, act_dim)),
-    'rewards': np.zeros(
-        (args.num_trajectories, args.num_timesteps)),
-}
+if not os.path.exists(args.video_save_directory):
+    os.makedirs(args.video_save_directory)
+if not os.path.exists(args.data_save_directory):
+    os.makedirs(args.data_save_directory)
 
-if not os.path.exists(args.save_directory):
-    os.makedirs(args.save_directory)
-time_string = datetime.datetime.now().strftime("%Y_%m_%d__%H_%M_%S")
-gif_dir = os.path.join(args.save_directory, time_string + '_gifs')
-os.makedirs(gif_dir)
+pool = roboverse.utils.DemoPool()
 
 for j in tqdm(range(args.num_trajectories)):
     env.reset()
@@ -78,11 +72,9 @@ for j in tqdm(range(args.num_trajectories)):
             img = env.render()
             images.append(Image.fromarray(np.uint8(img)))
 
-        dataset['observations'][j, i] = env.get_observation()
+        observation = env.get_observation()
         next_state, reward, done, info = env.step(action)
-        dataset['next_observations'][j, i] = next_state
-        dataset['actions'][j, i] = action
-        dataset['rewards'][j, i] = reward
+        pool.add_sample(observation, action, next_state, reward, done)
 
     object_pos = env.get_object_midpoint(object_name)
     if object_pos[2] > -0.1:
@@ -90,10 +82,9 @@ for j in tqdm(range(args.num_trajectories)):
         print('Num grasps: {}'.format(num_grasps))
 
     if args.video_save_frequency > 0 and j % args.video_save_frequency == 0:
-        images[0].save('{}/{}.gif'.format(gif_dir, j),
+        images[0].save('{}/{}.gif'.format(args.video_save_directory, j),
                        format='GIF', append_images=images[1:],
                        save_all=True, duration=100, loop=0)
 
-save_path = os.path.join(args.save_directory, '{}.pkl'.format(time_string))
-with open(save_path, 'wb+') as fp:
-    pickle.dump(dataset, fp)
+params = env.get_params()
+pool.save(params, args.data_save_directory, '{}_pool_{}.pkl'.format(timestamp, pool.size))

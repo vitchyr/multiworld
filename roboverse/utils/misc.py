@@ -41,11 +41,11 @@ class DemoPool:
 		self._prune()
 		save_info = [(key, self._fields[key].shape) for key in self._keys]
 		print('[ DemoPool ] Saving to: {} | {}'.format(savepath, save_info))
-		pickle.dump(self._fields, open(savepath, 'wb'))
+		pickle.dump(self._fields, open(savepath, 'wb+'))
 
 		## save params
 		params_path = savepath.replace('pool', 'params')
-		pickle.dump(params, open(params_path, 'wb'))
+		pickle.dump(params, open(params_path, 'wb+'))
 
 	def _add(self, arrays):
 		for key, array in zip(self._keys, arrays):
@@ -70,7 +70,7 @@ class DemoPool:
 	def get_samples(self):
 		self._prune()
 		return self._fields
-		
+
 class Meta:
 
 	def __init__(self, fn, *args, **kwargs):
@@ -81,6 +81,3 @@ class Meta:
 	def __call__(self, *args, **kwargs):
 		self._kwargs.update(**kwargs)
 		return self._fn(*args, *self._args, **self._kwargs)
-
-
-
