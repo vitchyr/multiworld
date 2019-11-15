@@ -6,7 +6,7 @@ import pickle
 import os
 from PIL import Image, ImageDraw
 
-env = roboverse.make('SawyerGraspOne-v0', gui=False)
+env = roboverse.make('SawyerGraspOne-v0', gui=True)
 object='lego'
 
 num_grasps = 0
