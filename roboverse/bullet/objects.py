@@ -48,7 +48,7 @@ lego = loader(PDATA_PATH, 'lego/lego.urdf',
               pos=[.75, .2, -.3],
               quat=[0, 0, 1, 0], 
               rgba=[1, 0, 0, 1],
-              scale=1.5)
+              scale=1.2)
 
 
 ## custom objects

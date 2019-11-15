@@ -2,11 +2,15 @@ import roboverse
 import numpy as np
 import time
 import roboverse.utils as utils
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--save_video", action="store_true")
+args = parser.parse_args()
 
 env = roboverse.make('SawyerGraspOne-v0', gui=True)
 obj_key = 'lego'
 num_grasps = 0
-save_video = False
 
 env.reset()
 #target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
@@ -39,7 +43,7 @@ for i in range(50):
         action[2] = 1.0
         grip=1.
 
-    if save_video:
+    if args.save_video:
         img = env.render()
         images.append(img)
 
@@ -50,5 +54,5 @@ object_pos = env.get_object_midpoint(obj_key)
 if object_pos[2] > -0.1:
     num_grasps += 1
 
-if save_video:
+if args.save_video:
     utils.save_video('dump/grasp_duck_single/{}.avi'.format(0), images)
