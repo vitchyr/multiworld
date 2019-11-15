@@ -11,11 +11,11 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
     def _load_meshes(self):
         super()._load_meshes()
         self._objects = {
-            'duck': bullet.objects.duck()
+            'lego': bullet.objects.lego()
         }
 
     def get_reward(self, observation):
-        object_pos = self.get_object_midpoint('duck')
+        object_pos = self.get_object_midpoint('lego')
         if object_pos[2] > -0.1:
             reward = 1
         else:
