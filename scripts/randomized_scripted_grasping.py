@@ -16,7 +16,8 @@ parser.add_argument("--video_save_frequency", type=int,
                     default=0, help="Set to zero for no video saving")
 args = parser.parse_args()
 
-env = roboverse.make('SawyerGraspOne-v0', gui=False)
+env = roboverse.make('SawyerGraspOne-v0', gui=True)
+object_name = 'lego'
 
 num_grasps = 0
 image_data = []
@@ -45,7 +46,7 @@ os.makedirs(gif_dir)
 
 for j in tqdm(range(args.num_trajectories)):
     env.reset()
-    target_pos = env.get_object_midpoint('lego')
+    target_pos = env.get_object_midpoint(object_name)
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
     images = []
     trajectory = []
@@ -84,7 +85,7 @@ for j in tqdm(range(args.num_trajectories)):
         dataset['actions'][j, i] = action
         dataset['rewards'][j, i] = reward
 
-    object_pos = env.get_object_midpoint('lego')
+    object_pos = env.get_object_midpoint(object_name)
     if object_pos[2] > -0.1:
         num_grasps += 1
         print('Num grasps: {}'.format(num_grasps))
