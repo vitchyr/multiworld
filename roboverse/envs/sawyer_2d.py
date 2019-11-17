@@ -9,7 +9,6 @@ from roboverse import bullet
 class Sawyer2dEnv(gym.Env):
 
     def __init__(self, env='SawyerSoup-v0',
-                       objects=['cube', 'lid'],
                        pos_init=[.75, 0, 0],
                        pos_high=[.75,.4,.25],
                        pos_low=[.75,-.6,-.36],
@@ -19,7 +18,6 @@ class Sawyer2dEnv(gym.Env):
         self._objects = self._env._objects
         self._init_states = self._get_body_states()
         self._set_spaces()
-
 
     def _set_spaces(self):
         self.action_space = self._env.action_space
@@ -72,6 +70,9 @@ class Sawyer2dEnv(gym.Env):
             states[name] = state
         return states
 
+    def render(self, *args, **kwargs):
+        return self._env.render(*args, **kwargs)
+        
     def __getattr__(self, attr):
         return getattr(self._env, attr)
 
