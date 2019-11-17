@@ -27,7 +27,6 @@ class SawyerLidEnv(SawyerLiftEnv):
         reward = -ee_dist + lid_reward
         reward = max(reward, self._min_reward)
         return reward
-        # return lid_reward
 
     def get_termination(self, observation):
         return self._sensor_lid.sense()
