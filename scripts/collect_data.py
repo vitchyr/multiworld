@@ -5,7 +5,7 @@ import roboverse as rv
 import pdb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerLid2d-v0')
+parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
 parser.add_argument('--savepath', type=str, default='mult4-scale1-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
