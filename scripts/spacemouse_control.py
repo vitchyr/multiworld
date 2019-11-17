@@ -1,9 +1,10 @@
 import roboverse as rv
 
-space_mouse = rv.devices.SpaceMouse()
-env = rv.make('SawyerLift-v0', gui=True, gripper_bounds=[0,1])
+spacemouse = rv.devices.SpaceMouse()
+env = rv.make('SawyerLift2d-v0', gui=True)
 
 while True:
-	next_obs, rew, term, info = env.step(space_mouse.control, space_mouse.control_gripper)
+	action = spacemouse.get_action()
+	next_obs, rew, term, info = env.step(action)
 	print(rew)
 	if term: break

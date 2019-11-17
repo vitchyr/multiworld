@@ -5,7 +5,7 @@ import roboverse as rv
 import pdb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerLift-v0')
+parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
 parser.add_argument('--savepath', type=str, default='mult4-scale2-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
@@ -19,10 +19,10 @@ rv.utils.make_dir(args.savepath)
 timestamp = rv.utils.timestamp()
 print('timestamp: {}'.format(timestamp))
 
-if args.env == 'SawyerLift-v0':
+if 'SawyerLift' in args.env:
 	env = rv.make(args.env, goal_mult=4, action_scale=.1, action_repeat=10, timestep=1./120, gui=args.gui)
 	policy = rv.policies.GraspingPolicy(env, env.get_body('sawyer'), env.get_body('cube'))
-elif args.env == 'SawyerLid-v0':
+elif 'SawyerLid' in args.env:
 	env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
 	policy = rv.policies.LidGraspingPolicy(env, env.get_body('sawyer'), env.get_body('lid'))
 else:
