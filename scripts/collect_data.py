@@ -6,14 +6,14 @@ import pdb
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
-parser.add_argument('--savepath', type=str, default='mult4-scale2-rep10-step1/')
+parser.add_argument('--savepath', type=str, default='mult4-scale1-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=200)
 parser.add_argument('--num_episodes', type=int, default=100)
 args = parser.parse_args()
 
-args.savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', args.env, args.savepath)
+args.savepath = os.path.join('data', args.env, args.savepath)
 rv.utils.make_dir(args.savepath)
 
 timestamp = rv.utils.timestamp()

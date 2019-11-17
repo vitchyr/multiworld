@@ -36,7 +36,7 @@ PARALLEL_ENVIRONMENT_SPECS = tuple(
         'id': 'Parallel' + env['id'],
         'entry_point': ('roboverse.envs.parallel_env:ParallelEnv'),
         'kwargs': {'env': env['id']},
-    } for env in SEQUENTIAL_ENVIRONMENT_SPECS
+    } for env in SEQUENTIAL_ENVIRONMENT_SPECS + PROJECTION_ENVIRONMENT_SPECS
 )
 
 BULLET_ENVIRONMENT_SPECS = SEQUENTIAL_ENVIRONMENT_SPECS + PROJECTION_ENVIRONMENT_SPECS + PARALLEL_ENVIRONMENT_SPECS
