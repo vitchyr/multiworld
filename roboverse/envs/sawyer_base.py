@@ -121,7 +121,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
     def _format_state_query(self):
         ## position and orientation of body root
-        bodies = [v for k,v in self._objects.items()]
+        bodies = [v for k,v in self._objects.items() if not bullet.has_fixed_root(v)]
         ## position and orientation of link
         links = [(self._sawyer, self._end_effector)]
         ## position and velocity of prismatic joint
