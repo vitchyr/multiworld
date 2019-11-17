@@ -19,15 +19,12 @@ rv.utils.make_dir(args.savepath)
 timestamp = rv.utils.timestamp()
 print('timestamp: {}'.format(timestamp))
 
-## 2 / 10 / 2 : 1, 1.25, 1.5, 1.75, 2
-## 1 / 4 / 2 : 1.5, 2
-
 if args.env == 'SawyerLift-v0':
-	env = rv.make(args.env, goal_mult=4, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
-	policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
+	env = rv.make(args.env, goal_mult=4, action_scale=.1, action_repeat=10, timestep=1./120, gui=args.gui)
+	policy = rv.policies.GraspingPolicy(env, env.get_body('sawyer'), env.get_body('cube'))
 elif args.env == 'SawyerLid-v0':
 	env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
-	policy = rv.policies.LidGraspingPolicy(env, env._sawyer, env._lid)
+	policy = rv.policies.LidGraspingPolicy(env, env.get_body('sawyer'), env.get_body('lid'))
 else:
 	raise RuntimeError('Unrecognized environment: {}'.format(args.env))
 
@@ -43,7 +40,7 @@ for ep in range(args.num_episodes):
 		act = policy.get_action(obs)
 		if act[-1] > 0 and min_grasp_step is None:
 			min_grasp_step = i
-			# print('min_grasp_step: ', min_grasp_step)
+			print('min_grasp_step: ', min_grasp_step)
 		next_obs, rew, term, info = env.step(act)
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs

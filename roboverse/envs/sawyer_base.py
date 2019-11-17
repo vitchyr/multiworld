@@ -99,6 +99,12 @@ class SawyerBaseEnv(gym.Env, Serializable):
         for _ in range(act_repeat):
             self.step(delta_pos, gripper)
 
+    def get_body(self, name):
+        if name == 'sawyer':
+            return self._sawyer
+        else:
+            return self._objects[name]
+
     def get_object_midpoint(self, object_key):
         return bullet.get_midpoint(self._objects[object_key])
 
