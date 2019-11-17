@@ -149,7 +149,6 @@ class SawyerBaseEnv(gym.Env, Serializable):
         pos = np.clip(pos, self._pos_low, self._pos_high)
 
         self._simulate(pos, self.theta, gripper)
-
         if self._visualize: self.visualize_targets(pos)
 
         observation = self.get_observation()
