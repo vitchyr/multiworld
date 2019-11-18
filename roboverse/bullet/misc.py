@@ -7,6 +7,8 @@ import pdb
 import pybullet as p
 import pybullet_data as pdata
 
+from roboverse.utils.serialization import make_dir
+
 
 #########################
 #### setup functions ####
@@ -71,9 +73,19 @@ def load_obj(filepathcollision, filepathvisual, pos=[0, 0, 0], quat=[0, 0, 0, 1]
     p.resetBasePositionAndOrientation(body, pos, quat)
     return body
 
-def save_state():
-    state_id = p.saveState()
+def save_state(*savepath):
+    if len(savepath) > 0:
+        savepath = os.path.join(*savepath)
+        make_dir(os.path.dirname(savepath))
+        p.saveBullet(savepath)
+        state_id = None
+    else:
+        state_id = p.saveState()
     return state_id
+
+def load_state(*loadpath):
+    loadpath = os.path.join(*loadpath)
+    p.restoreState(fileName=loadpath)
 
 #############################
 #### rendering functions ####
