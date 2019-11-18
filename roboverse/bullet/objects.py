@@ -70,6 +70,4 @@ spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
               deg=[90,0,-90],
               scale=0.025)
 
-# sensor = loader(ASSET_PATH, 'objects/sensor/sensor.urdf',
-#               pos=[.75, .4, -.3],
-#               scale=0.05)
+

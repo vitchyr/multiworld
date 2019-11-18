@@ -71,6 +71,9 @@ def load_obj(filepathcollision, filepathvisual, pos=[0, 0, 0], quat=[0, 0, 0, 1]
     p.resetBasePositionAndOrientation(body, pos, quat)
     return body
 
+def save_state():
+    state_id = p.saveState()
+    return state_id
 
 #############################
 #### rendering functions ####

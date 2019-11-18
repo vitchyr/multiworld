@@ -99,6 +99,12 @@ class SawyerBaseEnv(gym.Env, Serializable):
         for _ in range(act_repeat):
             self.step(delta_pos, gripper)
 
+    def get_body(self, name):
+        if name == 'sawyer':
+            return self._sawyer
+        else:
+            return self._objects[name]
+
     def get_object_midpoint(self, object_key):
         return bullet.get_midpoint(self._objects[object_key])
 
@@ -115,7 +121,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
     def _format_state_query(self):
         ## position and orientation of body root
-        bodies = [v for k,v in self._objects.items()]
+        bodies = [v for k,v in self._objects.items() if not bullet.has_fixed_root(v)]
         ## position and orientation of link
         links = [(self._sawyer, self._end_effector)]
         ## position and velocity of prismatic joint
@@ -135,7 +141,6 @@ class SawyerBaseEnv(gym.Env, Serializable):
         observation = bullet.get_sim_state(*self._state_query)
         return observation
 
-
     def step(self, *action):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
@@ -143,7 +148,6 @@ class SawyerBaseEnv(gym.Env, Serializable):
         pos = np.clip(pos, self._pos_low, self._pos_high)
 
         self._simulate(pos, self.theta, gripper)
-
         if self._visualize: self.visualize_targets(pos)
 
         observation = self.get_observation()
@@ -169,6 +173,10 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
     def visualize_targets(self, pos):
         bullet.add_debug_line(self._prev_pos, pos)
+
+    def save_state(self):
+        state_id = bullet.save_state()
+        return state_id
 
     '''
         prevents always needing a gym adapter in softlearning

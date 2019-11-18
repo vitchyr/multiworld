@@ -5,29 +5,26 @@ import roboverse as rv
 import pdb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerLift-v0')
-parser.add_argument('--savepath', type=str, default='mult4-scale2-rep10-step1/')
+parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
+parser.add_argument('--savepath', type=str, default='mult4-scale1-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
 parser.add_argument('--horizon', type=int, default=200)
 parser.add_argument('--num_episodes', type=int, default=100)
 args = parser.parse_args()
 
-args.savepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', args.env, args.savepath)
+args.savepath = os.path.join('data', args.env, args.savepath)
 rv.utils.make_dir(args.savepath)
 
 timestamp = rv.utils.timestamp()
 print('timestamp: {}'.format(timestamp))
 
-## 2 / 10 / 2 : 1, 1.25, 1.5, 1.75, 2
-## 1 / 4 / 2 : 1.5, 2
-
-if args.env == 'SawyerLift-v0':
-	env = rv.make(args.env, goal_mult=4, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
-	policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
-elif args.env == 'SawyerLid-v0':
-	env = rv.make(args.env, action_scale=.2, action_repeat=10, timestep=1./120, gui=args.gui)
-	policy = rv.policies.LidGraspingPolicy(env, env._sawyer, env._lid)
+if 'SawyerLift' in args.env:
+	env = rv.make(args.env, goal_mult=4, action_scale=.1, action_repeat=10, timestep=1./120, gui=args.gui)
+	policy = rv.policies.GraspingPolicy(env, env.get_body('sawyer'), env.get_body('cube'))
+elif 'SawyerLid' in args.env:
+	env = rv.make(args.env, action_scale=.1, action_repeat=10, timestep=1./120, gui=args.gui)
+	policy = rv.policies.LidGraspingPolicy(env, env.get_body('sawyer'), env.get_body('lid'))
 else:
 	raise RuntimeError('Unrecognized environment: {}'.format(args.env))
 
@@ -43,7 +40,7 @@ for ep in range(args.num_episodes):
 		act = policy.get_action(obs)
 		if act[-1] > 0 and min_grasp_step is None:
 			min_grasp_step = i
-			# print('min_grasp_step: ', min_grasp_step)
+			print('min_grasp_step: ', min_grasp_step)
 		next_obs, rew, term, info = env.step(act)
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs

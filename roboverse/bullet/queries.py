@@ -122,6 +122,13 @@ def get_sim_state(body_queries=None, link_queries=None, joint_queries=None):
     sim_state = np.array(sim_state)
     return sim_state
 
+def has_fixed_root(body):
+    if p.getNumJoints(body) == 0:
+        return False
+    else:
+        joint_name, joint_type = get_joint_info(body, 0, ['joint_name', 'joint_type'], return_list=True)
+        return joint_name == 'base_joint' and joint_type == p.JOINT_FIXED
+
 ##########################
 #### helper functions ####
 ##########################

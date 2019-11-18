@@ -13,7 +13,7 @@ parser.add_argument('--num_episodes', type=int, default=200)
 args = parser.parse_args()
 
 rv.utils.make_dir(args.savepath)
-env = rv.make(args.env, gui=args.gui, gripper_bounds=[0,1], action_scale=0.1, action_repeat=4, timestep=1./120)
+env = rv.make(args.env, gui=args.gui, action_scale=0.1, action_repeat=4, timestep=1./120)
 policy = rv.policies.GraspingPolicy(env, env._sawyer, env._cube)
 pool = rv.utils.DemoPool()
 print('Observation space: {} | Action space: {}'.format(env.observation_space, env.action_space))
