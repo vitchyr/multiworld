@@ -174,6 +174,10 @@ class SawyerBaseEnv(gym.Env, Serializable):
     def visualize_targets(self, pos):
         bullet.add_debug_line(self._prev_pos, pos)
 
+    def save_state(self):
+        state_id = bullet.save_state()
+        return state_id
+
     '''
         prevents always needing a gym adapter in softlearning
         @TODO : remove need for this method
