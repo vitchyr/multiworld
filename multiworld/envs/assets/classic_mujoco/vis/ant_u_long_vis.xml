@@ -8,11 +8,11 @@
         <include file="u_long.xml"></include>
         <include file="ant_start.xml"></include>
         <include file="ant_goal.xml"></include>
-        <include file="ant_s1.xml"></include>
-        <!--<include file="ant_s2.xml"></include>-->
-        <include file="ant_s3.xml"></include>
-        <!--<include file="ant_s4.xml"></include>-->
-        <include file="ant_s5.xml"></include>
+        <!--<include file="ant_s1.xml"></include>-->
+        <!--&lt;!&ndash;<include file="ant_s2.xml"></include>&ndash;&gt;-->
+        <!--<include file="ant_s3.xml"></include>-->
+        <!--&lt;!&ndash;<include file="ant_s4.xml"></include>&ndash;&gt;-->
+        <!--<include file="ant_s5.xml"></include>-->
 
         <!--By default, this goal will be hidden under the floor-->
         <!--<site name="goal" rgba="0 1 1 0.5" pos="2.25 7.50 0.75" size="0.5" />-->
