@@ -46,7 +46,7 @@ def init_from_demos(demo_path):
 
     def init_fn(env):
         bullet_path = random.choice(bullet_paths)
-        print('[ roboverse/utils/serialization ] {}'.format(bullet_path))
+        # print('[ roboverse/utils/serialization ] {}'.format(bullet_path))
         env.load_state(bullet_path)
 
     return init_fn
