@@ -9,6 +9,7 @@ from roboverse.utils import init_from_demos
 
 _RESET = -1
 _RENDER = -2
+_GET_PARAMS = -3
 
 class _RESET_FROM_STATE:
 
@@ -31,31 +32,23 @@ class ParallelEnv(gym.Env):
             target=worker, 
             args=(self._env_fn, self._act_queues[i], self._obs_queues[i], i))
             for i in range(num_processes)] 
-            # for act_queue, obs_queue in zip(self._act_queues, self._obs_queues)]
         [p.start() for p in self._processes]
         self._set_spaces()
 
     def _set_spaces(self):
-        # env = self._env_fn()
         obs_space = self._env.observation_space
         act_space = self._env.action_space
 
-        # obs_low = obs_space.low[None].repeat(self._num_processes, 0)
-        # obs_high = obs_space.high[None].repeat(self._num_processes, 0)
-
-        # act_low = act_space.low[None].repeat(self._num_processes, 0)
-        # act_high = act_space.high[None].repeat(self._num_processes, 0)
-
-        # self.observation_space = type(obs_space)(obs_low, obs_high)
-        # self.action_space = type(act_space)(act_low, act_high)
         self.observation_space = obs_space
         self.action_space = act_space
-        # env.close()
 
     def check_params(self, params):
-        # env = self._env_fn()
         return self._env.check_params(params)
-        # env.close()
+
+    def get_params(self):
+    	self._act_queues[0].put(_GET_PARAMS)
+    	params = self._obs_queues[0].get()
+    	return params
 
     @property
     def num_processes(self):
@@ -74,6 +67,11 @@ class ParallelEnv(gym.Env):
         info = [out[3] for out in outs]
         self._current_obs = obs.copy()
         return obs, rew, term, info
+
+    # def _compile_infos(self, infos):
+    # 	keys = infos[0].keys()
+    # 	compiled = {key: [info[key] for info in infos] for key in keys}
+    # 	return compiled
 
     def reset(self, inds):
         for i in inds:
@@ -99,7 +97,7 @@ class ParallelEnv(gym.Env):
             ret = obs_queue.get()
             assert ret
 
-    def render(self):
+    def render(self, *args, **kwargs):
         for act_queue in self._act_queues:
             act_queue.put(_RENDER)
         images = []
@@ -123,6 +121,10 @@ def worker(env_fn, act_queue, obs_queue, proc_num):
         elif type(action) == type(_RENDER) and action == _RENDER:
             img = env.render()
             obs_queue.put(img)
+
+        elif type(action) == type(_GET_PARAMS) and action == _GET_PARAMS:
+            params = env.get_params()
+            obs_queue.put(params)
 
         elif type(action) == _RESET_FROM_STATE:
             state = action.get_state()
