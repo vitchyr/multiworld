@@ -53,6 +53,10 @@ class ParallelEnv(gym.Env):
     @property
     def num_processes(self):
         return self._num_processes
+
+    @property
+    def parallel(self):
+    	return True
     
     def step(self, vec_action):
         assert len(vec_action) == self._num_processes

@@ -49,6 +49,10 @@ class SawyerBaseEnv(gym.Env, Serializable):
         params = {label: getattr(self, label) for label in labels}
         return params
 
+    @property
+    def parallel(self):
+        return False
+    
     def check_params(self, other):
         params = self.get_params()
         assert set(params.keys()) == set(other.keys())
