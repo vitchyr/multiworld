@@ -10,6 +10,14 @@ from roboverse.utils import init_from_demos
 _RESET = -1
 _RENDER = -2
 
+class _RESET_FROM_STATE:
+
+    def __init__(self, state):
+        self._state = state
+
+    def get_state(self):
+        return self._state
+
 class ParallelEnv(gym.Env):
 
     def __init__(self, env=None, num_processes=1, **kwargs):
@@ -75,6 +83,14 @@ class ParallelEnv(gym.Env):
             self._current_obs[i] = obs
         return self._current_obs
 
+    def reset_from_states(self, inds, states):
+        for i, state in zip(inds, states):
+            self._act_queues[i].put(_RESET_FROM_STATE(state))
+        for i in inds:
+            obs = self._obs_queues[i].get()
+            self._current_obs[i] = obs
+        return self._current_obs
+
     def set_reset_hook(self, fn):
         fn_serialized = dill.dumps(fn)
         for act_queue in self._act_queues:
@@ -90,7 +106,7 @@ class ParallelEnv(gym.Env):
         for obs_queue in self._obs_queues:
             img = obs_queue.get()
             images.append(img)
-        images = np.concatenate(images, axis=0)
+        images = np.concatenate(images, axis=1)
         return images
 
 def worker(env_fn, act_queue, obs_queue, proc_num):
@@ -107,6 +123,11 @@ def worker(env_fn, act_queue, obs_queue, proc_num):
         elif type(action) == type(_RENDER) and action == _RENDER:
             img = env.render()
             obs_queue.put(img)
+
+        elif type(action) == _RESET_FROM_STATE:
+            state = action.get_state()
+            obs = env.load_state(state)
+            obs_queue.put(obs)
 
         elif type(action) == bytes:
             fn = dill.loads(action)
