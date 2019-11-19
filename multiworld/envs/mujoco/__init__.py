@@ -1488,6 +1488,55 @@ def register_soroush_envs():
         },
     )
 
+    """
+    Ant
+    """
+    register(
+        id='AntULongVAEEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '5d74f3d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'model_path': 'classic_mujoco/ant_gear10_dt3_u_long.xml',
+            'use_euler': True,
+            'reset_and_goal_mode': 'uniform',
+            'wall_collision_buffer': 0.50,
+        }
+    )
+
+    register(
+        id='AntULongTrainEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '5d74f3d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'model_path': 'classic_mujoco/ant_gear10_dt3_u_long.xml',
+            'use_euler': True,
+            'reward_type': 'vectorized_epos',
+            'reset_and_goal_mode': 'uniform_pos_and_rot',
+        }
+    )
+
+    register(
+        id='AntULongTestEnv-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
+        tags={
+            'git-commit-hash': '5d74f3d',
+            'author': 'Soroush'
+        },
+        kwargs={
+            'model_path': 'classic_mujoco/ant_gear10_dt3_u_long.xml',
+            'use_euler': True,
+            'reward_type': 'vectorized_epos',
+            'reset_and_goal_mode': 'uniform_pos_and_rot',
+            'test_mode_case_num': 1,
+        }
+    )
+
 def create_image_84_sawyer_pnr_train_env_small_v0():
     from multiworld.core.image_env import ImageEnv
     from multiworld.envs.mujoco.cameras import sawyer_pusher_camera_tdm

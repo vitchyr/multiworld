@@ -3,21 +3,12 @@ import random
 import cv2
 import numpy as np
 import warnings
-from PIL import Image
 from gym.spaces import Box, Dict
 
 from multiworld.core.multitask_env import MultitaskEnv
 from multiworld.core.wrapper_env import ProxyEnv
 from multiworld.envs.env_util import concatenate_box_spaces
 from multiworld.envs.env_util import get_stat_in_paths, create_stats_ordered_dict
-
-from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
-from multiworld.envs.mujoco.classic_mujoco.ant_maze import AntMazeEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
-    SawyerPickAndPlaceEnvYZ,
-    SawyerPickAndPlaceEnv,
-)
 
 class ImageEnv(ProxyEnv, MultitaskEnv):
     def __init__(
@@ -220,6 +211,14 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             return None
 
     def states_to_images(self, states):
+        from multiworld.envs.mujoco.locomotion.wheeled_car import WheeledCarEnv
+        from multiworld.envs.mujoco.classic_mujoco.ant_maze import AntMazeEnv
+        from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_nips import SawyerPushAndReachXYEnv
+        from multiworld.envs.mujoco.sawyer_xyz.sawyer_pick_and_place import (
+            SawyerPickAndPlaceEnvYZ,
+            SawyerPickAndPlaceEnv,
+        )
+
         if isinstance(self._wrapped_env, WheeledCarEnv):
             state_dim = len(self.observation_space.spaces['state_observation'].low)
             orig_batch_size = states.shape[0]
@@ -279,6 +278,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             cv2.imshow('env', img)
             cv2.waitKey(1)
         if self.grayscale:
+            from PIL import Image
             img = Image.fromarray(img).convert('L')
             img = np.array(img)
         if self.normalize:
