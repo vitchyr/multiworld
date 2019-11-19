@@ -169,8 +169,12 @@ class SawyerBaseEnv(gym.Env, Serializable):
 
     def _simulate(self, pos, theta, gripper):
         for _ in range(self._action_repeat):
-            bullet.sawyer_position_ik(self._sawyer, self._end_effector, pos, self.theta, gripper, 
-                gripper_bounds=self._gripper_bounds, discrete_gripper=False, max_force=self._max_force)
+            bullet.sawyer_position_ik(
+                self._sawyer, self._end_effector, 
+                pos, self.theta, 
+                gripper, gripper_bounds=self._gripper_bounds, 
+                discrete_gripper=False, max_force=self._max_force
+            )
             bullet.step_ik()
 
     def render(self, mode='rgb_array'):
