@@ -126,6 +126,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._sawyer = bullet.objects.sawyer()
         self._table = bullet.objects.table()
         self._objects = {}
+        self._sensors = {}
         self._workspace = bullet.Sensor(self._sawyer,
             xyz_min=self._pos_low, xyz_max=self._pos_high,
             visualize=False, rgba=[0,1,0,.1])
