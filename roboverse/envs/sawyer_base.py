@@ -35,6 +35,7 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._id = 'SawyerBaseEnv'
 
         bullet.connect_headless(self._gui)
+        self.set_reset_hook()
         self._set_spaces()
 
         self._img_dim = img_dim
@@ -48,6 +49,10 @@ class SawyerBaseEnv(gym.Env, Serializable):
         params = {label: getattr(self, label) for label in labels}
         return params
 
+    @property
+    def parallel(self):
+        return False
+    
     def check_params(self, other):
         params = self.get_params()
         assert set(params.keys()) == set(other.keys())
@@ -91,7 +96,11 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self._prev_pos = np.array(self._pos_init)
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
+        self._reset_hook(self)
         return self.get_observation()
+
+    def set_reset_hook(self, fn=lambda env: None):
+        self._reset_hook = fn
     
     def open_gripper(self, act_repeat=10):
         delta_pos = [0,0,0]
@@ -174,9 +183,14 @@ class SawyerBaseEnv(gym.Env, Serializable):
     def visualize_targets(self, pos):
         bullet.add_debug_line(self._prev_pos, pos)
 
-    def save_state(self):
-        state_id = bullet.save_state()
+    def save_state(self, *save_path):
+        state_id = bullet.save_state(*save_path)
         return state_id
+
+    def load_state(self, load_path):
+        bullet.load_state(load_path)
+        obs = self.get_observation()
+        return obs
 
     '''
         prevents always needing a gym adapter in softlearning

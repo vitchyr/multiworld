@@ -42,6 +42,10 @@ class Sawyer2dEnv(gym.Env):
         self._env.reset(*args, **kwargs)
         return self.get_observation()
 
+    def load_state(self, *args, **kwargs):
+        self._env.load_state(*args, **kwargs)
+        return self.get_observation()
+
     def step(self, act, *args, **kwargs):
         act[0] = 0
         out = self._env.step(act, *args, **kwargs)
@@ -72,7 +76,7 @@ class Sawyer2dEnv(gym.Env):
 
     def render(self, *args, **kwargs):
         return self._env.render(*args, **kwargs)
-        
+
     def __getattr__(self, attr):
         return getattr(self._env, attr)
 
