@@ -51,6 +51,10 @@ class SawyerBaseEnv(gym.Env, Serializable):
         params = {label: getattr(self, label) for label in labels}
         return params
 
+    @property
+    def parallel(self):
+        return False
+    
     def check_params(self, other):
         params = self.get_params()
         assert set(params.keys()) == set(other.keys())
@@ -186,8 +190,10 @@ class SawyerBaseEnv(gym.Env, Serializable):
         state_id = bullet.save_state(*save_path)
         return state_id
 
-    def load_state(self, save_path):
-        bullet.load_state(save_path)
+    def load_state(self, load_path):
+        bullet.load_state(load_path)
+        obs = self.get_observation()
+        return obs
 
     '''
         prevents always needing a gym adapter in softlearning
