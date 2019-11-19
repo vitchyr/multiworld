@@ -30,6 +30,5 @@ for root, dirs, files in os.walk(args.data_directory):
 if not os.path.exists(args.output_directory):
     os.makedirs(args.output_directory)
 
-print(fields[observations])
 with open(os.path.join(args.output_directory, 'data_{0}.pkl'.format(timestamp)), 'wb+') as fp:
     pickle.dump(fields, fp)

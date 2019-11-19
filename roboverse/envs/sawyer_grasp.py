@@ -1,4 +1,5 @@
 import roboverse.bullet as bullet
+import numpy as np
 from roboverse.envs.sawyer_base import SawyerBaseEnv
 
 
@@ -21,3 +22,22 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         else:
             reward = 0
         return reward
+
+    def get_observation(self):
+        left_tip_pos = bullet.get_link_state(
+            self._sawyer, 'right_gripper_l_finger_joint', keys='pos')
+        right_tip_pos = bullet.get_link_state(
+            self._sawyer, 'right_gripper_r_finger_joint', keys='pos')
+        left_tip_pos = np.asarray(left_tip_pos)
+        right_tip_pos = np.asarray(right_tip_pos)
+
+        gripper_tips_distance = [np.linalg.norm(
+            left_tip_pos - right_tip_pos)]
+        end_effector_pos = self.get_end_effector_pos()
+
+        object_info = bullet.get_body_info(self._objects['lego'])
+        object_pos = object_info['pos']
+        object_theta = object_info['theta']
+
+        return np.concatenate((end_effector_pos, gripper_tips_distance,
+                               object_pos, object_theta))
