@@ -38,6 +38,5 @@ class SawyerLiftEnv(SawyerBaseEnv):
         reward = max(reward, self._min_reward)
         if goal_dist < 0.25:
             reward += self._bonus
-        # print(self._sensor_lid.sense(), self._sensor_cube.sense())
         return reward
 

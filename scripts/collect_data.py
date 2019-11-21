@@ -5,7 +5,7 @@ import roboverse as rv
 import pdb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
+parser.add_argument('--env', type=str, default='SawyerMultiSoup2d-v0')
 parser.add_argument('--savepath', type=str, default='mult4-scale1-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
@@ -25,6 +25,9 @@ if 'SawyerLift' in args.env:
 elif 'SawyerLid' in args.env:
 	env = rv.make(args.env, action_scale=.1, action_repeat=10, timestep=1./120, gui=args.gui)
 	policy = rv.policies.LidGraspingPolicy(env, env.get_body('sawyer'), env.get_body('lid'))
+elif 'SawyerMultiSoup' in args.env:
+	env = rv.make(args.env, goal_mult=4, goal_obj='obj_6', action_scale=.1, action_repeat=10, timestep=1./120, gui=args.gui)
+	policy = rv.policies.PlacingPolicy(env, env.get_body('sawyer'), env.get_goal_obj())
 else:
 	raise RuntimeError('Unrecognized environment: {}'.format(args.env))
 
