@@ -6,6 +6,7 @@ from roboverse.bullet.queries import (
     get_joint_info,
     get_joint_state,
     get_link_state,
+    get_index_by_attribute,
 )
 
 from roboverse.bullet.misc import (
@@ -112,11 +113,20 @@ def step_ik(body=0):
         enforces joint limits for gripper fingers
     '''
     p.stepSimulation()
-    for joint in range(20, 25):
+    # joints = ['right_gripper_l_finger_joint', 'right_side_l_finger_tip_joint',
+    #           'right_gripper_r_finger_joint', 'right_gripper_r_finger_tip_joint',
+    #           'right_electric_gripper_base']
+    joints = range(0, 25)
+    for joint in joints:
         low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
         pos = get_joint_state(body, joint, 'pos')
         pos = np.clip(pos, low, high)
-        p.resetJointState(body, joint, pos)
+        set_joint_state(body, joint, pos)
+
+def set_joint_state(body, joint, pos):
+    if type(joint) == str:
+        joint = get_index_by_attribute(body, 'joint_name', joint)
+    p.resetJointState(body, joint, pos)
 
 #################
 #### gripper ####

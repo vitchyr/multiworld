@@ -1,3 +1,4 @@
+import time
 import os
 import argparse
 import numpy as np
@@ -5,7 +6,7 @@ import roboverse as rv
 import pdb
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerMultiSoup2d-v0')
+parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
 parser.add_argument('--savepath', type=str, default='mult4-scale1-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
@@ -34,6 +35,7 @@ else:
 pool = rv.utils.DemoPool()
 print('Observation space: {} | Action space: {}'.format(env.observation_space, env.action_space))
 
+t0 = time.time()
 for ep in range(args.num_episodes):
 	obs = env.reset()
 	ep_rew = 0
@@ -44,6 +46,7 @@ for ep in range(args.num_episodes):
 		if act[-1] > 0 and min_grasp_step is None:
 			min_grasp_step = i
 			print('min_grasp_step: ', min_grasp_step)
+			print(time.time() - t0)
 		next_obs, rew, term, info = env.step(act)
 		pool.add_sample(obs, act, next_obs, rew, term)
 		obs = next_obs
