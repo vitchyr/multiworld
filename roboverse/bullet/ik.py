@@ -112,7 +112,7 @@ def step_ik(body=0):
         enforces joint limits for gripper fingers
     '''
     p.stepSimulation()
-    for joint in range(20, 25):
+    for joint in range(7, 9): #20 25
         low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
         pos = get_joint_state(body, joint, 'pos')
         pos = np.clip(pos, low, high)
@@ -130,9 +130,9 @@ def get_gripper_state(body, gripper, gripper_bounds, discrete_gripper):
         return _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
 
 def _get_gripper_limits(body):
-    l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
+    l_limits = get_joint_info(body, 'gripper_prismatic_joint_1',  #'right_gripper_l_finger_joint'
                               ['low', 'high'])
-    r_limits = get_joint_info(body, 'right_gripper_r_finger_joint',
+    r_limits = get_joint_info(body, 'gripper_prismatic_joint_2',  #'right_gripper_r_finger_joint'
                               ['low', 'high'])
     return l_limits, r_limits
 
