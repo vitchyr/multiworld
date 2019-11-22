@@ -39,7 +39,7 @@ class RobotBaseEnv(gym.Env, Serializable):
         bullet.connect_headless(self._gui)
 
     def _setup_environment(self):
-        self.set_reset_hook()
+        #self.set_reset_hook()
         self._set_spaces()
 
         self._view_matrix = bullet.get_view_matrix()
@@ -66,8 +66,8 @@ class RobotBaseEnv(gym.Env, Serializable):
                 )
                 raise RuntimeError(message)
 
-    def get_constructor(self):
-        return lambda: self.__class__(*self.args_, **self.kwargs_)
+    #def get_constructor(self):
+        #return lambda: self.__class__(*self.args_, **self.kwargs_)
 
     def _set_spaces(self):
         act_dim = 4
@@ -98,11 +98,11 @@ class RobotBaseEnv(gym.Env, Serializable):
         self._prev_pos = np.array(self._pos_init)
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._robot_id, self._end_effector, self._prev_pos, self.theta)
-        self._reset_hook(self)
+        #self._reset_hook(self)
         return self.get_observation()
 
-    def set_reset_hook(self, fn=lambda env: None):
-        self._reset_hook = fn
+    #def set_reset_hook(self, fn=lambda env: None):
+        #self._reset_hook = fn
 
     def open_gripper(self, act_repeat=10):
         delta_pos = [0, 0, 0]

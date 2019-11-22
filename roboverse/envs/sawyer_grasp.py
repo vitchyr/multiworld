@@ -35,7 +35,8 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
             left_tip_pos - right_tip_pos)]
         end_effector_pos = self.get_end_effector_pos()
 
-        object_info = bullet.get_body_info(self._objects['lego'])
+        object_info = bullet.get_body_info(self._objects['lego'],
+                                           quat_to_deg=False)
         object_pos = object_info['pos']
         object_theta = object_info['theta']
 

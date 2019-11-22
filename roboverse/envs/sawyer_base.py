@@ -1,7 +1,3 @@
-import numpy as np
-import gym
-import pdb
-
 import roboverse.bullet as bullet
 from roboverse.envs.robot_base import RobotBaseEnv
 
@@ -46,10 +42,12 @@ class SawyerBaseEnv(RobotBaseEnv):
             self._robot_id, 'link_name', 'gripper_site')
         self._setup_environment()
 
+
     def _load_meshes(self):
         self._robot_id = bullet.objects.sawyer()
         self._table = bullet.objects.table()
         self._objects = {}
+        self._sensors = {}
         self._workspace = bullet.Sensor(self._robot_id,
             xyz_min=self._pos_low, xyz_max=self._pos_high,
             visualize=False, rgba=[0,1,0,.1])
