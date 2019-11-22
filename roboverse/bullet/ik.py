@@ -116,7 +116,7 @@ def step_ik(body=0):
     # joints = ['right_gripper_l_finger_joint', 'right_side_l_finger_tip_joint',
     #           'right_gripper_r_finger_joint', 'right_gripper_r_finger_tip_joint',
     #           'right_electric_gripper_base']
-    joints = range(0, 25)
+    joints = range(20, 25)
     for joint in joints:
         low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
         pos = get_joint_state(body, joint, 'pos')
