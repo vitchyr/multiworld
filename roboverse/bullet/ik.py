@@ -107,12 +107,12 @@ def sawyer_position_ik(body, link, pos, theta, gripper, gripper_name, damping=1e
     forces = [max_force for _ in range(len(joints))]
     p.setJointMotorControlArray(body, joints, p.POSITION_CONTROL, targetPositions=ik_solution, forces=forces)
 
-def step_ik(body=0):
+def step_ik(gripper_range, body=0):
     '''
         enforces joint limits for gripper fingers
     '''
     p.stepSimulation()
-    for joint in range(7, 9): #20 25
+    for joint in gripper_range:
         low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
         pos = get_joint_state(body, joint, 'pos')
         pos = np.clip(pos, low, high)

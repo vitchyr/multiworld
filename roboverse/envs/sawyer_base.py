@@ -21,6 +21,7 @@ class SawyerBaseEnv(RobotBaseEnv):
         self._id = 'SawyerBaseEnv'
         self._robot_name = 'sawyer'
         self._gripper_joint_name = ('right_gripper_l_finger_joint', 'right_gripper_r_finger_joint')
+        self._gripper_range = range(20, 25)
 
         self._r_limits = {}
         self._l_limits = {}

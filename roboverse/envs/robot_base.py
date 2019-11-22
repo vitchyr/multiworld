@@ -170,7 +170,7 @@ class RobotBaseEnv(gym.Env, Serializable):
                 gripper, self._gripper_joint_name, gripper_bounds=self._gripper_bounds,
                 discrete_gripper=True, max_force=self._max_force
             )
-            bullet.step_ik()
+            bullet.step_ik(self._gripper_range)
 
     def render(self, mode='rgb_array'):
         img, depth, segmentation = bullet.render(self._img_dim, self._img_dim, self._view_matrix,
