@@ -81,3 +81,4 @@ class Meta:
 	def __call__(self, *args, **kwargs):
 		self._kwargs.update(**kwargs)
 		return self._fn(*args, *self._args, **self._kwargs)
+
