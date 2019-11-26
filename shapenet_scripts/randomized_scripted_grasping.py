@@ -52,13 +52,13 @@ for j in tqdm(range(args.num_trajectories)):
         if i < 25:
             action = target_pos - ee_pos
             action[2] = 0.
-            action *= 3.0
+            action *= 5.0
             grip = 0.
         elif i < 35:
             action = target_pos - ee_pos
             action[2] -= 0.03
             action *= 3.0
-            action[2] *= 2.0
+            action[2] *= 5.0
             grip = 0.
         elif i < 42:
             action = np.zeros((3,))
@@ -79,7 +79,7 @@ for j in tqdm(range(args.num_trajectories)):
         pool.add_sample(observation, action, next_state, reward, done)
 
     object_pos = env.get_object_midpoint(object_name)
-    if object_pos[2] > -0.1:
+    if info['object_goal_distance'] < 0.05:
         num_grasps += 1
         print('Num grasps: {}'.format(num_grasps))
 
