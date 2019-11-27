@@ -1,8 +1,12 @@
+import numpy as np
+import gym
+import pdb
+
 import roboverse.bullet as bullet
 from roboverse.envs.robot_base import RobotBaseEnv
 
 
-class SawyerBaseEnv(RobotBaseEnv):
+class WidowBaseEnv(RobotBaseEnv):
     def __init__(self,
                  img_dim=256,
                  gui=False,
@@ -18,13 +22,11 @@ class SawyerBaseEnv(RobotBaseEnv):
                  visualize=True,
                  ):
 
-        self._id = 'SawyerBaseEnv'
-        self._robot_name = 'sawyer'
-        self._gripper_joint_name = ('right_gripper_l_finger_joint', 'right_gripper_r_finger_joint')
-        self._gripper_range = range(20, 25)
+        self._id = 'WidowBaseEnv'
+        self._robot_name = 'widowx'
+        self._gripper_joint_name = ('gripper_prismatic_joint_1', 'gripper_prismatic_joint_2')
+        self._gripper_range = range(7, 9)
 
-        self._r_limits = {}
-        self._l_limits = {}
         super().__init__(img_dim,
                          gui,
                          action_scale,
@@ -40,15 +42,14 @@ class SawyerBaseEnv(RobotBaseEnv):
 
         self._load_meshes()
         self._end_effector = self._end_effector = bullet.get_index_by_attribute(
-            self._robot_id, 'link_name', 'gripper_site')
+            self._robot_id, 'link_name', 'gripper_rail_link')
         self._setup_environment()
 
-
     def _load_meshes(self):
-        self._robot_id = bullet.objects.sawyer()
+        self._robot_id = bullet.objects.widow()
         self._table = bullet.objects.table()
         self._objects = {}
-        self._sensors = {}
         self._workspace = bullet.Sensor(self._robot_id,
-            xyz_min=self._pos_low, xyz_max=self._pos_high,
-            visualize=False, rgba=[0,1,0,.1])
+                                        xyz_min=self._pos_low, xyz_max=self._pos_high,
+                                        visualize=False, rgba=[0, 1, 0, .1])
+

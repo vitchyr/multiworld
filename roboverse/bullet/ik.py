@@ -78,9 +78,9 @@ def position_control(body, link, pos, theta, damping=1e-3):
         p.resetJointState(body, joint_ind, pos)
 
 
-def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
+def sawyer_ik(body, link, pos, theta, gripper, gripper_name, damping=1e-3,
               gripper_bounds=(-1,1), arm_vel_mult=3, gripper_vel_mult=10, discrete_gripper=True):
-    gripper_state = get_gripper_state(body, gripper, gripper_bounds, discrete_gripper)
+    gripper_state = get_gripper_state(body, gripper, gripper_bounds, discrete_gripper, gripper_name)
     #### ik
     ik_solution = ik(body, link, pos, theta, damping)
     ik_solution[-2:] = gripper_state
@@ -96,9 +96,9 @@ def sawyer_ik(body, link, pos, theta, gripper, damping=1e-3,
     #### apply velocities
     velocity_control(body, joints, velocities)
 
-def sawyer_position_ik(body, link, pos, theta, gripper, damping=1e-3,
+def sawyer_position_ik(body, link, pos, theta, gripper, gripper_name, damping=1e-3,
                        gripper_bounds=(-1,1), discrete_gripper=True, max_force=1000.):
-    gripper_state = get_gripper_state(body, gripper, gripper_bounds, discrete_gripper)
+    gripper_state = get_gripper_state(body, gripper, gripper_bounds, discrete_gripper, gripper_name)
     #### ik
     ik_solution = ik(body, link, pos, theta, damping)
     ik_solution[-2:] = gripper_state
@@ -107,12 +107,12 @@ def sawyer_position_ik(body, link, pos, theta, gripper, damping=1e-3,
     forces = [max_force for _ in range(len(joints))]
     p.setJointMotorControlArray(body, joints, p.POSITION_CONTROL, targetPositions=ik_solution, forces=forces)
 
-def step_ik(body=0):
+def step_ik(gripper_range, body=0):
     '''
         enforces joint limits for gripper fingers
     '''
     p.stepSimulation()
-    for joint in range(20, 25):
+    for joint in gripper_range:
         low, high = get_joint_info(body, joint, ['low', 'high'], return_list=True)
         pos = get_joint_state(body, joint, 'pos')
         pos = np.clip(pos, low, high)
@@ -122,18 +122,19 @@ def step_ik(body=0):
 #### gripper ####
 #################
 
-def get_gripper_state(body, gripper, gripper_bounds, discrete_gripper):
-    l_limits, r_limits = _get_gripper_limits(body)
+def get_gripper_state(body, gripper, gripper_bounds, discrete_gripper, gripper_name):
+    l_limits, r_limits = _get_gripper_limits(body, *gripper_name)
     if discrete_gripper:
         return _get_discrete_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
     else:
         return _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits)
 
-def _get_gripper_limits(body):
-    l_limits = get_joint_info(body, 'right_gripper_l_finger_joint',
+def _get_gripper_limits(body, left_gripper_name, right_gripper_name):
+    l_limits = get_joint_info(body, left_gripper_name,
                               ['low', 'high'])
-    r_limits = get_joint_info(body, 'right_gripper_r_finger_joint',
+    r_limits = get_joint_info(body, right_gripper_name,
                               ['low', 'high'])
+
     return l_limits, r_limits
 
 def _get_discrete_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
@@ -153,5 +154,3 @@ def _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
     l_state = l_limits['high'] + percent_closed * (l_limits['low'] - l_limits['high'])
     r_state = r_limits['low'] + percent_closed * (r_limits['high'] - r_limits['low'])
     return [l_state, r_state]
-
-

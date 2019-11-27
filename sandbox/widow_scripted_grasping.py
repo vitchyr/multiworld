@@ -20,9 +20,6 @@ target_pos = env.get_object_midpoint(obj_key)
 target_pos[0] += -0.02
 target_pos[1] += 0.00
 target_pos[2] += -0.03
-print(env.get_end_effector_pos())
-
-episode_reward = 0.
 
 for i in range(50):
     ee_pos = env.get_end_effector_pos()
@@ -30,13 +27,13 @@ for i in range(50):
     if i < 25:
         action = target_pos - ee_pos
         action[2] = 0.
-        action *= 5.0
+        action *= 3.0
         grip=0.
     elif i < 35:
         action = target_pos - ee_pos
         action[2] -= 0.03
         action *= 3.0
-        action[2] *= 5.0
+        action[2] *= 2.0
         grip=0.
     elif i < 42:
         action = np.zeros((3,))
@@ -56,12 +53,7 @@ for i in range(50):
     o, r, d, info = env.step(action)
     # print(action)
     # print(o)
-    print(r)
-    print('object to goal: {}'.format(info['object_goal_distance']))
-    print('object to gripper: {}'.format(info['object_gripper_distance']))
-    episode_reward += r
 
-print('Episode reward: {}'.format(episode_reward))
 object_pos = env.get_object_midpoint(obj_key)
 if object_pos[2] > -0.1:
     num_grasps += 1
