@@ -25,7 +25,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
 
     def step(self, *action):
         delta_pos, gripper = self._format_action(*action)
-        pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
+        pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         pos += delta_pos * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
 
@@ -36,7 +36,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         info = self.get_info()
         reward = self.get_reward(info)
         done = self.get_termination(observation)
-        self._prev_pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
+        self._prev_pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         return observation, reward, done, info
 
     def get_info(self):

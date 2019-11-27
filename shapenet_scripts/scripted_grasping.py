@@ -17,8 +17,8 @@ env.reset()
 images = []
 target_pos = env.get_object_midpoint(obj_key)
 
-target_pos[0] += -0.02
-target_pos[1] += 0.00
+target_pos[0] += 0.0
+target_pos[1] += 0.0
 target_pos[2] += -0.03
 print(env.get_end_effector_pos())
 
