@@ -15,36 +15,36 @@ num_grasps = 0
 env.reset()
 # target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
 images = []
-target_pos = env.get_object_midpoint(obj_key)
 
-target_pos[0] += 0.0
-target_pos[1] += 0.0
-target_pos[2] += -0.03
 print(env.get_end_effector_pos())
 
 episode_reward = 0.
 
 for i in range(50):
     ee_pos = env.get_end_effector_pos()
+    object_pos = env.get_object_midpoint(obj_key)
 
-    if i < 25:
-        action = target_pos - ee_pos
-        action[2] = 0.
+    xyz_diff = object_pos - ee_pos
+    xy_diff = xyz_diff[:2]
+    if np.linalg.norm(xyz_diff) > 0.02:
+        action = object_pos - ee_pos
         action *= 5.0
         grip=0.
-    elif i < 35:
-        action = target_pos - ee_pos
-        action[2] -= 0.03
-        action *= 3.0
-        action[2] *= 5.0
-        grip=0.
-    elif i < 42:
+        print('Approaching')
+    elif o[3] > 0.03:
+        # o[3] is gripper tip distance
         action = np.zeros((3,))
-        grip=0.5
+        grip=0.8
+        print('Grasping')
+    elif info['object_goal_distance'] > 0.01:
+        action = env._goal_pos - object_pos
+        action *= 5.0
+        grip=1.
+        print('Moving')
     else:
         action = np.zeros((3,))
-        action[2] = 1.0
         grip=1.
+        print('Holding')
 
     action = np.append(action, [grip])
 
