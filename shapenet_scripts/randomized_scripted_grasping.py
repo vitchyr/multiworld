@@ -16,7 +16,7 @@ parser.add_argument("--gui", dest="gui", action="store_true", default=False)
 args = parser.parse_args()
 timestamp = roboverse.utils.timestamp()
 data_save_path = os.path.join(__file__, "../..", 'data',
-                              args.data_save_directory + timestamp)
+                              args.data_save_directory, timestamp)
 data_save_path = os.path.abspath(data_save_path)
 video_save_path = os.path.join(data_save_path, "videos")
 
