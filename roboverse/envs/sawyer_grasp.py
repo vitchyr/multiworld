@@ -8,13 +8,20 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
     def __init__(self,
                  goal_pos=(0.75, 0.2, -0.1),
                  reward_type='shaped',
+                 reward_min=-2.5,
                  *args,
                  **kwargs
                  ):
-
+        """
+        Grasping env with a single object
+        :param goal_pos: xyz coordinate of desired goal
+        :param reward_type: one of 'shaped', 'sparse'
+        :param reward_min: minimum possible reward per timestep
+        """
         super().__init__(*args, **kwargs)
         self._goal_pos = goal_pos
         self._reward_type = reward_type
+        self._reward_min = reward_min
         self.dt = 0.1
 
     def _load_meshes(self):
@@ -61,6 +68,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         elif self._reward_type == 'shaped':
             reward = -1*(4*info['object_goal_distance']
                          + info['object_gripper_distance'])
+            reward = max(reward, self._reward_min)
         else:
             raise NotImplementedError
 
