@@ -122,6 +122,7 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
             ])
 
         self.drawer = None
+        self.drawers = {}
         self.render_drawer = None
 
         self.color_index = 0
@@ -293,18 +294,28 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if self.drawer is None:
+        k = (width, height)
+        if k not in self.drawers:
             if width != height:
                 raise NotImplementedError()
-            self.drawer = PygameViewer(
+            drawer = PygameViewer(
                 screen_width=width,
                 screen_height=height,
                 x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
                 y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
                 render_onscreen=self.render_onscreen,
             )
-        self.draw(self.drawer, False)
-        img = self.drawer.get_image()
+            self.drawers[k] = drawer
+            print(k)
+        drawer = self.drawers[k]
+
+        if self.drawer is None:
+            if width != height:
+                raise NotImplementedError()
+            self.drawer = drawer
+
+        self.draw(drawer, False)
+        img = drawer.get_image()
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
         else:
@@ -366,6 +377,13 @@ class Multiobj2DEnv(MultitaskEnv, Serializable):
                 wall.endpoint1,
                 Color('black'),
             )
+            # drawer.draw_rect(
+            #     (wall.min_x, wall.min_y),
+            #     wall.max_x - wall.min_x,
+            #     wall.max_y - wall.min_y,
+            #     color=0,
+            #     thickness=0,
+            # )
 
         drawer.render()
         if tick:
@@ -524,7 +542,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
         self.inner_wall_max_dist = inner_wall_max_dist
         self.wall_shape = wall_shape
         self.wall_shapes = ["right", "left", "bottom", "top"]
-        self.wall_thickness = wall_thickness
+        self.wall_thickness = 0.0 # wall_thickness
         self.change_walls = change_walls
 
         if self.change_walls:
@@ -536,7 +554,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
         self.walls = []
         random.shuffle(self.wall_shapes)
         for w in self.wall_shapes[:3]:
-            if np.random.uniform() < 0.333:
+            if np.random.uniform() < 0.5:
                 self.add_wall(w)
 
     def add_wall(self, wall):
@@ -547,6 +565,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
                 self.inner_wall_max_dist,
                 -self.inner_wall_max_dist,
                 self.inner_wall_max_dist,
+                thickness=self.wall_thickness,
             ))
         if wall == "left":# Left wall
             self.walls.append(VerticalWall(
@@ -554,6 +573,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
                 -self.inner_wall_max_dist,
                 -self.inner_wall_max_dist,
                 self.inner_wall_max_dist,
+                thickness=self.wall_thickness,
             ))
         if wall == "bottom":# Bottom wall
             self.walls.append(HorizontalWall(
@@ -561,6 +581,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
                 self.inner_wall_max_dist,
                 -self.inner_wall_max_dist,
                 self.inner_wall_max_dist,
+                thickness=self.wall_thickness,
             ))
         if wall == "top":
             self.walls.append(HorizontalWall(
@@ -568,6 +589,7 @@ class Multiobj2DWallEnv(Multiobj2DEnv):
                 -self.inner_wall_max_dist,
                 -self.inner_wall_max_dist,
                 self.inner_wall_max_dist,
+                thickness=self.wall_thickness,
             ))
 
     def fixed_wall(self, wall_shape):
