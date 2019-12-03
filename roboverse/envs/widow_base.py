@@ -22,11 +22,6 @@ class WidowBaseEnv(RobotBaseEnv):
                  visualize=True,
                  ):
 
-        self._id = 'WidowBaseEnv'
-        self._robot_name = 'widowx'
-        self._gripper_joint_name = ('gripper_prismatic_joint_1', 'gripper_prismatic_joint_2')
-        self._gripper_range = range(7, 9)
-
         super().__init__(img_dim,
                          gui,
                          action_scale,
@@ -39,6 +34,12 @@ class WidowBaseEnv(RobotBaseEnv):
                          pos_low,
                          max_force,
                          visualize)
+
+        self._id = 'WidowBaseEnv'
+        self._robot_name = 'widowx'
+        self._gripper_joint_name = ('gripper_prismatic_joint_1', 'gripper_prismatic_joint_2')
+        self._gripper_range = range(7, 9)
+
 
         self._load_meshes()
         self._end_effector = self._end_effector = bullet.get_index_by_attribute(
