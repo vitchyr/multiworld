@@ -30,7 +30,6 @@ PDATA_PATH = pdata.getDataPath()
 ## robots
 
 sawyer = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro.urdf')
-widow = loader(ASSET_PATH, 'widowx/widowx.urdf', pos=[0.3, 0, 0.1])
 
 
 ## pybullet_data objects

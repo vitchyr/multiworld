@@ -16,7 +16,6 @@ env.reset()
 # target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
 images = []
 
-print(env.get_end_effector_pos())
 
 episode_reward = 0.
 

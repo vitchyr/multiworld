@@ -1,4 +1,5 @@
-import roboverse
+from roboverse.envs.sawyer_reach import SawyerReachEnv
+import roboverse.bullet
 import sys
 import numpy as np 
 import pygame
@@ -7,10 +8,10 @@ from pygame.locals import QUIT, KEYDOWN, KEYUP
 
 #Dictionary mapping keyboard commands to actions
 char_to_action = {
-    'w': (np.array([-1, 0, 0]), 'x'),
-    'a': (np.array([0, -1, 0]), 'x'),
-    's': (np.array([1, 0, 0]), 'x'),
-    'd': (np.array([0, 1, 0]), 'x'),
+    'w': (np.array([0, -1, 0]), 'x'),
+    'a': (np.array([1, 0, 0]), 'x'),
+    's': (np.array([0, 1, 0]), 'x'),
+    'd': (np.array([-1, 0, 0]), 'x'),
     'q': (np.array([1, -1, 0]), 'x'),
     'e': (np.array([-1, -1, 0]), 'x'),
     'z': (np.array([1, 1, 0]), 'x'),
@@ -46,7 +47,7 @@ pressed_keys = {
 }
 
 
-env = roboverse.make('WidowBase-v0', gui=True)
+env = SawyerReachEnv(renders=True, control_xyz_position_only=False)
 env.reset()
 pygame.init()
 screen = pygame.display.set_mode((100, 100))
@@ -83,4 +84,4 @@ while True:
             elif new_action[1] == 'gripper':
                 gripper = new_action[0]
     action = np.concatenate((0.5 * dx, 0.2 * dtheta), axis=0)
-    obs, reward, done, info = env.step(0.5 *  dx, gripper)
+    obs, reward, done, info = env.step(action, gripper)

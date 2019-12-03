@@ -21,9 +21,6 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
     {
         'id': 'SawyerSoup-v0',
         'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
-    }, {
-        'id': 'WidowBase-v0',
-        'entry_point': ('roboverse.envs.widow_base:WidowBaseEnv'),
     },
 )
 
