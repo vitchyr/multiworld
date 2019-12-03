@@ -8,8 +8,8 @@ parser.add_argument("--data_directory", type=str)
 parser.add_argument("--output_directory", type=str)
 args = parser.parse_args()
 
-args.data_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'SawyerGrasp', args.data_directory)
-args.output_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'SawyerGrasp', args.output_directory)
+args.data_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', args.data_directory)
+args.output_directory = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data',  args.output_directory)
 
 keys = ('observations', 'actions', 'next_observations', 'rewards', 'terminals')
 fields = {}

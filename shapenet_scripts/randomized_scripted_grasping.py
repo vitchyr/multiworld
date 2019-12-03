@@ -6,7 +6,7 @@ from PIL import Image
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("data_save_directory", type=str)
+parser.add_argument("--data_save_directory", type=str)
 parser.add_argument("--num_trajectories", type=int, default=2000)
 parser.add_argument("--num_timesteps", type=int, default=50)
 parser.add_argument("--video_save_frequency", type=int,
@@ -15,8 +15,8 @@ parser.add_argument("--gui", dest="gui", action="store_true", default=False)
 
 args = parser.parse_args()
 timestamp = roboverse.utils.timestamp()
-data_save_path = os.path.join(__file__, "../..", 'data', 'SawyerGrasp',
-                              args.data_save_directory + "_" + timestamp)
+data_save_path = os.path.join(__file__, "../..", 'data',
+                              args.data_save_directory, timestamp)
 data_save_path = os.path.abspath(data_save_path)
 video_save_path = os.path.join(data_save_path, "videos")
 
