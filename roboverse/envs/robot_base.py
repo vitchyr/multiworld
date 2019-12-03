@@ -34,7 +34,6 @@ class RobotBaseEnv(gym.Env, Serializable):
         self._max_force = max_force
         self._visualize = visualize
         self._img_dim = img_dim
-        self._id = 'WidowBaseEnv'
 
         bullet.connect_headless(self._gui)
 
