@@ -18,6 +18,13 @@ class SawyerBaseEnv(RobotBaseEnv):
                  visualize=True,
                  ):
 
+        self._id = 'SawyerBaseEnv'
+        self._robot_name = 'sawyer'
+        self._gripper_joint_name = ('right_gripper_l_finger_joint', 'right_gripper_r_finger_joint')
+        self._gripper_range = range(20, 25)
+
+        self._r_limits = {}
+        self._l_limits = {}
         super().__init__(img_dim,
                          gui,
                          action_scale,
@@ -30,14 +37,6 @@ class SawyerBaseEnv(RobotBaseEnv):
                          pos_low,
                          max_force,
                          visualize)
-
-        self._id = 'SawyerBaseEnv'
-        self._robot_name = 'sawyer'
-        self._gripper_joint_name = ('right_gripper_l_finger_joint', 'right_gripper_r_finger_joint')
-        self._gripper_range = range(20, 25)
-
-        self._r_limits = {}
-        self._l_limits = {}
 
         self._load_meshes()
         self._end_effector = self._end_effector = bullet.get_index_by_attribute(
