@@ -40,3 +40,9 @@ python combine_trajectories.py --data_directory SawyerGrasp/trajectories --outpu
 
 ## randomized_grasping_parallel.sh
 This script collect data in with multiple trajectories in parallel. It calls the randomized_scripted_grasping.py and combine_trajectories.py
+
+## sac_rollouts.py
+Collects data using a saved SAC model from softlearning. Requires the softlearning package to be installed.
+
+### Example
+python shapenet_scripts/sac_rollouts.py /path/to/checkpoint/checkpoint_500/ -d folder_name
