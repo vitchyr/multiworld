@@ -75,7 +75,7 @@ def simulate_policy(args):
                                np.random.normal(scale=args.noise_std)
                 next_state, reward, done, info = \
                     evaluation_environment.step(action_noisy)
-                pool.add_sample(observation, action, next_state, reward, done)
+                pool.add_sample(observation, action_noisy, next_state, reward, done)
                 observation = next_state
                 if args.gui:
                     time.sleep(0.1)
