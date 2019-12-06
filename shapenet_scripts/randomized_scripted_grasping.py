@@ -62,6 +62,8 @@ def scripted_markovian(env, pool, render_images):
     # the object is initialized above the table, so let's compensate for it
     # target_pos[2] += -0.01
     images = []
+    grip_open = -1
+    grip_close = 1
 
     for i in range(args.num_timesteps):
         ee_pos = env.get_end_effector_pos()
@@ -75,21 +77,24 @@ def scripted_markovian(env, pool, render_images):
             action *= 5.0
             if np.linalg.norm(xy_diff) > 0.05:
                 action[2] *= 0.5
-            grip = -1.0
+            grip = grip_open
             # print('Approaching')
         elif observation[3] > 0.025:
             # o[3] is gripper tip distance
             action = np.zeros((3,))
-            grip = 1.
+            if grip == grip_open:
+                grip = 0.
+            else:
+                grip = grip_close
             # print('Grasping')
         elif info['gripper_goal_distance'] > 0.01:
             action = env._goal_pos - ee_pos
             action *= 5.0
-            grip = 1.
+            grip = grip_close
             # print('Moving')
         else:
             action = np.zeros((3,))
-            grip = 1.
+            grip = grip_close
             # print('Holding')
 
         action = np.append(action, [grip])
