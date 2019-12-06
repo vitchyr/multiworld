@@ -64,7 +64,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
     def get_reward(self, info):
 
         if self._reward_type == 'sparse':
-            if info['object_goal_distance'] < 0.1:
+            if info['object_goal_distance'] < 0.05:
                 reward = 1
             else:
                 reward = 0

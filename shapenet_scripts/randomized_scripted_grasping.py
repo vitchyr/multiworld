@@ -126,7 +126,9 @@ def main(args):
     if not os.path.exists(video_save_path) and args.video_save_frequency > 0:
         os.makedirs(video_save_path)
 
-    env = roboverse.make('SawyerGraspOne-v0', gui=args.gui)
+    reward_type = 'sparse' if args.sparse else 'shaped'
+    env = roboverse.make('SawyerGraspOne-v0', reward_type=reward_type,
+                         gui=args.gui)
     num_grasps = 0
     pool = roboverse.utils.DemoPool()
     success_pool = roboverse.utils.DemoPool()
@@ -165,6 +167,7 @@ def main(args):
                       '{}_pool_{}_success_only.pkl'.format(
                           timestamp, pool.size))
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data-save-directory", type=str)
@@ -174,6 +177,8 @@ if __name__ == "__main__":
     parser.add_argument("--video_save_frequency", type=int,
                         default=0, help="Set to zero for no video saving")
     parser.add_argument("--gui", dest="gui", action="store_true", default=False)
+    parser.add_argument("--sparse", dest="sparse", action="store_true",
+                        default=False)
     parser.add_argument("--non-markovian", dest="non_markovian",
                         action="store_true", default=False)
 
