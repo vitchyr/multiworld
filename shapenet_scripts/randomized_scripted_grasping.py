@@ -124,6 +124,7 @@ def main(args):
     env = roboverse.make('SawyerGraspOne-v0', gui=args.gui)
     num_grasps = 0
     pool = roboverse.utils.DemoPool()
+    success_pool = roboverse.utils.DemoPool()
 
     for j in tqdm(range(args.num_trajectories)):
         render_images = args.video_save_frequency > 0 and \
@@ -136,8 +137,17 @@ def main(args):
 
         if success:
             num_grasps += 1
-            print(num_grasps)
-
+            print('Num grasps: {}'.format(num_grasps))
+            top = pool._size
+            bottom = top - args.num_timesteps
+            for i in range(bottom, top):
+                success_pool.add_sample(
+                    pool._fields['observations'][i],
+                    pool._fields['actions'][i],
+                    pool._fields['next_observations'][i],
+                    pool._fields['rewards'][i],
+                    pool._fields['terminals'][i]
+                )
         if render_images:
             images[0].save('{}/{}.gif'.format(video_save_path, j),
                            format='GIF', append_images=images[1:],
@@ -146,7 +156,9 @@ def main(args):
     params = env.get_params()
     pool.save(params, data_save_path,
               '{}_pool_{}.pkl'.format(timestamp, pool.size))
-
+    success_pool.save(params, data_save_path,
+                      '{}_pool_{}_success_only.pkl'.format(
+                          timestamp, pool.size))
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
