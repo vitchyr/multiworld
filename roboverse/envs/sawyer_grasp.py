@@ -18,11 +18,11 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         :param reward_type: one of 'shaped', 'sparse'
         :param reward_min: minimum possible reward per timestep
         """
-        super().__init__(*args, **kwargs)
-        self._goal_pos = goal_pos
+        self._goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
         self._reward_min = reward_min
         self.dt = 0.1
+        super().__init__(*args, **kwargs)
 
     def _load_meshes(self):
         super()._load_meshes()
@@ -47,14 +47,17 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         return observation, reward, done, info
 
     def get_info(self):
-        object_pos = self.get_object_midpoint('lego')
+        object_pos = np.asarray(self.get_object_midpoint('lego'))
         object_goal_distance = np.linalg.norm(object_pos - self._goal_pos)
         end_effector_pos = self.get_end_effector_pos()
         object_gripper_distance = np.linalg.norm(
             object_pos - end_effector_pos)
+        gripper_goal_distance = np.linalg.norm(
+            self._goal_pos - end_effector_pos)
         info = {
             'object_goal_distance': object_goal_distance,
-            'object_gripper_distance': object_gripper_distance
+            'object_gripper_distance': object_gripper_distance,
+            'gripper_goal_distance': gripper_goal_distance
         }
         return info
 

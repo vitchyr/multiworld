@@ -99,6 +99,8 @@ class SawyerBaseEnv(gym.Env, Serializable):
         self.theta = bullet.deg_to_quat([180, 0, 0])
         bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
         # self._reset_hook(self)
+        for _ in  range(3):
+            self.step([0.,0.,0.,-1])
         return self.get_observation()
 
     # def set_reset_hook(self, fn=lambda env: None):
