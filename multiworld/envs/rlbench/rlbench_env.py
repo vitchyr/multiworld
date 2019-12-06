@@ -39,6 +39,7 @@ class RLBenchEnv(MultitaskEnv, Serializable):
             headless=False,
             camera=False, # False or image_size
             stub=False,
+            state_observation_type="task",
             **kwargs
     ):
         self.quick_init(locals())
@@ -47,6 +48,7 @@ class RLBenchEnv(MultitaskEnv, Serializable):
         if fixed_goal is not None:
             fixed_goal = np.array(fixed_goal)
         self.fixed_goal = fixed_goal
+        self.state_observation_type = state_observation_type
 
         if not stub and RLBenchEnv.sim == None: # only launch sim once
             obs_config = ObservationConfig()
@@ -84,7 +86,12 @@ class RLBenchEnv(MultitaskEnv, Serializable):
 
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
 
-        OBS_DIM = 101 + 7 + 7 # 7
+        if self.state_observation_type == "task":
+            OBS_DIM = 101 + 7 + 7
+        elif self.state_observation_type == "joints":
+            OBS_DIM = 7 + 7
+        else:
+            error
 
         self._target_position = None
         self._position = np.zeros((OBS_DIM, ))
@@ -141,7 +148,12 @@ class RLBenchEnv(MultitaskEnv, Serializable):
         s1 = self.ob.task_low_dim_state
         s2 = self.ob.gripper_pose
         s3 = self.ob.joint_positions
-        state = np.concatenate((s1, s2, s3))
+        if self.state_observation_type == "task":
+            state = np.concatenate((s1, s2, s3))
+        elif self.state_observation_type == "joints":
+            state = np.concatenate((s2, s3))
+        else:
+            error
         return dict(
             observation=state.copy(),
             desired_goal=self._target_position.copy(),
