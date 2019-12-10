@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--save_video", action="store_true")
 args = parser.parse_args()
 
-env = roboverse.make('SawyerGraspOne-v0', gui=True)
+env = roboverse.make('SawyerGraspOne-v0', gui=True, randomize=True)
 obj_key = 'lego'
 num_grasps = 0
 
@@ -22,7 +22,7 @@ episode_reward = 0.
 for i in range(50):
     ee_pos = env.get_end_effector_pos()
     object_pos = env.get_object_midpoint(obj_key)
-
+    print(object_pos)
     xyz_diff = object_pos - ee_pos
     xy_diff = xyz_diff[:2]
     if np.linalg.norm(xyz_diff) > 0.02:

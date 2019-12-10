@@ -9,6 +9,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  goal_pos=(0.75, 0.2, -0.1),
                  reward_type='shaped',
                  reward_min=-2.5,
+                 randomize=True,
                  *args,
                  **kwargs
                  ):
@@ -21,13 +22,23 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         self._goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
         self._reward_min = reward_min
+        self._randomize = randomize
+        self._object_position_low = (.65, .10, -.36)
+        self._object_position_high = (.8, .25, -.36)
+        self._fixed_object_position = (.75, .2, -.36)
+
         self.dt = 0.1
         super().__init__(*args, **kwargs)
 
     def _load_meshes(self):
         super()._load_meshes()
+        if self._randomize:
+            object_position = np.random.uniform(
+                low=self._object_position_low, high=self._object_position_high)
+        else:
+            object_position = self._fixed_object_position
         self._objects = {
-            'lego': bullet.objects.lego()
+            'lego': bullet.objects.lego(pos=object_position)
         }
 
     def step(self, *action):

@@ -56,9 +56,16 @@ def scripted_non_markovian(env, pool, render_images):
 
 def scripted_markovian(env, pool, render_images):
     observation = env.reset()
-    target_pos = env.get_object_midpoint(OBJECT_NAME)
-    target_pos[:2] += np.random.uniform(low=-0.05, high=0.05, size=(2,))
-    target_pos[2] += np.random.uniform(low=-0.01, high=0.01, size=(1,))
+    if args.randomize:
+        target_pos = np.random.uniform(low=env._object_position_low,
+                                      high=env._object_position_high)
+        target_pos[:2] += np.random.uniform(low=-0.03, high=0.03, size=(2,))
+        target_pos[2] += np.random.uniform(low=-0.02, high=0.02, size=(1,))
+    else:
+        target_pos = env.get_object_midpoint(OBJECT_NAME)
+        target_pos[:2] += np.random.uniform(low=-0.05, high=0.05, size=(2,))
+        target_pos[2] += np.random.uniform(low=-0.01, high=0.01, size=(1,))
+
     # the object is initialized above the table, so let's compensate for it
     # target_pos[2] += -0.01
     images = []
@@ -128,7 +135,7 @@ def main(args):
 
     reward_type = 'sparse' if args.sparse else 'shaped'
     env = roboverse.make('SawyerGraspOne-v0', reward_type=reward_type,
-                         gui=args.gui)
+                         gui=args.gui, randomize=args.randomize)
     num_grasps = 0
     pool = roboverse.utils.DemoPool()
     success_pool = roboverse.utils.DemoPool()
@@ -172,10 +179,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-d", "--data-save-directory", type=str)
     parser.add_argument("-n", "--num-trajectories", type=int, default=2000)
+    parser.add_argument("-p", "--num-parallel-threads", type=int, default=1)
     parser.add_argument("--num-timesteps", type=int, default=50)
     parser.add_argument("--noise-std", type=float, default=0.1)
     parser.add_argument("--video_save_frequency", type=int,
                         default=0, help="Set to zero for no video saving")
+    parser.add_argument("--randomize", dest="randomize",
+                        action="store_true", default=False)
     parser.add_argument("--gui", dest="gui", action="store_true", default=False)
     parser.add_argument("--sparse", dest="sparse", action="store_true",
                         default=False)
