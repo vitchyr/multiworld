@@ -78,15 +78,19 @@ def scripted_markovian(env, pool, render_images):
         xy_diff = xyz_diff[:2]
         # print(observation[3])
         # print(xyz_diff)
+        if isinstance(observation, dict):
+            gripper_tip_distance = observation['state'][3]
+        else:
+            gripper_tip_distance = observation[3]
 
-        if np.linalg.norm(xyz_diff) > 0.02 and observation[3] > 0.025:
+        if np.linalg.norm(xyz_diff) > 0.02 and gripper_tip_distance > 0.025:
             action = target_pos - ee_pos
             action *= 5.0
             if np.linalg.norm(xy_diff) > 0.05:
                 action[2] *= 0.5
             grip = grip_open
             # print('Approaching')
-        elif observation[3] > 0.025:
+        elif gripper_tip_distance > 0.025:
             # o[3] is gripper tip distance
             action = np.zeros((3,))
             if grip == grip_open:
@@ -135,7 +139,8 @@ def main(args):
 
     reward_type = 'sparse' if args.sparse else 'shaped'
     env = roboverse.make('SawyerGraspOne-v0', reward_type=reward_type,
-                         gui=args.gui, randomize=args.randomize)
+                         gui=args.gui, randomize=args.randomize,
+                         observation_mode=args.observation_mode)
     num_grasps = 0
     pool = roboverse.utils.DemoPool()
     success_pool = roboverse.utils.DemoPool()
@@ -191,6 +196,7 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument("--non-markovian", dest="non_markovian",
                         action="store_true", default=False)
+    parser.add_argument("-o", "--observation-mode", type=str, default='pixels')
 
     args = parser.parse_args()
 

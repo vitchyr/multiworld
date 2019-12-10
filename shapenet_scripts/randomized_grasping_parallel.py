@@ -33,6 +33,7 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument("--randomize", dest="randomize", action="store_true",
                         default=False)
+    parser.add_argument("-o", "--observation-mode", type=str, default='pixels')
     args = parser.parse_args()
 
     num_trajectories_per_thread = int(
@@ -45,6 +46,7 @@ if __name__ == "__main__":
                '-d{}'.format(save_directory),
                '-n {}'.format(num_trajectories_per_thread),
                '-p {}'.format(args.num_parallel_threads),
+               '-o{}'.format(args.observation_mode),
                ]
     if args.sparse:
         command.append('--sparse')

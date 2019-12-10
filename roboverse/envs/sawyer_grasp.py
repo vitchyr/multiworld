@@ -10,6 +10,8 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  reward_type='shaped',
                  reward_min=-2.5,
                  randomize=True,
+                 observation_mode='state',
+                 obs_img_dim=48,
                  *args,
                  **kwargs
                  ):
@@ -18,14 +20,26 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         :param goal_pos: xyz coordinate of desired goal
         :param reward_type: one of 'shaped', 'sparse'
         :param reward_min: minimum possible reward per timestep
+        :param randomize: whether to randomize the object position or not
+        :param observation_mode: state, pixel, pixel_debug
+        :param obs_img_dim: image dimensions for the observations
         """
         self._goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
         self._reward_min = reward_min
         self._randomize = randomize
+        self._observation_mode = observation_mode
+
         self._object_position_low = (.65, .10, -.36)
         self._object_position_high = (.8, .25, -.36)
         self._fixed_object_position = (.75, .2, -.36)
+
+        self.obs_img_dim = obs_img_dim
+        self._view_matrix_obs = bullet.get_view_matrix(
+            target_pos=[.75, +.15, -0.2], distance=0.3,
+            yaw=90, pitch=-45, roll=0, up_axis_index=2)
+        self._projection_matrix_obs = bullet.get_projection_matrix(
+            self.obs_img_dim, self.obs_img_dim)
 
         self.dt = 0.1
         super().__init__(*args, **kwargs)
@@ -72,6 +86,11 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         }
         return info
 
+    def render_obs(self):
+        img, depth, segmentation = bullet.render(
+            self.obs_img_dim, self.obs_img_dim, self._view_matrix_obs, self._projection_matrix_obs)
+        return img
+
     def get_reward(self, info):
 
         if self._reward_type == 'sparse':
@@ -100,10 +119,37 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
             left_tip_pos - right_tip_pos)]
         end_effector_pos = self.get_end_effector_pos()
 
-        object_info = bullet.get_body_info(self._objects['lego'],
-                                           quat_to_deg=False)
-        object_pos = object_info['pos']
-        object_theta = object_info['theta']
+        if self._observation_mode == 'state':
+            object_info = bullet.get_body_info(self._objects['lego'],
+                                               quat_to_deg=False)
+            object_pos = object_info['pos']
+            object_theta = object_info['theta']
+            observation = np.concatenate(
+                (end_effector_pos, gripper_tips_distance,
+                 object_pos, object_theta))
+        elif self._observation_mode == 'pixels':
+            image_observation = self.render_obs()
+            observation = {
+                'state': np.concatenate(
+                    (end_effector_pos, gripper_tips_distance)),
+                'image': image_observation
+            }
+        elif self._observation_mode == 'pixels_debug':
+            # This mode passes in all the true state information + images
+            image_observation = self.render_obs()
 
-        return np.concatenate((end_effector_pos, gripper_tips_distance,
-                               object_pos, object_theta))
+            object_info = bullet.get_body_info(self._objects['lego'],
+                                               quat_to_deg=False)
+            object_pos = object_info['pos']
+            object_theta = object_info['theta']
+            state = np.concatenate(
+                (end_effector_pos,gripper_tips_distance,
+                 object_pos, object_theta))
+            observation = {
+                'state': state,
+                'image': image_observation,
+            }
+        else:
+            raise NotImplementedError
+
+        return observation

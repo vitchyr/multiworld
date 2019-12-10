@@ -55,6 +55,7 @@ for i in range(50):
 
     time.sleep(0.05)
     o, r, d, info = env.step(action)
+    env.render_obs()
     print(action)
     # print(o)
     print(r)
