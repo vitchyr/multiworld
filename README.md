@@ -175,3 +175,10 @@ values:
     'env_infos': list of dictionaries returned by step(),
 }
 ```
+
+## Credit
+Primary developers:
+[Vitchyr Pong](https://github.com/vitchyr)
+[Murtaza Dalal](https://github.com/mdalal2020)
+[Steven Lin](https://github.com/stevenlin1111)
+[Ashvin Nair](https://github.com/anair13)
