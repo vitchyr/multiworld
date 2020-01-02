@@ -8,6 +8,7 @@ import time
 import roboverse
 
 OBJECT_NAME = 'lego'
+EPSILON = 1e-8
 
 
 def scripted_non_markovian(env, pool, render_images):
@@ -41,6 +42,7 @@ def scripted_non_markovian(env, pool, render_images):
             grip = 1.
 
         action = np.append(action, [grip])
+        action = np.clip(action, -1 + EPSILON, 1 - EPSILON)
 
         if render_images:
             img = env.render()
@@ -110,6 +112,7 @@ def scripted_markovian(env, pool, render_images):
 
         action = np.append(action, [grip])
         action += np.random.normal(scale=args.noise_std)
+        action = np.clip(action, -1 + EPSILON, 1 - EPSILON)
 
         if render_images:
             img = env.render()
