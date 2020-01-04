@@ -199,7 +199,8 @@ if __name__ == "__main__":
                         default=False)
     parser.add_argument("--non-markovian", dest="non_markovian",
                         action="store_true", default=False)
-    parser.add_argument("-o", "--observation-mode", type=str, default='pixels')
+    parser.add_argument("-o", "--observation-mode", type=str, default='pixels',
+                        choices=('state', 'pixel', 'pixels_debug'))
 
     args = parser.parse_args()
 
