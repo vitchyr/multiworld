@@ -12,6 +12,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  randomize=True,
                  observation_mode='state',
                  obs_img_dim=48,
+                 success_threshold=0.05,
                  *args,
                  **kwargs
                  ):
@@ -33,7 +34,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         self._object_position_low = (.65, .10, -.36)
         self._object_position_high = (.8, .25, -.36)
         self._fixed_object_position = (.75, .2, -.36)
-
+        self._success_threshold = success_threshold
         self.obs_img_dim = obs_img_dim
         self._view_matrix_obs = bullet.get_view_matrix(
             target_pos=[.75, +.15, -0.2], distance=0.3,
@@ -79,11 +80,15 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
             object_pos - end_effector_pos)
         gripper_goal_distance = np.linalg.norm(
             self._goal_pos - end_effector_pos)
+        object_goal_success = int(object_goal_distance < self._success_threshold)
+
         info = {
             'object_goal_distance': object_goal_distance,
             'object_gripper_distance': object_gripper_distance,
-            'gripper_goal_distance': gripper_goal_distance
+            'gripper_goal_distance': gripper_goal_distance,
+            'object_goal_success': object_goal_success,
         }
+
         return info
 
     def render_obs(self):
