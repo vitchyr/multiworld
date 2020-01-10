@@ -22,9 +22,9 @@ class FlatGoalEnv(ProxyEnv):
         if append_goal_to_obs:
             obs_keys = obs_keys + goal_keys
         for k in obs_keys:
-            assert k in self.wrapped_env.observation_space.spaces
+            assert k in self.wrapped_env.observation_space.spaces, k
         for k in goal_keys:
-            assert k in self.wrapped_env.observation_space.spaces
+            assert k in self.wrapped_env.observation_space.spaces, k
         assert isinstance(self.wrapped_env.observation_space, Dict)
 
         self.obs_keys = obs_keys
