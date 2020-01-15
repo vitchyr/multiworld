@@ -1,6 +1,9 @@
 import numpy as np
 
 from multiworld.envs.mujoco.classic_mujoco.ant import AntEnv
+from collections import OrderedDict
+from multiworld.envs.env_util import get_stat_in_paths, \
+    create_stats_ordered_dict, get_asset_full_path
 
 
 class AntMazeEnv(AntEnv):
@@ -20,6 +23,26 @@ class AntMazeEnv(AntEnv):
             if valid:
                 valid_goals.append(goal)
         return np.r_[valid_goals]
+
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'xy-distance',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+            ))
+        return statistics
+
 
 def intersect(x1, y1, x2, y2, candidate_x, candidate_y):
     return x1 < candidate_x < x2 and y1 < candidate_y < y2

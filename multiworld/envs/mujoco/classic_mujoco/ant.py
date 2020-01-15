@@ -344,6 +344,9 @@ class AntEnv(MujocoEnv, Serializable, MultitaskEnv, metaclass=abc.ABCMeta):
             qpos[:2] = xy_start
         self.set_state(qpos, qvel)
 
+    def set_goal(self, goal):
+        self._set_goal(goal)
+
     def _set_goal(self, goal):
         if 'state_desired_goal' in goal:
             self._full_state_goal = goal['state_desired_goal']
