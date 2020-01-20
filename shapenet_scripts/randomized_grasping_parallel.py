@@ -6,7 +6,7 @@ import subprocess
 def get_data_save_directory(args):
     data_save_directory = args.data_save_directory
 
-    data_save_directory += args.observation_mode
+    data_save_directory += '_{}'.format(args.observation_mode)
 
     if args.num_trajectories > 1000:
         data_save_directory += '_{}K'.format(int(args.num_trajectories/1000))
