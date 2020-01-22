@@ -89,10 +89,23 @@ class Point2DEnv(MultitaskEnv, Serializable):
         assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
+        orig_new_pos = new_position.copy()
         for wall in self.walls:
             new_position = wall.handle_collision(
                 self._position, new_position
             )
+        if sum(new_position != orig_new_pos) > 1:
+            """
+            Hack: sometimes you get caught on two walls at a time. If you
+            process the input in the other direction, you might only get
+            caught on one wall instead.
+            """
+            new_position = orig_new_pos.copy()
+            for wall in self.walls[::-1]:
+                new_position = wall.handle_collision(
+                    self._position, new_position
+                )
+
         self._position = new_position
         self._position = np.clip(
             self._position,
@@ -232,7 +245,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
                 render_onscreen=self.render_onscreen,
             )
-        self.draw(self.drawer, False)
+        self.draw(self.drawer)
         img = self.drawer.get_image()
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
@@ -255,11 +268,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = position
         self._target_position = goal
 
-    def draw(self, drawer, tick):
-        # if self.drawer is not None:
-        #     self.drawer.fill(Color('white'))
-        # if self.render_drawer is not None:
-        #     self.render_drawer.fill(Color('white'))
+    def draw(self, drawer):
         drawer.fill(Color('white'))
         if self.show_goal:
             drawer.draw_solid_circle(
@@ -294,12 +303,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 wall.endpoint1,
                 Color('black'),
             )
-
         drawer.render()
-        if tick:
-            drawer.tick(self.render_dt_msec)
 
-    def render(self, close=False):
+    def render(self, mode='human', close=False):
         if close:
             self.render_drawer = None
             return
@@ -312,7 +318,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 y_bounds=(-self.boundary_dist-self.ball_radius, self.boundary_dist+self.ball_radius),
                 render_onscreen=True,
             )
-        self.draw(self.render_drawer, True)
+        self.draw(self.render_drawer)
+        self.render_drawer.tick(self.render_dt_msec)
+        if mode != 'interactive':
+            self.render_drawer.check_for_exit()
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()

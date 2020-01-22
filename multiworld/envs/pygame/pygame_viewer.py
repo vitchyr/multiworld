@@ -41,16 +41,18 @@ class PygameViewer(object):
     def render(self):
         if self.render_onscreen:
             pygame.display.update()
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    self.terminated = True
 
     def fill(self, color):
         self.screen.fill(color)
 
     def tick(self, dt):
         self.clock.tick(dt)
+
+    def check_for_exit(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                self.terminated = True
 
     def draw_segment(self, p1, p2, color):
         p1 = self.convert_xy(p1)

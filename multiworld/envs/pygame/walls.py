@@ -16,7 +16,8 @@ import abc
 
 
 class Wall(object, metaclass=abc.ABCMeta):
-    def __init__(self, min_x, max_x, min_y, max_y, min_dist, thickness):
+    def __init__(self, min_x, max_x, min_y, max_y, min_dist, thickness,
+                 epsilon_from_wall=0.01):
         self.top_segment = Segment(
             min_x,
             max_y,
@@ -49,13 +50,15 @@ class Wall(object, metaclass=abc.ABCMeta):
         ]
         self.min_dist = min_dist
         self.thickness = thickness
+        self.epsilon_from_wall = epsilon_from_wall
         self.max_x = max_x
         self.min_x = min_x
         self.max_y = max_y
         self.min_y = min_y
 
     def contains_point(self, point):
-        return (self.min_x < point[0] < self.max_x) and (self.min_y < point[1] < self.max_y)
+        return (self.min_x < point[0] < self.max_x) and (
+                    self.min_y < point[1] < self.max_y)
 
     def handle_collision(self, start_point, end_point):
         trajectory_segment = (
@@ -66,16 +69,16 @@ class Wall(object, metaclass=abc.ABCMeta):
         )
         if (self.top_segment.intersects_with(trajectory_segment) and
                 end_point[1] <= start_point[1] >= self.max_y):
-            end_point[1] = self.max_y
+            end_point[1] = self.max_y + self.epsilon_from_wall
         if (self.bottom_segment.intersects_with(trajectory_segment) and
                 end_point[1] >= start_point[1] <= self.min_y):
-            end_point[1] = self.min_y
+            end_point[1] = self.min_y - self.epsilon_from_wall
         if (self.right_segment.intersects_with(trajectory_segment) and
                 end_point[0] <= start_point[0] >= self.max_x):
-            end_point[0] = self.max_x
+            end_point[0] = self.max_x + self.epsilon_from_wall
         if (self.left_segment.intersects_with(trajectory_segment) and
                 end_point[0] >= start_point[0] <= self.min_x):
-            end_point[0] = self.min_x
+            end_point[0] = self.min_x - self.epsilon_from_wall
         return end_point
 
 
@@ -113,10 +116,10 @@ class VerticalWall(Wall):
             min_dist=min_dist,
             thickness=thickness,
         )
-        self.endpoint1 = (x_pos+thickness, top_y+thickness)
-        self.endpoint2 = (x_pos+thickness, bottom_y-thickness)
-        self.endpoint3 = (x_pos-thickness, bottom_y-thickness)
-        self.endpoint4 = (x_pos-thickness, top_y+thickness)
+        self.endpoint1 = (x_pos + thickness, top_y + thickness)
+        self.endpoint2 = (x_pos + thickness, bottom_y - thickness)
+        self.endpoint3 = (x_pos - thickness, bottom_y - thickness)
+        self.endpoint4 = (x_pos - thickness, top_y + thickness)
 
 
 class HorizontalWall(Wall):
@@ -134,7 +137,7 @@ class HorizontalWall(Wall):
             min_dist=min_dist,
             thickness=thickness,
         )
-        self.endpoint1 = (right_x+thickness, y_pos+thickness)
-        self.endpoint2 = (right_x+thickness, y_pos-thickness)
-        self.endpoint3 = (left_x-thickness, y_pos-thickness)
-        self.endpoint4 = (left_x-thickness, y_pos+thickness)
+        self.endpoint1 = (right_x + thickness, y_pos + thickness)
+        self.endpoint2 = (right_x + thickness, y_pos - thickness)
+        self.endpoint3 = (left_x - thickness, y_pos - thickness)
+        self.endpoint4 = (left_x - thickness, y_pos + thickness)
