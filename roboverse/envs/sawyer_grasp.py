@@ -46,7 +46,13 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         super().__init__(*args, **kwargs)
 
     def _load_meshes(self):
-        super()._load_meshes()
+        self._sawyer = bullet.objects.sawyer_finger_visual_only()
+        self._table = bullet.objects.table()
+        self._objects = {}
+        self._sensors = {}
+        self._workspace = bullet.Sensor(self._sawyer,
+            xyz_min=self._pos_low, xyz_max=self._pos_high,
+            visualize=False, rgba=[0,1,0,.1])
         if self._randomize:
             object_position = np.random.uniform(
                 low=self._object_position_low, high=self._object_position_high)
@@ -93,7 +99,8 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
 
     def render_obs(self):
         img, depth, segmentation = bullet.render(
-            self.obs_img_dim, self.obs_img_dim, self._view_matrix_obs, self._projection_matrix_obs)
+            self.obs_img_dim, self.obs_img_dim, self._view_matrix_obs,
+            self._projection_matrix_obs, shadow=0, gaussian_width=0)
         return img
 
     def get_reward(self, info):
@@ -134,6 +141,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  object_pos, object_theta))
         elif self._observation_mode == 'pixels':
             image_observation = self.render_obs()
+            # image_observation = np.zeros((48, 48, 3), dtype=np.uint8)
             observation = {
                 'state': np.concatenate(
                     (end_effector_pos, gripper_tips_distance)),

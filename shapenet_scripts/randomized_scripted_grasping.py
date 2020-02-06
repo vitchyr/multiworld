@@ -1,11 +1,10 @@
 import numpy as np
 from tqdm import tqdm
 import os
-from PIL import Image
 import argparse
-import time
 
 import roboverse
+import skvideo.io
 
 OBJECT_NAME = 'lego'
 EPSILON = 1e-8
@@ -46,7 +45,7 @@ def scripted_non_markovian(env, pool, render_images):
 
         if render_images:
             img = env.render()
-            images.append(Image.fromarray(np.uint8(img)))
+            images.append(img)
 
         observation = env.get_observation()
         next_state, reward, done, info = env.step(action)
@@ -115,8 +114,8 @@ def scripted_markovian(env, pool, render_images):
         action = np.clip(action, -1 + EPSILON, 1 - EPSILON)
 
         if render_images:
-            img = env.render()
-            images.append(Image.fromarray(np.uint8(img)))
+            img = observation['image']
+            images.append(img)
 
         observation = env.get_observation()
         next_state, reward, done, info = env.step(action)
@@ -171,9 +170,21 @@ def main(args):
                     pool._fields['terminals'][i]
                 )
         if render_images:
-            images[0].save('{}/{}.gif'.format(video_save_path, j),
-                           format='GIF', append_images=images[1:],
-                           save_all=True, duration=100, loop=0)
+            filename = '{}/{}.mp4'.format(video_save_path, j)
+            writer = skvideo.io.FFmpegWriter(
+                filename,
+                inputdict={"-r": "10"},
+                outputdict={
+                    '-vcodec': 'libx264',
+                })
+            num_frames = len(images)
+            for i in range(num_frames):
+                writer.writeFrame(images[i])
+            writer.close()
+
+            # images[0].save('{}/{}.gif'.format(video_save_path, j),
+            #                format='GIF', append_images=images[1:],
+            #                save_all=True, duration=100, loop=0)
 
     params = env.get_params()
     pool.save(params, data_save_path,
