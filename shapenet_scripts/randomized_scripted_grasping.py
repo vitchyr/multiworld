@@ -182,10 +182,6 @@ def main(args):
                 writer.writeFrame(images[i])
             writer.close()
 
-            # images[0].save('{}/{}.gif'.format(video_save_path, j),
-            #                format='GIF', append_images=images[1:],
-            #                save_all=True, duration=100, loop=0)
-
     params = env.get_params()
     pool.save(params, data_save_path,
               '{}_pool_{}.pkl'.format(timestamp, pool.size))
