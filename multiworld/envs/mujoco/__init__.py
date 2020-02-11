@@ -23,7 +23,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             goal_low=[-4, -4],
@@ -50,7 +50,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             goal_low=[-4, -4],
@@ -76,7 +76,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -104,7 +104,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear90.xml',
@@ -132,7 +132,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear150.xml',
@@ -160,7 +160,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -187,7 +187,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
@@ -218,7 +218,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
@@ -250,7 +250,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '6e99832',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_with_invis.xml',
@@ -276,7 +276,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -303,7 +303,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -331,7 +331,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear60.xml',
@@ -359,7 +359,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear90.xml',
@@ -387,7 +387,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -416,7 +416,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear60.xml',
@@ -445,7 +445,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '26e9926',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear90.xml',
@@ -474,7 +474,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear90.xml',
@@ -501,7 +501,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear150.xml',
@@ -528,7 +528,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -550,7 +550,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -571,7 +571,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -593,7 +593,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30.xml',
@@ -615,7 +615,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_small.xml',
@@ -637,7 +637,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_small.xml',
@@ -659,7 +659,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_small.xml',
@@ -681,7 +681,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -708,7 +708,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -735,7 +735,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -762,7 +762,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -789,7 +789,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -816,7 +816,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             # model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -843,7 +843,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -866,7 +866,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -888,7 +888,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear30_small_dt3.xml',
@@ -910,7 +910,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear90.xml',
@@ -931,7 +931,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant_maze:AntMazeEnv',
         tags={
             'git-commit-hash': '14880b1',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs=dict(
             model_path='classic_mujoco/ant_maze_gear150.xml',
@@ -956,7 +956,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
         tags={
             'git-commit-hash': '2d95c75',
-            'author': 'murtaza'
+            'author': 'anon'
         },
         kwargs={
             'hide_goal_markers': True,
@@ -968,7 +968,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYZEnv',
         tags={
             'git-commit-hash': '7b3113b',
-            'author': 'vitchyr'
+            'author': 'anon'
         },
         kwargs={
             'hide_goal_markers': False,
@@ -981,7 +981,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYZEnv',
         tags={
             'git-commit-hash': 'bea5de',
-            'author': 'murtaza'
+            'author': 'anon'
         },
         kwargs={
             'hide_goal_markers': True,
@@ -994,7 +994,7 @@ def register_custom_envs():
         entry_point=create_image_48_sawyer_reach_xy_env_v1,
         tags={
             'git-commit-hash': '2d95c75',
-            'author': 'murtaza'
+            'author': 'anon'
         },
     )
 
@@ -1003,7 +1003,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
         tags={
             'git-commit-hash': '2d95c75', #9cab5da
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'reward_type': 'vectorized_hand_distance',
@@ -1016,7 +1016,7 @@ def register_custom_envs():
         entry_point=create_image_84_sawyer_reach_xy_env_v2,
         tags={
             'git-commit-hash': '2d95c75', #9cab5da
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -1025,7 +1025,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
         tags={
             'git-commit-hash': '887848a',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'reward_type': 'vectorized_hand_distance',
@@ -1040,7 +1040,7 @@ def register_custom_envs():
         entry_point=create_image_84_sawyer_reach_xy_env_v3,
         tags={
             'git-commit-hash': '887848a',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -1054,7 +1054,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': 'ddd73dc',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.15, 0.4, 0.02, -.1, .45),
@@ -1077,7 +1077,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': 'ddd73dc',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.2, 0.35, 0.02, -.15, .4),
@@ -1100,7 +1100,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': 'ddd73dc',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.25, 0.3, 0.02, -.2, .35),
@@ -1126,7 +1126,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': 'dea1627',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.25, 0.3, 0.02, -.2, .4),
@@ -1148,7 +1148,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': 'dea1627',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.25, 0.3, 0.02, -.2, .4),
@@ -1170,7 +1170,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '7256aaf',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.15, 0.4, 0.02, -.1, .5),
@@ -1193,7 +1193,7 @@ def register_custom_envs():
                     '.sawyer_push_and_reach_env:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '7256aaf',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.15, 0.4, 0.02, -.1, .5),
@@ -1219,7 +1219,7 @@ def register_custom_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
         tags={
             'git-commit-hash': 'bede25d',
-            'author': 'ashvin',
+            'author': 'anon',
         },
         kwargs=dict(
             hide_goal=True,
@@ -1236,7 +1236,7 @@ def register_custom_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYHarderEnv',
         tags={
             'git-commit-hash': 'b5cac93',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             hide_goal=True,
@@ -1257,7 +1257,7 @@ def register_custom_envs():
                     '.sawyer_door_hook:SawyerDoorHookEnv',
         tags={
             'git-commit-hash': '15b48d5',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs = dict(
             goal_low=(-0.1, 0.45, 0.1, 0),
@@ -1277,7 +1277,7 @@ def register_custom_envs():
                     '.sawyer_door_hook:SawyerDoorHookEnv',
         tags={
             'git-commit-hash': '15b48d5',
-            'author': 'murtaza',
+            'author': 'anon',
         },
         kwargs=dict(
             goal_low=(-0.1, 0.45, 0.1, 0),
@@ -1300,7 +1300,7 @@ def register_custom_envs():
                     '.sawyer_pick_and_place:SawyerPickAndPlaceEnv',
         tags={
             'git-commit-hash': '30f23f7',
-            'author': 'steven',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.1, 0.55, 0.05),
@@ -1312,7 +1312,7 @@ def register_custom_envs():
 
     )
 
-    register_soroush_envs()
+    register_anon_envs()
 
 def create_image_84_wheeled_car_env_v0():
     from multiworld.core.image_env import ImageEnv
@@ -1422,7 +1422,7 @@ def create_image_48_sawyer_push_and_reach_arena_env_reset_free_v0():
         normalize=True,
     )
 
-def register_soroush_envs():
+def register_anon_envs():
     """
     Push And Reach
     """
@@ -1433,7 +1433,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.10, 0.55),
@@ -1451,7 +1451,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.10, 0.55),
@@ -1469,7 +1469,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.10, 0.55),
@@ -1491,7 +1491,7 @@ def register_soroush_envs():
         entry_point=create_image_84_sawyer_pnr_train_env_small_v0,
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -1499,7 +1499,7 @@ def register_soroush_envs():
         entry_point=create_image_84_sawyer_pnr_test_env_small_v0,
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -1509,7 +1509,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.20, 0.50),
@@ -1527,7 +1527,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.20, 0.50),
@@ -1545,7 +1545,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.20, 0.50),
@@ -1564,7 +1564,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.20, 0.50),
@@ -1586,7 +1586,7 @@ def register_soroush_envs():
                     '.sawyer_push_nips:SawyerPushAndReachXYEnv',
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush',
+            'author': 'anon',
         },
         kwargs=dict(
             hand_low=(-0.20, 0.50),
@@ -1608,7 +1608,7 @@ def register_soroush_envs():
         entry_point=create_image_84_sawyer_pnr_train_env_big_v0,
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -1616,7 +1616,7 @@ def register_soroush_envs():
         entry_point=create_image_84_sawyer_pnr_test_env_big_v0,
         tags={
             'git-commit-hash': '352248b',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -1628,7 +1628,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
         tags={
             'git-commit-hash': '911e0e7',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'model_path': 'wheeled_car_u_wall.xml',
@@ -1644,7 +1644,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
         tags={
             'git-commit-hash': '911e0e7',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'model_path': 'wheeled_car_u_wall.xml',
@@ -1660,7 +1660,7 @@ def register_soroush_envs():
         entry_point=create_image_84_wheeled_car_uwall_train_env_v0,
         tags={
             'git-commit-hash': '911e0e7',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -1669,7 +1669,7 @@ def register_soroush_envs():
         entry_point='multiworld.envs.mujoco.locomotion.wheeled_car:WheeledCarEnv',
         tags={
             'git-commit-hash': 'f773062',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'reward_type': 'vectorized_dense',
@@ -1685,7 +1685,7 @@ def register_soroush_envs():
         entry_point=create_image_84_wheeled_car_env_v1,
         tags={
             'git-commit-hash': 'f773062',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 

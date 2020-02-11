@@ -19,7 +19,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
             'git-commit-hash': '166f0f3',
-            'author': 'Vitchyr'
+            'author': 'anon'
         },
         kwargs={
             'images_are_rgb': True,
@@ -33,7 +33,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
             'git-commit-hash': '166f0f3',
-            'author': 'Vitchyr'
+            'author': 'anon'
         },
         kwargs={
             'images_are_rgb': True,
@@ -47,7 +47,7 @@ def register_custom_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
             'git-commit-hash': '639c1ebe399265814be65f2a30b7a012a07c7e0a',
-            'author': 'Vitchyr'
+            'author': 'anon'
         },
         kwargs={
             'images_are_rgb': True,
@@ -59,16 +59,16 @@ def register_custom_envs():
         },
     )
 
-    register_soroush_u_wall_envs()
-    register_soroush_flappy_bird_envs()
+    register_anon_u_wall_envs()
+    register_anon_flappy_bird_envs()
 
-def register_soroush_u_wall_envs():
+def register_anon_u_wall_envs():
     register(
         id='PointmassUWallTrainEnvSmall-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs = {
             'action_scale': 0.25,
@@ -87,7 +87,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs = {
             'action_scale': 0.25,
@@ -106,7 +106,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_84_pointmass_uwall_train_env_small_v0,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -114,7 +114,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.25,
@@ -137,7 +137,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.25,
@@ -160,7 +160,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_84_pointmass_uwall_test_env_small_v0,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -169,7 +169,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '31e4008',
-            'author': 'Vitchyr',
+            'author': 'anon',
             'project': 'PETS',
         },
         kwargs={
@@ -189,7 +189,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.25,
@@ -208,7 +208,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs = {
             'action_scale': 0.25,
@@ -227,7 +227,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_84_pointmass_uwall_train_env_big_v0,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -235,7 +235,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_48_pointmass_uwall_train_env_big_v0,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -243,7 +243,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.25,
@@ -266,7 +266,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.25,
@@ -289,7 +289,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_84_pointmass_uwall_test_env_big_v0,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -297,7 +297,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_48_pointmass_uwall_test_env_big_v0,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -306,7 +306,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.15,
@@ -325,7 +325,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.15,
@@ -344,7 +344,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_84_pointmass_uwall_train_env_big_v1,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -352,7 +352,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_48_pointmass_uwall_train_env_big_v1,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -360,7 +360,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.15,
@@ -383,7 +383,7 @@ def register_soroush_u_wall_envs():
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.15,
@@ -406,7 +406,7 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_84_pointmass_uwall_test_env_big_v1,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
     register(
@@ -414,17 +414,17 @@ def register_soroush_u_wall_envs():
         entry_point=create_image_48_pointmass_uwall_test_env_big_v1,
         tags={
             'git-commit-hash': '8bec83d',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
-def register_soroush_flappy_bird_envs():
+def register_anon_flappy_bird_envs():
     register(
         id='Point2DWallEnvFlappyBird-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
             'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
+            'author': 'anon'
         },
         kwargs={
             'action_scale': 0.25,
@@ -443,7 +443,7 @@ def register_soroush_flappy_bird_envs():
         entry_point=create_image_84_point2d_wall_flappy_bird_v0,
         tags={
             'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -452,7 +452,7 @@ def register_soroush_flappy_bird_envs():
         entry_point=create_image_84_point2d_wall_flappy_bird_v1,
         tags={
             'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
@@ -461,7 +461,7 @@ def register_soroush_flappy_bird_envs():
         entry_point=create_image_84_point2d_wall_flappy_bird_v2,
         tags={
             'git-commit-hash': 'bd8d226', #'cc66271', #'f773062', #'9cab5da',
-            'author': 'Soroush'
+            'author': 'anon'
         },
     )
 
