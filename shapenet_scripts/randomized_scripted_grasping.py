@@ -7,10 +7,10 @@ import roboverse
 import skvideo.io
 
 OBJECT_NAME = 'lego'
-EPSILON = 1e-8
+EPSILON = 0.05
 
 
-def scripted_non_markovian(env, pool, render_images):
+def scripted_non_markovian_grasping(env, pool, render_images):
     env.reset()
     target_pos = env.get_object_midpoint(OBJECT_NAME)
     target_pos += np.random.uniform(low=-0.05, high=0.05, size=(3,))
@@ -55,7 +55,7 @@ def scripted_non_markovian(env, pool, render_images):
     return success, images
 
 
-def scripted_markovian(env, pool, render_images):
+def scripted_markovian_grasping(env, pool, render_images):
     observation = env.reset()
     if args.randomize:
         target_pos = np.random.uniform(low=env._object_position_low,
@@ -70,8 +70,8 @@ def scripted_markovian(env, pool, render_images):
     # the object is initialized above the table, so let's compensate for it
     # target_pos[2] += -0.01
     images = []
-    grip_open = -1
-    grip_close = 1
+    grip_open = -0.8
+    grip_close = 0.8
 
     for i in range(args.num_timesteps):
         ee_pos = env.get_end_effector_pos()
@@ -127,6 +127,48 @@ def scripted_markovian(env, pool, render_images):
     return success, images
 
 
+def scripted_markovian_reaching(env, pool, render_images):
+    observation = env.reset()
+    if args.randomize:
+        target_pos = np.random.uniform(low=env._object_position_low,
+                                      high=env._object_position_high)
+        target_pos[:2] += np.random.uniform(low=-0.03, high=0.03, size=(2,))
+        target_pos[2] += np.random.uniform(low=-0.02, high=0.02, size=(1,))
+    else:
+        target_pos = env.get_object_midpoint(OBJECT_NAME)
+        target_pos[:2] += np.random.uniform(low=-0.05, high=0.05, size=(2,))
+        target_pos[2] += np.random.uniform(low=-0.01, high=0.01, size=(1,))
+
+    images = []
+
+    for i in range(args.num_timesteps):
+        ee_pos = env.get_end_effector_pos()
+        xyz_diff = target_pos - ee_pos
+        xy_diff = xyz_diff[:2]
+
+        action = target_pos - ee_pos
+        action *= 5.0
+        if np.linalg.norm(xy_diff) > 0.05:
+            action[2] *= 0.5
+        grip = 0.0
+        action = np.append(action, [grip])
+        action += np.random.normal(scale=args.noise_std)
+        action = np.clip(action, -1 + EPSILON, 1 - EPSILON)
+
+        if render_images:
+            img = observation['image']
+            images.append(img)
+
+        observation = env.get_observation()
+        next_state, reward, done, info = env.step(action)
+        pool.add_sample(observation, action, next_state, reward, done)
+        # time.sleep(0.2)
+        observation = next_state
+
+    success = info['object_gripper_distance'] < 0.03
+    return success, images
+
+
 def main(args):
 
     timestamp = roboverse.utils.timestamp()
@@ -140,10 +182,10 @@ def main(args):
         os.makedirs(video_save_path)
 
     reward_type = 'sparse' if args.sparse else 'shaped'
-    env = roboverse.make('SawyerGraspOne-v0', reward_type=reward_type,
+    env = roboverse.make(args.env, reward_type=reward_type,
                          gui=args.gui, randomize=args.randomize,
                          observation_mode=args.observation_mode)
-    num_grasps = 0
+    num_success = 0
     pool = roboverse.utils.DemoPool()
     success_pool = roboverse.utils.DemoPool()
 
@@ -151,14 +193,19 @@ def main(args):
         render_images = args.video_save_frequency > 0 and \
                         j % args.video_save_frequency == 0
 
-        if args.non_markovian:
-            success, images = scripted_non_markovian(env, pool, render_images)
+        if args.env == 'SawyerReachOne-v0':
+            if args.non_markovian:
+                success, images = scripted_non_markovian_grasping(env, pool, render_images)
+            else:
+                success, images = scripted_markovian_grasping(env, pool, render_images)
+        elif args.env == 'SawyerReach-v0':
+            success, images = scripted_markovian_reaching(env, pool, render_images)
         else:
-            success, images = scripted_markovian(env, pool, render_images)
+            raise NotImplementedError
 
         if success:
-            num_grasps += 1
-            print('Num grasps: {}'.format(num_grasps))
+            num_success += 1
+            print('Num success: {}'.format(num_success))
             top = pool._size
             bottom = top - args.num_timesteps
             for i in range(bottom, top):
@@ -192,6 +239,8 @@ def main(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--env", type=str, choices=('SawyerGraspOne-v0',
+                                                          'SawyerReach-v0'))
     parser.add_argument("-d", "--data-save-directory", type=str)
     parser.add_argument("-n", "--num-trajectories", type=int, default=2000)
     parser.add_argument("-p", "--num-parallel-threads", type=int, default=1)

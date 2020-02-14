@@ -15,6 +15,11 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
         'kwargs': {'max_force': 100, 'action_scale': 0.05}
     },
     {
+        'id': 'SawyerReach-v0',
+        'entry_point': ('roboverse.envs.sawyer_reach:SawyerReachEnv'),
+        'kwargs': {'max_force': 100, 'action_scale': 0.05}
+    },
+    {
         'id': 'SawyerLid-v0',
         'entry_point': ('roboverse.envs.sawyer_lid:SawyerLidEnv'),
     },

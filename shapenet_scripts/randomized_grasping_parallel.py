@@ -6,7 +6,7 @@ import subprocess
 def get_data_save_directory(args):
     data_save_directory = args.data_save_directory
 
-    data_save_directory += '_{}'.format(args.observation_mode)
+    data_save_directory += '_{}_{}'.format(args.env, args.observation_mode)
 
     if args.num_trajectories > 1000:
         data_save_directory += '_{}K'.format(int(args.num_trajectories/1000))
@@ -29,6 +29,8 @@ def get_data_save_directory(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-e", "--env", type=str, choices=('SawyerGraspOne-v0',
+                                                          'SawyerReach-v0'))
     parser.add_argument("-d", "--data-save-directory", type=str)
     parser.add_argument("-n", "--num-trajectories", type=int, default=2000)
     parser.add_argument("-p", "--num-parallel-threads", type=int, default=10)
@@ -46,6 +48,7 @@ if __name__ == "__main__":
     save_directory = get_data_save_directory(args)
     command = ['python',
                'shapenet_scripts/randomized_scripted_grasping.py',
+               '-e{}'.format(args.env),
                '-d{}'.format(save_directory),
                '-n {}'.format(num_trajectories_per_thread),
                '-p {}'.format(args.num_parallel_threads),
