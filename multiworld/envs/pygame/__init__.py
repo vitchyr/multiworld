@@ -4,6 +4,38 @@ import logging
 LOGGER = logging.getLogger(__name__)
 REGISTERED = False
 
+import numpy as np
+def axis_goal_sampler(env, batch_size):
+    pos = np.random.uniform(env.obs_range.low, env.obs_range.high, (batch_size, 2))
+    for idx in range(len(pos)):
+        if np.random.random() > 0.5:
+            pos[idx][0] = 0.0
+        else:
+            pos[idx][1] = 0.0
+    return dict(
+        state_desired_goal=pos,
+        desired_goal=pos
+    )
+
+def half_axis_goal_sampler(env, batch_size):
+    pos = np.random.uniform(env.obs_range.low / 2, env.obs_range.high / 2, (batch_size, 2))
+    for idx in range(len(pos)):
+        if np.random.random() > 0.5:
+            pos[idx][0] = 0.0
+        else:
+            pos[idx][1] = 0.0
+    return dict(
+        state_desired_goal=pos,
+        desired_goal=pos
+    )
+
+
+def full_goal_sampler(env, batch_size):
+    pos = np.random.uniform(env.obs_range.low, env.obs_range.high, (batch_size, 2))
+    return dict(
+        state_desired_goal=pos,
+        desired_goal=pos
+    )
 
 def register_pygame_envs():
     global REGISTERED
@@ -11,6 +43,47 @@ def register_pygame_envs():
         return
     REGISTERED = True
     LOGGER.info("Registering multiworld pygame gym environments")
+    register(
+        id='Point2DEnv-Train-Half-Axis-Eval-Everything-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '166f0f3',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'action_scale': 0.05,
+            'render_onscreen': False,
+            'fixed_reset': np.array([0, 0]),
+            'eval_goal_sampler': full_goal_sampler,
+            'expl_goal_sampler': half_axis_goal_sampler,
+            'randomize_position_on_reset': False,
+            'reward_type': 'dense_l1',
+        },
+    )
+
+    register(
+        id='Point2DEnv-Train-Axis-Eval-Everything-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '166f0f3',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'action_scale': 0.05,
+            'render_onscreen': False,
+            'fixed_reset': np.array([0, 0]),
+            'eval_goal_sampler': full_goal_sampler,
+            'expl_goal_sampler': axis_goal_sampler,
+            'randomize_position_on_reset': False,
+            'reward_type': 'dense_l1',
+        },
+    )
     register(
         id='Point2DLargeEnv-offscreen-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',

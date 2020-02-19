@@ -34,8 +34,11 @@ class Point2DEnv(MultitaskEnv, Serializable):
             walls=None,
             fixed_goal=None,
             randomize_position_on_reset=True,
+            fixed_reset=None,
             images_are_rgb=False,  # else black and white
             show_goal=True,
+            expl_goal_sampler=None,
+            eval_goal_sampler=None,
             **kwargs
     ):
         if walls is None:
@@ -84,6 +87,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.render_drawer = None
+        self.goal_sampling_mode = "train"
+        self.fixed_reset = fixed_reset
+        self.expl_goal_sampler = expl_goal_sampler
+        self.eval_goal_sampler = eval_goal_sampler
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -134,10 +141,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def reset(self):
         self._target_position = self.sample_goal()['state_desired_goal']
         if self.randomize_position_on_reset:
+            assert self.fixed_reset is None, "Cannot have both fixed reset and randomized reset"
             self._position = self._sample_position(
                 self.obs_range.low,
                 self.obs_range.high,
             )
+        elif self.fixed_reset is not None:
+            self._position = self.fixed_reset
 
         return self._get_obs()
 
@@ -171,6 +181,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             return -(d > self.target_radius).astype(np.float32)
         elif self.reward_type == "dense":
             return -d
+        elif self.reward_type == "dense_l1":
+            return -np.linalg.norm(achieved_goals - desired_goals, axis=-1,
+                                   ord=1)
         elif self.reward_type == 'vectorized_dense':
             return -np.abs(achieved_goals - desired_goals)
         else:
@@ -207,6 +220,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         }
 
     def sample_goals(self, batch_size):
+        if self.goal_sampling_mode == 'train' and self.expl_goal_sampler:
+            return self.expl_goal_sampler(self, batch_size)
+        if self.goal_sampling_mode == 'test' and self.eval_goal_sampler:
+            return self.eval_goal_sampler(self, batch_size)
+        assert self.goal_sampling_mode is None, "Invalid goal sampling mode: {}".format(self.goal_sampling_mode)
+
         if not self.fixed_goal is None:
             goals = np.repeat(
                 self.fixed_goal.copy()[None],
