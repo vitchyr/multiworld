@@ -246,6 +246,46 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'state_desired_goal': goals,
         }
 
+    def get_image_plt(self, vals, vmin=None, vmax=None, extent=[-4, 4, -4, 4],
+                      small_markers=False, draw_walls=True, draw_state=True,
+                      draw_goal=True, draw_subgoals=False, imsize=None):
+        fig, ax = plt.subplots()
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
+        ax.set_ylim(ax.get_ylim()[::-1])
+        DPI = fig.get_dpi()
+        if imsize is None:
+            fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
+        else:
+            fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
+
+        marker_factor = 0.60
+        if small_markers:
+            marker_factor = 0.10
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+        ax.axis('off')
+
+        ax.imshow(
+            vals,
+            extent=extent,
+            cmap=plt.get_cmap('plasma'),
+            interpolation='nearest',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close()
+        return data
+
     def set_position(self, pos):
         self._position[0] = pos[0]
         self._position[1] = pos[1]
