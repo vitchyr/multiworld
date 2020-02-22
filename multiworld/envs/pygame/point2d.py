@@ -219,6 +219,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             'state_desired_goal': self._target_position.copy(),
         }
 
+    def set_goal(self, goal):
+        self._target_position = goal['state_desired_goal']
+
     def sample_goals(self, batch_size):
         if self.goal_sampling_mode == 'train' and self.expl_goal_sampler:
             return self.expl_goal_sampler(self, batch_size)
@@ -249,6 +252,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def get_image_plt(self, vals, vmin=None, vmax=None, extent=[-4, 4, -4, 4],
                       small_markers=False, draw_walls=True, draw_state=True,
                       draw_goal=True, draw_subgoals=False, imsize=None):
+        import matplotlib.pyplot as plt
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
@@ -285,6 +289,15 @@ class Point2DEnv(MultitaskEnv, Serializable):
         data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
         plt.close()
         return data
+
+    def get_mesh_grid(self, observation_key, granularity=.4):
+        vals = np.arange(-self.boundary_dist, self.boundary_dist, granularity)
+        grid = np.zeros((len(vals), len(vals), 2))
+        for i in range(len(vals)):
+            for j in range(len(vals)):
+                grid[i, j] =np.array([vals[i], vals[j]])
+        grid = grid.reshape(-1, 2)
+        return grid
 
     def set_position(self, pos):
         self._position[0] = pos[0]
