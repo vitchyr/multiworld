@@ -27,6 +27,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             presampled_goals=None,
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
+            presample_goals_on_fly=False,
     ):
 
         """
@@ -107,11 +108,21 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.reward_type = reward_type
         self.threshold = threshold
         self._presampled_goals = presampled_goals
+        if presample_goals_on_fly:
+            assert self._presampled_goals is None
+            self.num_goals_presampled = 0
+            self.wrapped_env.goal_sampling_mode = 'test'
+            self.reset()
+            self._presampled_goals = presampled_goals = self.sample_goals(3000)
+            print("Done sampling goals")
+
         if self._presampled_goals is None:
             self.num_goals_presampled = 0
         else:
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
         self._last_image = None
+        self.cached_mesh_grid = None
+
 
     def step(self, action):
         obs, reward, done, info = self.wrapped_env.step(action)
@@ -267,6 +278,22 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                 always_show_all_stats=True,
             ))
         return statistics
+
+    def get_mesh_grid(self, observation_key, *args, **kwargs):
+        if 'image' not in observation_key:
+            return self.wrapped_env.get_mesh_grid(observation_key,
+                                                   *args, **kwargs)
+        if self.cached_mesh_grid is not None:
+            return self.cached_mesh_grid
+        mesh_grid = self.wrapped_env.get_mesh_grid(*args, **kwargs)
+        img_grid = []
+        for goal in mesh_grid:
+            self.wrapped_env.set_to_goal({'state_desired_goal': goal})
+            img_obs = self._get_flat_img()
+            img_grid.append(img_obs)
+        mesh_grid = np.vstack(img_grid)
+        self.cached_mesh_grid = mesh_grid
+        return mesh_grid
 
 def normalize_image(image, dtype=np.float64):
     assert image.dtype == np.uint8
