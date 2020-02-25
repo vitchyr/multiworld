@@ -64,7 +64,39 @@ import pygame
 #     reward_type='state_distance',
 #     reset_free=False,
 # )
-env = SawyerReachXYEnv()
+# env = SawyerReachXYEnv()
+
+
+from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_subset import SawyerMultiobjectEnv
+from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
+x_var = 0.2
+x_low = -x_var
+x_high = x_var
+y_low = 0.5
+y_high = 0.7
+t = 0.05
+env_kwargs = dict(
+    fixed_start=True,
+    fixed_colors=False,
+    # reward_type="sparse",
+    num_objects=1,
+    object_meshes=None,
+    num_scene_objects=[1],
+    maxlen=0.1,
+    action_repeat=1,
+    puck_goal_low=(x_low + 0.01, y_low + 0.01),
+    puck_goal_high=(x_high - 0.01, y_high - 0.01),
+    hand_goal_low=(x_low + 3 * t, y_low + t),
+    hand_goal_high=(x_high - 3 * t, y_high - t),
+    mocap_low=(x_low + 2 * t, y_low, 0.0),
+    mocap_high=(x_high - 2 * t, y_high, 0.5),
+    object_low=(x_low + 0.01, y_low + 0.01, 0.02),
+    object_high=(x_high - 0.01, y_high - 0.01, 0.02),
+    use_textures=False,
+    init_camera=sawyer_init_camera_zoomed_in,
+)
+env = SawyerMultiobjectEnv(**env_kwargs)
+
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
