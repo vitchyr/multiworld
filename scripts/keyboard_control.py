@@ -66,36 +66,56 @@ import pygame
 # )
 # env = SawyerReachXYEnv()
 
+# env_type = 'push_multiobj_subset'
+env_type = 'push_leap'
 
-from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_subset import SawyerMultiobjectEnv
-from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
-x_var = 0.2
-x_low = -x_var
-x_high = x_var
-y_low = 0.5
-y_high = 0.7
-t = 0.05
-env_kwargs = dict(
-    fixed_start=True,
-    fixed_colors=False,
-    # reward_type="sparse",
-    num_objects=1,
-    object_meshes=None,
-    num_scene_objects=[1],
-    maxlen=0.1,
-    action_repeat=1,
-    puck_goal_low=(x_low + 0.01, y_low + 0.01),
-    puck_goal_high=(x_high - 0.01, y_high - 0.01),
-    hand_goal_low=(x_low + 3 * t, y_low + t),
-    hand_goal_high=(x_high - 3 * t, y_high - t),
-    mocap_low=(x_low + 2 * t, y_low, 0.0),
-    mocap_high=(x_high - 2 * t, y_high, 0.5),
-    object_low=(x_low + 0.01, y_low + 0.01, 0.02),
-    object_high=(x_high - 0.01, y_high - 0.01, 0.02),
-    use_textures=False,
-    init_camera=sawyer_init_camera_zoomed_in,
-)
-env = SawyerMultiobjectEnv(**env_kwargs)
+if env_type == 'push_multiobj_subset':
+    from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_subset import SawyerMultiobjectEnv
+    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
+    x_var = 0.2
+    x_low = -x_var
+    x_high = x_var
+    y_low = 0.5
+    y_high = 0.7
+    t = 0.05
+    env_kwargs = dict(
+        fixed_start=True,
+        fixed_colors=False,
+        # reward_type="sparse",
+        num_objects=1,
+        object_meshes=None,
+        num_scene_objects=[1],
+        maxlen=0.1,
+        action_repeat=1,
+        puck_goal_low=(x_low + 0.01, y_low + 0.01),
+        puck_goal_high=(x_high - 0.01, y_high - 0.01),
+        hand_goal_low=(x_low + 3 * t, y_low + t),
+        hand_goal_high=(x_high - 3 * t, y_high - t),
+        # mocap_low=(x_low + 2 * t, y_low, 0.0),
+        # mocap_high=(x_high - 2 * t, y_high, 0.5),
+        object_low=(x_low + 0.01, y_low + 0.01, 0.02),
+        object_high=(x_high - 0.01, y_high - 0.01, 0.02),
+        use_textures=False,
+        init_camera=sawyer_init_camera_zoomed_in,
+
+        # pos_action_scale=0.02,
+        mocap_low=(x_low, y_low, 0.0),
+        mocap_high=(x_high, y_high, 0.5),
+    )
+    env = SawyerMultiobjectEnv(**env_kwargs)
+elif env_type == 'push_leap':
+    from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_leap import SawyerPushAndReachXYEnv
+    env_kwargs = dict(
+        hand_low=(-0.20, 0.50),
+        hand_high=(0.20, 0.70),
+        puck_low=(-0.20, 0.50),
+        puck_high=(0.20, 0.70),
+        fix_reset=0.075,
+        sample_realistic_goals=True,
+        reward_type='state_distance',
+        invisible_boundary_wall=True,
+    )
+    env = SawyerPushAndReachXYEnv(**env_kwargs)
 
 NDIM = env.action_space.low.size
 lock_action = False
@@ -112,6 +132,7 @@ while True:
         if event.type == KEYDOWN:
             char = event.dict['key']
             new_action = char_to_action.get(chr(char), None)
+            # print(new_action)
             if new_action == 'toggle':
                 lock_action = not lock_action
             elif new_action == 'reset':
@@ -128,7 +149,7 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-    env.step(action[:2])
+            env.step(action[:2])
     if done:
         obs = env.reset()
     env.render()

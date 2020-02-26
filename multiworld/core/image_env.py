@@ -185,7 +185,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         if self.normalize:
             image_obs = image_obs / 255.0
         if self.transpose:
-            image_obs = image_obs.transpose()
+            image_obs = image_obs.transpose((2, 0, 1))
         assert image_obs.shape[0] == self.channels
         return image_obs.flatten()
 
