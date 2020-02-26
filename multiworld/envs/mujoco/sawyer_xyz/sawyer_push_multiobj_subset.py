@@ -30,6 +30,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
     def __init__(
             self,
             reward_info=None,
+            reward_type="dense",
+            reward_mask=None,
+            epsilon=0.05,
             frame_skip=50,
             pos_action_scale=4. / 100,
             randomize_goals=True,
@@ -87,6 +90,10 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.randomize_goals = randomize_goals
         self._pos_action_scale = pos_action_scale
         self.reset_to_initial_position = reset_to_initial_position
+        assert reward_mask in [None, "hand", "objects"]
+        self.reward_type = reward_type
+        self.reward_mask = reward_mask
+        self.epsilon = epsilon
 
         self.init_block_low = np.array(init_block_low)
         self.init_block_high = np.array(init_block_high)
@@ -293,6 +300,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             objects["object%d" % i] = b[i+1]
         info = dict(
             hand_distance=hand_distance,
+            hand_success=float(hand_distance < 0.05),
+            puck_success=float(object_distances["current_object_distance"] < 0.05),
             success=float(hand_distance + sum(object_distances.values()) < 0.06),
             **object_distances,
             **touch_distances,
@@ -472,16 +481,26 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         return self._get_obs()
 
     def compute_rewards(self, action, obs, info=None):
-        # objects_present = info['objects_present'].reshape(-1, self.num_objects + 1, 1)
+        ob_p = obs['state_achieved_goal'].reshape(-1, 2, 2)
+        goal = obs['state_desired_goal'].reshape(-1, 2, 2)
+        distance = np.linalg.norm(ob_p - goal, axis=2)
 
-        ob_p = obs['state_achieved_goal'].reshape(-1, self.num_cur_objects + 1, 2)
-        goal = obs['state_desired_goal'].reshape(-1, self.num_cur_objects + 1, 2)
-        # th = objects_present*ob_p != 0
-        # ob = ob_p[:, th[0][:, 0]]
+        if self.reward_mask == "hand":
+            distance = distance[:, :1]
+        if self.reward_mask == "objects":
+            distance = distance[:, 1:]
 
-        distances = np.linalg.norm(ob_p - goal, axis=2)[:, 1:]
+        if self.reward_type == "dense":
+            reward = - np.sum(distance, axis=1)
+        elif self.reward_type == "sparse":
+            max_dist = np.linalg.norm(distance, axis=1, ord=np.inf)
+            success = max_dist < self.epsilon
+            reward = success - 1
+        else:
+            print("REWARD TYPE N0T IMPLEMENTED")
+            return 1/0
 
-        return -distances
+        return reward
 
     # def compute_reward(self, action, obs, info=None):
     #     r = -np.linalg.norm(obs['state_achieved_goal'] - obs['state_desired_goal'])

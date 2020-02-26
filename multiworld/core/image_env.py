@@ -1,6 +1,6 @@
 import random
 
-import cv2
+# import cv2
 import numpy as np
 import warnings
 from PIL import Image

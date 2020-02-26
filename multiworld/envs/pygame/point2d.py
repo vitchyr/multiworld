@@ -44,9 +44,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
             walls = []
         if fixed_goal is not None:
             fixed_goal = np.array(fixed_goal)
-        if len(kwargs) > 0:
-            LOGGER = logging.getLogger(__name__)
-            LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
+        # if len(kwargs) > 0:
+        #     LOGGER = logging.getLogger(__name__)
+            #LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
@@ -62,7 +62,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.randomize_position_on_reset = randomize_position_on_reset
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
-
+        self.feasible = None
         self.max_target_distance = self.boundary_dist - self.target_radius
 
         self._target_position = None
@@ -81,7 +81,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             ('state_desired_goal', self.obs_range),
             ('state_achieved_goal', self.obs_range),
         ])
-
+        self.subgoal = None
         self.drawer = None
         self.render_drawer = None
 
@@ -203,12 +203,14 @@ class Point2DEnv(MultitaskEnv, Serializable):
         else:
             goals = np.zeros((batch_size, self.obs_range.low.size))
             for b in range(batch_size):
-                if batch_size > 1:
-                    logging.warning("This is very slow!")
-                goals[b, :] = self._sample_position(
-                    self.obs_range.low,
-                    self.obs_range.high,
-                )
+                #if batch_size > 1:
+                    #logging.warning("This is very slow!")
+                if self.feasible != None:
+                    goals[b, :] = self._sample_position(
+                        self.obs_range.low,
+                        self.obs_range.high,)
+                else:
+                    goals[b, :] = np.random.uniform(self.obs_range.low, self.obs_range.high)
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -246,6 +248,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._position = goal
         self._target_position = goal
 
+    def set_subgoal(self, pos):
+        self.subgoal = pos
+
     def get_env_state(self):
         return self._get_obs()
 
@@ -267,6 +272,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 self.target_radius,
                 Color('green'),
             )
+        if self.subgoal is not None:
+            drawer.draw_solid_circle(
+                self.subgoal,
+                self.ball_radius,
+                Color('orange'),
+            )
+
         drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
