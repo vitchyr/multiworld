@@ -28,6 +28,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
             presample_goals_on_fly=False,
+            num_presampled_goals_on_fly=10000,
     ):
 
         """
@@ -113,7 +114,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.num_goals_presampled = 0
             self.wrapped_env.goal_sampling_mode = 'test'
             self.reset()
-            self._presampled_goals = presampled_goals = self.sample_goals(3000)
+            self._presampled_goals = presampled_goals = self.sample_goals(
+                num_presampled_goals_on_fly)
             print("Done sampling goals")
 
         if self._presampled_goals is None:
@@ -285,7 +287,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                                                    *args, **kwargs)
         if self.cached_mesh_grid is not None:
             return self.cached_mesh_grid
-        mesh_grid = self.wrapped_env.get_mesh_grid(*args, **kwargs)
+        mesh_grid = self.wrapped_env.get_mesh_grid(observation_key, *args,
+                                                   **kwargs)
         img_grid = []
         for goal in mesh_grid:
             self.wrapped_env.set_to_goal({'state_desired_goal': goal})

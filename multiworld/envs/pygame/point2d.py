@@ -87,7 +87,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.drawer = None
         self.render_drawer = None
-        self.goal_sampling_mode = "train"
+        self.goal_sampling_mode = "test"
         self.fixed_reset = fixed_reset
         self.expl_goal_sampler = expl_goal_sampler
         self.eval_goal_sampler = eval_goal_sampler
