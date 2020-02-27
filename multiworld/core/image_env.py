@@ -109,10 +109,11 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.reward_type = reward_type
         self.threshold = threshold
         self._presampled_goals = presampled_goals
+        self.presample_goals_on_fly = presample_goals_on_fly
+        self.num_presampled_goals_on_fly = num_presampled_goals_on_fly
         if presample_goals_on_fly:
             assert self._presampled_goals is None
             self.num_goals_presampled = 0
-            self.wrapped_env.goal_sampling_mode = 'test'
             self.reset()
             self._presampled_goals = presampled_goals = self.sample_goals(
                 num_presampled_goals_on_fly)
@@ -124,6 +125,15 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
         self._last_image = None
         self.cached_mesh_grid = None
+
+    def switch_wrapped_env_goal_sampling_mode(self, mode):
+        self.wrapped_env.goal_sampling_mode = mode
+        if self.presample_goals_on_fly:
+            self.num_goals_presampled = 0
+            self.reset()
+            self._presampled_goals = presampled_goals = self.sample_goals(
+                self.num_presampled_goals_on_fly)
+            print("Done sampling goals for mode: ", mode)
 
 
     def step(self, action):

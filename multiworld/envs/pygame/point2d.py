@@ -288,6 +288,10 @@ class Point2DEnv(MultitaskEnv, Serializable):
         data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
         data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
         plt.close()
+        # X and Y are flipped for some reason
+        data = data.transpose((1, 0, 2))
+        # Normal processing from the image env
+        data = data.transpose(2, 1, 0).flatten()
         return data
 
     def get_mesh_grid(self, observation_key, granularity=.4):
