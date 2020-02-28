@@ -70,7 +70,7 @@ env_type = 'push_multiobj_subset'
 # env_type = 'push_leap'
 
 if env_type == 'push_multiobj_subset':
-    from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_subset import SawyerMultiobjectEnv
+    from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_ccrig import SawyerMultiobjectEnv
     from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
     x_var = 0.2
     x_low = -x_var

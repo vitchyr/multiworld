@@ -190,7 +190,6 @@ def create_object_xml(filename, num_objects, object_mass, friction_params, objec
             #                contype="7", conaffinity="7", friction="{} {} {}".format(f_sliding, f_torsion, f_rolling)
             #                )
             ET.SubElement(obj, "inertial", mass="0.1", pos="0 0 0", diaginertia="100000 100000 100000")
-            # ET.SubElement(obj, "inertial", mass="100.1", pos="0 0 0", diaginertia="10000000 10000000 10000000")
 
             # ET.SubElement(obj, "geom", pos="{} {} 0.0".format(l2, pos2), type="cylinder", size=str(cylinder_radius) + " 0.02",
             #                             rgba="{} {} {} 1".format(color2[0], color2[1], color2[2]), mass="{}".format(object_mass),
