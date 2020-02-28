@@ -414,8 +414,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._reset_hand()
         self._reset_puck()
 
-        goal = self._sample_realistic_goal()
-        self.set_goal(goal)
+        # goal = self._sample_realistic_goal()
+        goals = self.sample_goals(batch_size=1)
+        for k in goals.keys():
+            goals[k] = goals[k][0]
+        self.set_goal(goals)
         self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()

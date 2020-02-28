@@ -156,8 +156,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             np.array(low),
             np.array(high),
         )
-        goal_low = np.array(low) # np.concatenate((self.hand_goal_low, self.puck_goal_low))
-        goal_high = np.array(high) # np.concatenate((self.hand_goal_high, self.puck_goal_high))
+        goal_low = np.concatenate((self.hand_goal_low, self.puck_goal_low)) #np.array(low)
+        goal_high = np.concatenate((self.hand_goal_high, self.puck_goal_high)) #np.array(high)
         self.goal_box = Box(
             goal_low,
             goal_high,
@@ -674,91 +674,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.data.set_mocap_pos('mocap', mocap_pos)
         self.data.set_mocap_quat('mocap', mocap_quat)
         self.sim.forward()
-
-
-
-
-class SawyerTwoObjectEnv(SawyerMultiobjectEnv):
-    """
-    This environment matches exactly the 2-object pushing environment in the RIG paper
-    """
-    PUCK1_GOAL_LOW = np.array([0.0, 0.5])
-    PUCK1_GOAL_HIGH = np.array([0.2, 0.7])
-    PUCK2_GOAL_LOW = np.array([-0.2, 0.5])
-    PUCK2_GOAL_HIGH = np.array([0.0, 0.7])
-    HAND_GOAL_LOW = np.array([-0.05, 0.55])
-    HAND_GOAL_HIGH = np.array([0.05, 0.65])
-
-    low = np.hstack((HAND_GOAL_LOW, PUCK1_GOAL_LOW, PUCK2_GOAL_LOW))
-    high = np.hstack((HAND_GOAL_HIGH, PUCK1_GOAL_HIGH, PUCK2_GOAL_HIGH))
-
-    def __init__(
-            self,
-            **kwargs
-    ):
-        self.quick_init(locals())
-        x = 0.2
-        y1 = 0.5
-        y2 = 0.7
-        SawyerMultiobjectEnv.__init__(
-            self,
-            hand_goal_low = (-x, y1),
-            hand_goal_high = (x, y2),
-            puck_goal_low = (-x, y1),
-            puck_goal_high = (x, y2),
-            mocap_low=(-0.1, y1, 0.0),
-            mocap_high=(0.1, y2, 0.5),
-
-            num_objects=2,
-            preload_obj_dict=[
-                dict(color2=(0.1, 0.1, 0.9)),
-                dict(color2=(0.1, 0.9, 0.1))
-            ],
-            **kwargs
-        )
-
-    def sample_goal_for_rollout(self):
-        if self.randomize_goals:
-            touching = [True]
-            while any(touching):
-                r = np.random.uniform(self.low, self.high)
-                hand = r[:2]
-                g1 = r[2:4]
-                g2 = r[4:6]
-                diffs = [hand - g1, hand - g2, g1 - g2]
-                touching = [np.linalg.norm(d) <= 0.08 for d in diffs]
-        else:
-            pos = self.FIXED_GOAL_INIT.copy()
-        return np.hstack((hand, g1, g2))
-
-    def sample_goals(self, batch_size):
-        goals = np.random.uniform(
-            self.low,
-            self.high,
-            size=(batch_size, self.low.size),
-        )
-        return {
-            'desired_goal': goals,
-            'state_desired_goal': goals,
-        }
-
-    def reset(self):
-        velocities = self.data.qvel.copy()
-        angles = self.data.qpos.copy()
-        angles[:7] = np.array(self.init_angles[:7]) # just change robot joints
-        self.set_state(angles.flatten(), velocities.flatten())
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
-            self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
-        # set_state resets the goal xy, so we need to explicit set it again
-        self.state_goal = self.sample_goal_for_rollout()
-
-        # explicitly set starting location of two blocks
-        self.set_object_xy(0, np.array([0.05, 0.6]))
-        self.set_object_xy(1, np.array([-0.05, 0.6]))
-
-        self.reset_mocap_welds()
-        return self._get_obs()
 
 
 if __name__ == "__main__":
