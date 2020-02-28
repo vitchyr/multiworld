@@ -66,10 +66,10 @@ import pygame
 # )
 # env = SawyerReachXYEnv()
 
-env_type = 'push_multiobj_subset'
+env_type = 'push_ccrig'
 # env_type = 'push_leap'
 
-if env_type == 'push_multiobj_subset':
+if env_type == 'push_ccrig':
     from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_ccrig import SawyerMultiobjectEnv
     from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
     x_var = 0.2
@@ -78,47 +78,82 @@ if env_type == 'push_multiobj_subset':
     y_low = 0.5
     y_high = 0.7
     t = 0.05
+    # env_kwargs = dict(
+    #     # fixed_start=True,
+    #     fixed_colors=False,
+    #     # reward_type="sparse",
+    #     # num_objects=1,
+    #     object_meshes=None,
+    #     # num_scene_objects=[1],
+    #     maxlen=0.1,
+    #     action_repeat=1,
+    #     puck_goal_low=(x_low + 0.01, y_low + 0.01),
+    #     puck_goal_high=(x_high - 0.01, y_high - 0.01),
+    #     hand_goal_low=(x_low + 3 * t, y_low + t),
+    #     hand_goal_high=(x_high - 3 * t, y_high - t),
+    #     # mocap_low=(x_low + 2 * t, y_low, 0.0),
+    #     # mocap_high=(x_high - 2 * t, y_high, 0.5),
+    #     object_low=(x_low + 0.01, y_low + 0.01, 0.02),
+    #     object_high=(x_high - 0.01, y_high - 0.01, 0.02),
+    #     use_textures=False,
+    #     init_camera=sawyer_init_camera_zoomed_in,
+    #
+    #     pos_action_scale=0.02,
+    #     mocap_low=(x_low, y_low, 0.0),
+    #     mocap_high=(x_high, y_high, 0.5),
+    #     reward_type="dense",
+    #     reward_mask=None,
+    #     cylinder_radius=0.04,
+    #     num_objects=4,
+    #     fixed_start=False,
+    #     num_scene_objects=[4],
+    # )
+
     env_kwargs = dict(
-        # fixed_start=True,
+        fixed_start=True,
         fixed_colors=False,
-        # reward_type="sparse",
-        # num_objects=1,
+        reward_type="dense",
+        num_objects=1,
         object_meshes=None,
-        # num_scene_objects=[1],
+        num_scene_objects=[1],
         maxlen=0.1,
         action_repeat=1,
-        puck_goal_low=(x_low + 0.01, y_low + 0.01),
-        puck_goal_high=(x_high - 0.01, y_high - 0.01),
-        hand_goal_low=(x_low + 3 * t, y_low + t),
-        hand_goal_high=(x_high - 3 * t, y_high - t),
-        # mocap_low=(x_low + 2 * t, y_low, 0.0),
-        # mocap_high=(x_high - 2 * t, y_high, 0.5),
+        # puck_goal_low=(x_low + 0.01, y_low + 0.01),
+        # puck_goal_high=(x_high - 0.01, y_high - 0.01),
+        hand_goal_low=(x_low + 3*t, y_low + t),
+        hand_goal_high=(x_high - 3*t, y_high -t),
+        mocap_low=(x_low + 2*t, y_low , 0.0),
+        mocap_high=(x_high - 2*t, y_high, 0.5),
         object_low=(x_low + 0.01, y_low + 0.01, 0.02),
         object_high=(x_high - 0.01, y_high - 0.01, 0.02),
         use_textures=False,
-        init_camera=sawyer_init_camera_zoomed_in,
 
-        pos_action_scale=0.02,
-        mocap_low=(x_low, y_low, 0.0),
-        mocap_high=(x_high, y_high, 0.5),
-        reward_type="dense",
-        reward_mask=None,
-        cylinder_radius=0.04,
-        num_objects=4,
-        fixed_start=False,
-        num_scene_objects=[4],
+        puck_goal_low=(x_low + 2*t, y_low),
+        puck_goal_high=(x_high - 2*t, y_high),
     )
     env = SawyerMultiobjectEnv(**env_kwargs)
 elif env_type == 'push_leap':
     from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_leap import SawyerPushAndReachXYEnv
     env_kwargs = dict(
-        hand_low=(-0.20, 0.50),
-        hand_high=(0.20, 0.70),
+        # hand_low=(-0.20, 0.50),
+        # hand_high=(0.20, 0.70),
+        # puck_low=(-0.20, 0.50),
+        # puck_high=(0.20, 0.70),
+        # fix_reset=0.075,
+        # sample_realistic_goals=True,
+        # reward_type='state_distance',
+        # invisible_boundary_wall=True,
+
+        hand_low=(-0.10, 0.50),
+        hand_high=(0.10, 0.70),
         puck_low=(-0.20, 0.50),
         puck_high=(0.20, 0.70),
-        fix_reset=0.075,
-        sample_realistic_goals=True,
-        reward_type='state_distance',
+        goal_low=(-0.05, 0.55, -0.20, 0.50),
+        goal_high=(0.05, 0.65, 0.20, 0.70),
+        fix_reset=True,
+        fixed_reset=(0.0, 0.4, 0.0, 0.6),
+        sample_realistic_goals=False,
+        reward_type='hand_and_puck_distance',
         invisible_boundary_wall=True,
     )
     env = SawyerPushAndReachXYEnv(**env_kwargs)

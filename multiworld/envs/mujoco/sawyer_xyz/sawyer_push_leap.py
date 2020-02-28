@@ -334,6 +334,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             r = -(puck_distances > self.indicator_threshold).astype(float)
         elif reward_type == 'vectorized_puck_distance':
             r = -np.abs(puck_goals - puck_pos)
+        elif reward_type == 'hand_and_puck_distance':
+            r = -hand_distances - puck_distances
         elif reward_type == 'state_distance':
             r = -np.linalg.norm(
                 achieved_goals - desired_goals,
