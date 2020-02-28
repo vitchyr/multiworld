@@ -82,7 +82,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             sliding_joints=False,
 
-            num_mocap_calls_for_reset=250, #added feature
+            num_mocap_calls_for_reset=250, #added feature by soroush
+            sample_realistic_goals=False, # added feature by soroush
     ):
         if seed:
             np.random.seed(seed)
@@ -140,6 +141,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         if self.use_textures:
             self.modder = TextureModder(self.sim)
 
+        self.num_mocap_calls_for_reset = num_mocap_calls_for_reset
+        self.sample_realistic_goals = sample_realistic_goals
+
         self.state_goal = self.sample_goal_for_rollout()
         # MultitaskEnv.__init__(self, distance_metric_order=2)
         # MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
@@ -185,8 +189,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         #     np.array([-0.2, 0.5, -0.2, 0.5, -0.2, 0.5]),
         #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
         # )
-
-        self.num_mocap_calls_for_reset = num_mocap_calls_for_reset
 
         self.set_initial_object_positions()
 
@@ -589,7 +591,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
     def sample_goal_for_rollout(self):
         n = len(self.cur_objects)
         if self.randomize_goals:
-            if self.goal_moves_one_object:
+            if self.sample_realistic_goals: #self.goal_moves_one_object:
                 hand = np.random.uniform(self.hand_goal_low, self.hand_goal_high)
                 bs = []
                 for i in range(self.num_objects):
@@ -599,7 +601,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
                 if n:
                     r = np.random.choice(self.cur_objects) # object to move
-                    pos = bs + [self.INIT_HAND_POS[:2], ]
+                    pos = bs + [hand[:2], ] #[self.INIT_HAND_POS[:2], ]
                     while True:
                         bs[r] = np.random.uniform(self.puck_goal_low, self.puck_goal_high)
                         touching = []

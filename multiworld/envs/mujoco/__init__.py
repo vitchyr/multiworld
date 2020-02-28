@@ -781,6 +781,7 @@ def register_pnr_envs():
             object_low=(-0.20 + 0.01, 0.50 + 0.01, 0.02),
             object_high=(0.20 - 0.01, 0.70 - 0.01, 0.02),
             use_textures=False,
+            sample_realistic_goals=True,
         )
     )
 
