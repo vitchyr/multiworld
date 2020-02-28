@@ -45,11 +45,13 @@ char_to_action = {
     'x': 'toggle',
     'r': 'reset',
     'p': 'put obj in hand',
+    'g': 'goal',
 }
 
 
 import gym
 import multiworld
+multiworld.register_all_envs()
 import pygame
 # env = gym.make('SawyerPushAndReachEnvEasy-v0')
 # env = SawyerPushAndReachXYEnv(
@@ -66,97 +68,75 @@ import pygame
 # )
 # env = SawyerReachXYEnv()
 
-env_type = 'push_ccrig'
-# env_type = 'push_leap'
+# env = gym.make('SawyerPushDebugCCRIG-v0')
+# env = gym.make('SawyerPushDebugLEAP-v0')
+# env = gym.make('SawyerPushDebugCCRIG-v1')
+env = gym.make('SawyerPushDebugLEAP-v1')
 
-if env_type == 'push_ccrig':
-    from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_ccrig import SawyerMultiobjectEnv
-    from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
-    x_var = 0.2
-    x_low = -x_var
-    x_high = x_var
-    y_low = 0.5
-    y_high = 0.7
-    t = 0.05
-    # env_kwargs = dict(
-    #     # fixed_start=True,
-    #     fixed_colors=False,
-    #     # reward_type="sparse",
-    #     # num_objects=1,
-    #     object_meshes=None,
-    #     # num_scene_objects=[1],
-    #     maxlen=0.1,
-    #     action_repeat=1,
-    #     puck_goal_low=(x_low + 0.01, y_low + 0.01),
-    #     puck_goal_high=(x_high - 0.01, y_high - 0.01),
-    #     hand_goal_low=(x_low + 3 * t, y_low + t),
-    #     hand_goal_high=(x_high - 3 * t, y_high - t),
-    #     # mocap_low=(x_low + 2 * t, y_low, 0.0),
-    #     # mocap_high=(x_high - 2 * t, y_high, 0.5),
-    #     object_low=(x_low + 0.01, y_low + 0.01, 0.02),
-    #     object_high=(x_high - 0.01, y_high - 0.01, 0.02),
-    #     use_textures=False,
-    #     init_camera=sawyer_init_camera_zoomed_in,
-    #
-    #     pos_action_scale=0.02,
-    #     mocap_low=(x_low, y_low, 0.0),
-    #     mocap_high=(x_high, y_high, 0.5),
-    #     reward_type="dense",
-    #     reward_mask=None,
-    #     cylinder_radius=0.04,
-    #     num_objects=4,
-    #     fixed_start=False,
-    #     num_scene_objects=[4],
-    # )
 
-    env_kwargs = dict(
-        fixed_start=True,
-        fixed_colors=False,
-        reward_type="dense",
-        num_objects=1,
-        object_meshes=None,
-        num_scene_objects=[1],
-        maxlen=0.1,
-        action_repeat=1,
-        # puck_goal_low=(x_low + 0.01, y_low + 0.01),
-        # puck_goal_high=(x_high - 0.01, y_high - 0.01),
-        hand_goal_low=(x_low + 3*t, y_low + t),
-        hand_goal_high=(x_high - 3*t, y_high -t),
-        mocap_low=(x_low + 2*t, y_low , 0.0),
-        mocap_high=(x_high - 2*t, y_high, 0.5),
-        object_low=(x_low + 0.01, y_low + 0.01, 0.02),
-        object_high=(x_high - 0.01, y_high - 0.01, 0.02),
-        use_textures=False,
+# env_type = 'push_ccrig'
+env_type = 'push_leap'
 
-        puck_goal_low=(x_low + 2*t, y_low),
-        puck_goal_high=(x_high - 2*t, y_high),
-    )
-    env = SawyerMultiobjectEnv(**env_kwargs)
-elif env_type == 'push_leap':
-    from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_leap import SawyerPushAndReachXYEnv
-    env_kwargs = dict(
-        # hand_low=(-0.20, 0.50),
-        # hand_high=(0.20, 0.70),
-        # puck_low=(-0.20, 0.50),
-        # puck_high=(0.20, 0.70),
-        # fix_reset=0.075,
-        # sample_realistic_goals=True,
-        # reward_type='state_distance',
-        # invisible_boundary_wall=True,
-
-        hand_low=(-0.10, 0.50),
-        hand_high=(0.10, 0.70),
-        puck_low=(-0.20, 0.50),
-        puck_high=(0.20, 0.70),
-        goal_low=(-0.05, 0.55, -0.20, 0.50),
-        goal_high=(0.05, 0.65, 0.20, 0.70),
-        fix_reset=True,
-        fixed_reset=(0.0, 0.4, 0.0, 0.6),
-        sample_realistic_goals=False,
-        reward_type='hand_and_puck_distance',
-        invisible_boundary_wall=True,
-    )
-    env = SawyerPushAndReachXYEnv(**env_kwargs)
+# if env_type == 'push_ccrig':
+#     from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_ccrig import SawyerMultiobjectEnv
+#     from multiworld.envs.mujoco.cameras import sawyer_init_camera_zoomed_in, sawyer_pusher_camera_upright_v2
+#     x_var = 0.2
+#     x_low = -x_var
+#     x_high = x_var
+#     y_low = 0.5
+#     y_high = 0.7
+#     t = 0.05
+#
+#     env_kwargs = dict(
+#         fixed_start=True,
+#         fixed_colors=False,
+#         reward_type="dense",
+#         num_objects=1,
+#         object_meshes=None,
+#         num_scene_objects=[1],
+#         maxlen=0.1,
+#         action_repeat=1,
+#         # puck_goal_low=(x_low + 0.01, y_low + 0.01),
+#         # puck_goal_high=(x_high - 0.01, y_high - 0.01),
+#         hand_goal_low=(x_low + 3*t, y_low + t),
+#         hand_goal_high=(x_high - 3*t, y_high -t),
+#         mocap_low=(x_low + 2*t, y_low , 0.0),
+#         mocap_high=(x_high - 2*t, y_high, 0.5),
+#         object_low=(x_low + 0.01, y_low + 0.01, 0.02),
+#         object_high=(x_high - 0.01, y_high - 0.01, 0.02),
+#         use_textures=False,
+#
+#         puck_goal_low=(x_low + 2*t, y_low),
+#         puck_goal_high=(x_high - 2*t, y_high),
+#     )
+#     # env = SawyerMultiobjectEnv(**env_kwargs)
+#     env = gym.make('SawyerPushDebugCCRIG-v0')
+# elif env_type == 'push_leap':
+#     from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_leap import SawyerPushAndReachXYEnv
+#     env_kwargs = dict(
+#         # hand_low=(-0.20, 0.50),
+#         # hand_high=(0.20, 0.70),
+#         # puck_low=(-0.20, 0.50),
+#         # puck_high=(0.20, 0.70),
+#         # fix_reset=0.075,
+#         # sample_realistic_goals=True,
+#         # reward_type='state_distance',
+#         # invisible_boundary_wall=True,
+#
+#         hand_low=(-0.10, 0.50),
+#         hand_high=(0.10, 0.70),
+#         puck_low=(-0.20, 0.50),
+#         puck_high=(0.20, 0.70),
+#         goal_low=(-0.05, 0.55, -0.20, 0.50),
+#         goal_high=(0.05, 0.65, 0.20, 0.70),
+#         fix_reset=True,
+#         fixed_reset=(0.0, 0.4, 0.0, 0.6),
+#         sample_realistic_goals=False,
+#         reward_type='hand_and_puck_distance',
+#         invisible_boundary_wall=True,
+#     )
+#     # env = SawyerPushAndReachXYEnv(**env_kwargs)
+#     env = gym.make('SawyerPushDebugLEAP-v0')
 
 NDIM = env.action_space.low.size
 lock_action = False
@@ -178,6 +158,9 @@ while True:
                 lock_action = not lock_action
             elif new_action == 'reset':
                 done = True
+            elif new_action == 'goal':
+                ob = env.reset()
+                env.set_to_goal({"state_desired_goal": ob["state_desired_goal"]})
             elif new_action == 'close':
                 action[3] = 1
             elif new_action == 'open':
@@ -190,7 +173,8 @@ while True:
                 action[:3] = new_action[:3]
             else:
                 action = np.zeros(3)
-            env.step(action[:2])
+            if action.any():
+                env.step(action[:2])
     if done:
         obs = env.reset()
     env.render()
