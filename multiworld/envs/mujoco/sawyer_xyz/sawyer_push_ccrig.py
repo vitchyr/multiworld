@@ -81,6 +81,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             init_camera=None,
 
             sliding_joints=False,
+
+            num_mocap_calls_for_reset=250, #added feature
     ):
         if seed:
             np.random.seed(seed)
@@ -183,6 +185,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         #     np.array([-0.2, 0.5, -0.2, 0.5, -0.2, 0.5]),
         #     np.array([0.2, 0.7, 0.2, 0.7, 0.2, 0.7]),
         # )
+
+        self.num_mocap_calls_for_reset = num_mocap_calls_for_reset
 
         self.set_initial_object_positions()
 
@@ -428,7 +432,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.num_cur_objects = n_o
         self.cur_objects = np.random.choice(self.num_objects, n_o, replace=False)
         while True:
-            pos = [self.INIT_HAND_POS[:2], ]
+            pos = [self.get_endeff_pos()[:2], ]
             for i in range(n_o):
                 if self.fixed_start:
                     r = self.fixed_start_pos
@@ -461,9 +465,19 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         angles = self.data.qpos.copy()
         angles[:7] = np.array(self.init_angles[:7]) # just change robot joints
         self.set_state(angles.flatten(), velocities.flatten())
-        for _ in range(10):
-            self.data.set_mocap_pos('mocap', self.INIT_HAND_POS)
+
+        if self.fixed_start is True:
+            new_mocap_pos_xy = self.INIT_HAND_POS[:2].copy()
+        elif self.fixed_start is False:
+            new_mocap_pos_xy = np.random.uniform(self.mocap_low[:2], self.mocap_high[:2])
+        # else:
+        #     new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
+        new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([0.02])))
+
+        for _ in range(self.num_mocap_calls_for_reset):
+            self.data.set_mocap_pos('mocap', new_mocap_pos)
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
+            self.do_simulation(None, self.frame_skip)
         # set_state resets the goal xy, so we need to explicit set it again
         # if self.reset_to_initial_position:
             # self.set_initial_object_positions()
