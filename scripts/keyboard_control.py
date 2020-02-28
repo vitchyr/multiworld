@@ -66,8 +66,8 @@ import pygame
 # )
 # env = SawyerReachXYEnv()
 
-# env_type = 'push_multiobj_subset'
-env_type = 'push_leap'
+env_type = 'push_multiobj_subset'
+# env_type = 'push_leap'
 
 if env_type == 'push_multiobj_subset':
     from multiworld.envs.mujoco.sawyer_xyz.sawyer_push_multiobj_subset import SawyerMultiobjectEnv
@@ -79,12 +79,12 @@ if env_type == 'push_multiobj_subset':
     y_high = 0.7
     t = 0.05
     env_kwargs = dict(
-        fixed_start=True,
+        # fixed_start=True,
         fixed_colors=False,
         # reward_type="sparse",
-        num_objects=1,
+        # num_objects=1,
         object_meshes=None,
-        num_scene_objects=[1],
+        # num_scene_objects=[1],
         maxlen=0.1,
         action_repeat=1,
         puck_goal_low=(x_low + 0.01, y_low + 0.01),
@@ -98,9 +98,15 @@ if env_type == 'push_multiobj_subset':
         use_textures=False,
         init_camera=sawyer_init_camera_zoomed_in,
 
-        # pos_action_scale=0.02,
+        pos_action_scale=0.02,
         mocap_low=(x_low, y_low, 0.0),
         mocap_high=(x_high, y_high, 0.5),
+        reward_type="dense",
+        reward_mask=None,
+        cylinder_radius=0.04,
+        num_objects=4,
+        fixed_start=False,
+        num_scene_objects=[4],
     )
     env = SawyerMultiobjectEnv(**env_kwargs)
 elif env_type == 'push_leap':
