@@ -82,8 +82,10 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
             sliding_joints=False,
 
-            num_mocap_calls_for_reset=250, #added feature by soroush
-            sample_realistic_goals=False, # added feature by soroush
+            # following features added by soroush
+            num_mocap_calls_for_reset=250,
+            sample_realistic_goals=False,
+            lite_logging=True,
     ):
         if seed:
             np.random.seed(seed)
@@ -97,6 +99,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.reward_type = reward_type
         self.reward_mask = reward_mask
         self.epsilon = epsilon
+        self.lite_logging = lite_logging
 
         self.init_block_low = np.array(init_block_low)
         self.init_block_high = np.array(init_block_high)
@@ -276,7 +279,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         # for i in range(self.num_objects):
         #     if i in self.cur_objects:
         i = 0
-        object_name = "object%d_distance" % i
+        object_name = "obj%d_distance" % i
         object_distance = np.linalg.norm(
             self.get_object_goal_pos(i) - self.get_object_pos(i)
         )
@@ -297,24 +300,28 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             object_pos = self.get_object_pos(i)
             object_distance = np.linalg.norm(object_pos - object_goal)
             distances.append(object_distance)
-        object_distances["current_object_distance"] = np.mean(distances)
+        object_distances["current_obj_distance"] = np.mean(distances)
 
         b = np.zeros((self.num_objects + 1))
         b[0] = 1 # the arm
         for i in self.cur_objects:
             b[i+1] = 1
         for i in range(self.num_objects):
-            objects["object%d" % i] = b[i+1]
+            objects["obj%d" % i] = b[i+1]
         info = dict(
             hand_distance=hand_distance,
             hand_success=float(hand_distance < 0.05),
-            puck_success=float(object_distances["current_object_distance"] < 0.05),
-            success=float(hand_distance + sum(object_distances.values()) < 0.06),
+            puck_success=float(object_distances["current_obj_distance"] < 0.05),
             **object_distances,
-            **touch_distances,
-            **objects,
-            objects_present=b,
         )
+
+        if not self.lite_logging:
+            info.update(dict(
+                **touch_distances,
+                **objects,
+                objects_present=b,
+                success=float(hand_distance + sum(object_distances.values()) < 0.06),
+            ))
 
         return info
 

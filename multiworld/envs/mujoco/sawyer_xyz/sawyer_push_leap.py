@@ -60,6 +60,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             indicator_threshold_3=0.12,
 
             test_mode_case_num=None,
+
+            lite_logging=True,
     ):
         self.quick_init(locals())
 
@@ -96,12 +98,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         self.ee_radius = 0.015
 
-        # puck_low += (self.puck_radius + self.ee_radius)
-        # puck_high -= (self.puck_radius + self.ee_radius)
-        # print(hand_low)
-        # print(hand_high)
-        # print(puck_low)
-        # print(puck_high)
+        self.lite_logging = lite_logging
 
         self.obs_space = Box(
             np.hstack((hand_low, puck_low)),
@@ -264,33 +261,43 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         state_distance = np.linalg.norm(state_diff, ord=self.norm_order)
         state_distance_l2 = np.linalg.norm(state_diff, ord=2)
 
-        return dict(
-            hand_distance=hand_distance, hand_distance_l2=hand_distance_l2,
-            puck_distance=puck_distance, puck_distance_l2=puck_distance_l2,
-            touch_distance=touch_distance, touch_distance_l2=touch_distance_l2,
-            state_distance=state_distance, state_distance_l2=state_distance_l2,
+        info = dict(
+            hand_distance=hand_distance,
+            obj0_distance=puck_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
             puck_success=float(puck_distance < self.indicator_threshold),
-            hand_and_puck_success=float(
-                hand_distance+puck_distance < self.indicator_threshold
-            ),
-            touch_success=float(touch_distance < self.indicator_threshold),
-            state_success=float(state_distance < self.indicator_threshold),
-            hand_success_2=float(hand_distance < self.indicator_threshold_2),
-            puck_success_2=float(puck_distance < self.indicator_threshold_2),
-            hand_and_puck_success_2=float(
-                hand_distance + puck_distance < self.indicator_threshold_2
-            ),
-            touch_success_2=float(touch_distance < self.indicator_threshold_2),
-            state_success_2=float(state_distance < self.indicator_threshold_2),
-            hand_success_3=float(hand_distance < self.indicator_threshold_3),
-            puck_success_3=float(puck_distance < self.indicator_threshold_3),
-            hand_and_puck_success_3=float(
-                hand_distance + puck_distance < self.indicator_threshold_3
-            ),
-            touch_success_3=float(touch_distance < self.indicator_threshold_3),
-            state_success_3=float(state_distance < self.indicator_threshold_3),
         )
+
+        if not self.lite_logging:
+            info.update(dict(
+                touch0_distance=touch_distance,
+                state_distance=state_distance,
+                hand_and_puck_success=float(
+                    hand_distance + puck_distance < self.indicator_threshold
+                ),
+                state_success=float(state_distance < self.indicator_threshold),
+                touch_success=float(touch_distance < self.indicator_threshold),
+                hand_distance_l2=hand_distance_l2,
+                puck_distance_l2=puck_distance_l2,
+                touch_distance_l2=touch_distance_l2,
+                state_distance_l2=state_distance_l2,
+                hand_success_2=float(hand_distance < self.indicator_threshold_2),
+                puck_success_2=float(puck_distance < self.indicator_threshold_2),
+                hand_and_puck_success_2=float(
+                    hand_distance + puck_distance < self.indicator_threshold_2
+                ),
+                touch_success_2=float(touch_distance < self.indicator_threshold_2),
+                state_success_2=float(state_distance < self.indicator_threshold_2),
+                hand_success_3=float(hand_distance < self.indicator_threshold_3),
+                puck_success_3=float(puck_distance < self.indicator_threshold_3),
+                hand_and_puck_success_3=float(
+                    hand_distance + puck_distance < self.indicator_threshold_3
+                ),
+                touch_success_3=float(touch_distance < self.indicator_threshold_3),
+                state_success_3=float(state_distance < self.indicator_threshold_3),
+            ))
+
+        return info
 
     def _get_obs(self):
         e = self.get_endeff_pos()[:2]
@@ -362,32 +369,32 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             raise NotImplementedError("Invalid/no reward type.")
         return r
 
-    def get_diagnostics(self, paths, prefix=''):
-        statistics = OrderedDict()
-        for stat_name in [
-            'hand_distance', #'hand_distance_l2',
-            'puck_distance', #'puck_distance_l2',
-            'state_distance', #'state_distance_l2',
-            'touch_distance', #'touch_distance_l2',
-            'hand_success', 'hand_success_2', 'hand_success_3',
-            'puck_success', 'puck_success_2', 'puck_success_3',
-            'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
-            'state_success', 'state_success_2', 'state_success_3',
-            'touch_success', 'touch_success_2', 'touch_success_3',
-        ]:
-            stat_name = stat_name
-            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-            statistics.update(create_stats_ordered_dict(
-                '%s%s' % (prefix, stat_name),
-                stat,
-                always_show_all_stats=True,
-            ))
-            statistics.update(create_stats_ordered_dict(
-                'Final %s%s' % (prefix, stat_name),
-                [s[-1] for s in stat],
-                always_show_all_stats=True,
-            ))
-        return statistics
+    # def get_diagnostics(self, paths, prefix=''):
+        # statistics = OrderedDict()
+        # for stat_name in [
+        #     'hand_distance', #'hand_distance_l2',
+        #     'puck_distance', #'puck_distance_l2',
+        #     'state_distance', #'state_distance_l2',
+        #     'touch_distance', #'touch_distance_l2',
+        #     'hand_success', 'hand_success_2', 'hand_success_3',
+        #     'puck_success', 'puck_success_2', 'puck_success_3',
+        #     'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
+        #     'state_success', 'state_success_2', 'state_success_3',
+        #     'touch_success', 'touch_success_2', 'touch_success_3',
+        # ]:
+        #     stat_name = stat_name
+        #     stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+        #     statistics.update(create_stats_ordered_dict(
+        #         '%s%s' % (prefix, stat_name),
+        #         stat,
+        #         always_show_all_stats=True,
+        #     ))
+        #     statistics.update(create_stats_ordered_dict(
+        #         'Final %s%s' % (prefix, stat_name),
+        #         [s[-1] for s in stat],
+        #         always_show_all_stats=True,
+        #     ))
+        # return statistics
 
     def get_puck_pos(self):
         return self.data.body_xpos[self.puck_id].copy()
