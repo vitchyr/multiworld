@@ -70,4 +70,8 @@ spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
               deg=[90,0,-90],
               scale=0.025)
 
+bowl_sliding = loader(ASSET_PATH, 'objects/bowl_sliding/bowl.urdf',
+              pos=[.75, 0, -.3],
+              scale=0.25)
+
 
