@@ -614,7 +614,7 @@ def register_pnr_envs():
             num_objects=1,
             object_meshes=None,
             num_scene_objects=[1],
-            maxlen=0.1,
+            maxlen=0.065, # originally 0.10, this shouldn't change functionality, since fixed resets
             action_repeat=1,
             puck_goal_low=(-0.20 + 0.01, 0.50 + 0.01),
             puck_goal_high=(0.20 - 0.01, 0.70 - 0.01),
@@ -666,7 +666,7 @@ def register_pnr_envs():
             num_objects=1,
             object_meshes=None,
             num_scene_objects=[1],
-            maxlen=0.1,
+            maxlen=0.065, # originally 0.10, this shouldn't change functionality, since fixed resets
             action_repeat=1,
             puck_goal_low=(-0.10 + 0.01, 0.50 + 0.01),
             puck_goal_high=(0.10 - 0.01, 0.70 - 0.01),
@@ -718,7 +718,7 @@ def register_pnr_envs():
             num_objects=1,
             object_meshes=None,
             num_scene_objects=[1],
-            maxlen=0.1,
+            maxlen=0.065, # originally 0.10, this shouldn't change functionality, since fixed resets
             action_repeat=1,
             puck_goal_low=(-0.20 + 0.01, 0.50 + 0.01),
             puck_goal_high=(0.20 - 0.01, 0.70 - 0.01),
@@ -770,7 +770,7 @@ def register_pnr_envs():
             num_objects=1,
             object_meshes=None,
             num_scene_objects=[1],
-            maxlen=0.1,
+            maxlen=0.065,
             action_repeat=1,
             puck_goal_low=(-0.20 + 0.01, 0.50 + 0.01),
             puck_goal_high=(0.20 - 0.01, 0.70 - 0.01),

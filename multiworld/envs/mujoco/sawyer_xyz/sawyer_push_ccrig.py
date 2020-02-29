@@ -578,11 +578,24 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         return 4
 
     def sample_goals(self, batch_size):
-        goals = np.random.uniform(
-            self.goal_box.low,
-            self.goal_box.high,
-            size=(batch_size, self.goal_box.low.size),
-        )
+        if self.randomize_goals:
+            goals = np.random.uniform(
+                self.goal_box.low,
+                self.goal_box.high,
+                size=(batch_size, self.goal_box.low.size),
+            )
+        elif self.sample_realistic_goals:
+            goals = np.array([
+                self.sample_goal_for_rollout()
+                for _ in range(batch_size)
+            ])
+        else: #fixed goal
+            goal = np.hstack((self.fixed_hand_goal.copy(), self.fixed_puck_goal.copy()))
+            goals = np.repeat(
+                goal[None],
+                batch_size,
+                0
+            )
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
