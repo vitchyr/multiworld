@@ -206,12 +206,6 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         else:
             super().initialize_camera(init_fctn)
 
-    @property
-    def model_name(self):
-        return get_asset_full_path(
-            'sawyer_xyz/sawyer_push_and_reach_mocap_goal_hidden.xml'
-        )
-
     def viewer_setup(self):
         self.viewer.cam.trackbodyid = 0
         self.viewer.cam.distance = 1.0
@@ -253,11 +247,9 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         except mujoco_py.builder.MujocoException:
             pass
 
-        # self.render()
-
+        # clipping objects to lie in bounds of workspace
         qpos = self.data.qpos.flat.copy()
         qvel = self.data.qvel.flat.copy()
-
         for i in range(self.num_objects):
             if i in self.cur_objects:
                 x = 7 + i * 7
@@ -265,6 +257,15 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                 qpos[x:y] = np.clip(qpos[x:y], self.object_low, self.object_high)
         self.set_state(qpos, qvel)
 
+        obs = self._get_obs()
+        # reward = self.compute_reward(obs, u, obs, self._goal_xyxy)
+        reward = self.compute_rewards(a, obs, None)
+        info = self._get_info()
+        done = False
+
+        return obs, reward, done, info
+
+    def _get_info(self):
         endeff_pos = self.get_endeff_pos()
         hand_distance = np.linalg.norm(
             self.get_hand_goal_pos() - endeff_pos
@@ -315,14 +316,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             objects_present=b,
         )
 
-        obs = self._get_obs()
-
-        # reward = self.compute_reward(obs, u, obs, self._goal_xyxy)
-        reward = self.compute_rewards(a, obs, info)
-        done = False
-
-
-        return obs, reward, done, info
+        return info
 
     def mocap_set_action(self, action):
         pos_delta = action[None]
