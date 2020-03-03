@@ -25,7 +25,7 @@ BASE_DIR = '/'.join(str.split(multiworld.__file__, '/')[:-2])
 asset_base_path = BASE_DIR + '/multiworld/envs/assets/multi_object_sawyer_xyz/'
 
 class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
-    INIT_HAND_POS = np.array([0, 0.4, 0.02])
+    INIT_HAND_POS = np.array([0, 0.4, 0.06])
 
     def __init__(
             self,
@@ -87,6 +87,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             sample_realistic_goals=False,
             lite_logging=True,
             heavy_puck=False,
+            hand_z_position=0.06,
     ):
         if seed:
             np.random.seed(seed)
@@ -101,6 +102,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.reward_mask = reward_mask
         self.epsilon = epsilon
         self.lite_logging = lite_logging
+        self.hand_z_position = hand_z_position
 
         self.init_block_low = np.array(init_block_low)
         self.init_block_high = np.array(init_block_high)
@@ -477,7 +479,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             new_mocap_pos_xy = np.random.uniform(self.mocap_low[:2], self.mocap_high[:2])
         # else:
         #     new_mocap_pos_xy = np.random.uniform(self.reset_space.low[:2], self.reset_space.high[:2])
-        new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([0.02])))
+        new_mocap_pos = np.hstack((new_mocap_pos_xy, np.array([self.hand_z_position]))) #0.02
 
         for _ in range(self.num_mocap_calls_for_reset):
             self.data.set_mocap_pos('mocap', new_mocap_pos)
@@ -674,7 +676,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def set_hand_xy(self, xy):
         for _ in range(10):
-            self.data.set_mocap_pos('mocap', np.array([xy[0], xy[1], 0.02]))
+            self.data.set_mocap_pos('mocap', np.array([xy[0], xy[1], self.hand_z_position]))
             self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
             u = np.zeros(7)
             self.do_simulation(u, self.frame_skip)
