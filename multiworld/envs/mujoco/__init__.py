@@ -733,6 +733,38 @@ def register_pnr_envs():
     )
 
     register(
+        id='SawyerPushDebugCCRIGSlowPhysics-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_ccrig:SawyerMultiobjectEnv',
+        tags={
+            'git-commit-hash': 'a907434',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            fixed_start=True,
+            fixed_colors=False,
+            reward_type="dense",
+            num_objects=1,
+            object_meshes=None,
+            num_scene_objects=[1],
+            maxlen=0.065, # originally 0.10, this shouldn't change functionality, since fixed resets
+            action_repeat=1,
+            puck_goal_low=(-0.20 + 0.01, 0.50 + 0.01),
+            puck_goal_high=(0.20 - 0.01, 0.70 - 0.01),
+            hand_goal_low=(-0.20, 0.50),
+            hand_goal_high=(0.20, 0.70),
+            mocap_low=(-0.20, 0.50 , 0.0),
+            mocap_high=(0.20, 0.70, 0.5),
+            object_low=(-0.20 + 0.01, 0.50 + 0.01, 0.02),
+            object_high=(0.20 - 0.01, 0.70 - 0.01, 0.02),
+            use_textures=False,
+
+            pos_action_scale=0.02,
+            heavy_puck=True,
+        )
+    )
+
+    register(
         id='SawyerPushDebugLEAP-v2',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_leap:SawyerPushAndReachXYEnv',
@@ -751,6 +783,29 @@ def register_pnr_envs():
             fixed_reset=(0.0, 0.4, 0.0, 0.6),
             sample_realistic_goals=False,
             reward_type='hand_and_puck_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
+        id='SawyerPushDebugLEAPPuckRew-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_leap:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'a907434',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            goal_low=(-0.20, 0.50, -0.20, 0.50),
+            goal_high=(0.20, 0.70, 0.20, 0.70),
+            fix_reset=True,
+            fixed_reset=(0.0, 0.4, 0.0, 0.6),
+            sample_realistic_goals=False,
+            reward_type='puck_distance',
             invisible_boundary_wall=True,
         )
     )
@@ -800,7 +855,7 @@ def register_pnr_envs():
             puck_high=(0.20, 0.70),
             goal_low=(-0.20, 0.50, -0.20, 0.50),
             goal_high=(0.20, 0.70, 0.20, 0.70),
-            fix_reset=0.075,
+            fix_reset=False,
             sample_realistic_goals=True,
             reward_type='hand_and_puck_distance',
             invisible_boundary_wall=True,

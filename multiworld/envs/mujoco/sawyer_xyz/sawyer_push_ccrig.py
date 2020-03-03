@@ -86,6 +86,7 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
             num_mocap_calls_for_reset=250,
             sample_realistic_goals=False,
             lite_logging=True,
+            heavy_puck=False,
     ):
         if seed:
             np.random.seed(seed)
@@ -136,7 +137,8 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
                                                friction_params, object_meshes, finger_sensors,
                                                maxlen, minlen, preload_obj_dict, obj_classname,
                                                block_height, block_width, cylinder_radius,
-                                               use_textures, sliding_joints)
+                                               use_textures, sliding_joints,
+                                               heavy_puck=heavy_puck)
         gen_xml = create_root_xml(base_filename)
         MujocoEnv.__init__(self, gen_xml, frame_skip=frame_skip)
         clean_xml(gen_xml)
