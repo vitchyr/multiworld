@@ -138,7 +138,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.reset()
             self._presampled_goals = self.sample_goals(
                 self.num_presampled_goals_on_fly)
-            # self.num_goals_presampled = self.num_presampled_goals_on_fly
+            self.num_goals_presampled = self.num_presampled_goals_on_fly
             print("Done sampling goals for mode: ", mode)
 
 
