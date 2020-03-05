@@ -174,6 +174,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.hand_z_position = hand_z_position
         self.puck_z_position = puck_z_position
         self.reset_counter = 0
+        self.episode_counter = 0 # timer for how many steps have progressed so far...
         self.reset()
 
     def viewer_setup(self):
@@ -607,12 +608,12 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
                 1, 0, 1, 0,
                 ]
 
-    def generate_expert_subgoals(self, num_subgoals):
+    def generate_expert_subgoals(self, ob, goal, num_subgoals):
         def avg(p1, p2):
             return ((p1[0] + p2[0]) / 2, (p1[1] + p2[1]) / 2)
-        ob_and_goal = self._get_obs()
-        ob = ob_and_goal['state_observation']
-        goal = ob_and_goal['state_desired_goal']
+        # ob_and_goal = self._get_obs()
+        # ob = ob_and_goal['state_observation']
+        # goal = ob_and_goal['state_desired_goal']
 
         ob_hand = ob[:2]
         ob_puck = ob[-2:]
@@ -620,6 +621,18 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         goal_puck = goal[-2:]
 
         subgoals = []
+        if num_subgoals == 2:
+            # subgoal_1_hand = goal_puck.copy()
+            # subgoal_1_puck = goal_puck.copy()
+            # subgoals += [np.concatenate((subgoal_1_hand, subgoal_1_puck))]
+            subgoal_1_hand = goal_puck.copy()
+            subgoal_1_hand += ((self.ee_radius + self.puck_radius) * (goal_hand - goal_puck) / np.linalg.norm(goal_hand - goal_puck))
+            subgoal_1_puck = goal_puck.copy()
+            subgoals += [np.concatenate((subgoal_1_hand, subgoal_1_puck))]
+
+            subgoal_2_hand = goal_hand.copy()
+            subgoal_2_puck = goal_puck.copy()
+            subgoals += [np.concatenate((subgoal_2_hand, subgoal_2_puck))]
         if num_subgoals == 4:
             subgoal_1_hand = ob_puck.copy()
             subgoal_1_hand += ((self.ee_radius + self.puck_radius) * (ob_puck - goal_puck) / np.linalg.norm(ob_puck - goal_puck))
@@ -643,10 +656,6 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         if len(subgoals) == 0:
             subgoals = np.tile(goal, num_subgoals).reshape(-1, 4)
 
-        # print(ob)
-        # print(goal)
-        # print(np.array(subgoals))
-        # print()
         return np.array(subgoals)
 
     def update_subgoals(self, subgoals):

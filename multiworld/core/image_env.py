@@ -179,15 +179,21 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             height=self.imsize,
         )
         self._last_image = image_obs
+        return self.transform_image(image_obs)
+
+    def transform_image(self, img):
+        if img is None:
+            return None
+
         if self.grayscale:
-            image_obs = Image.fromarray(image_obs).convert('L')
-            image_obs = np.array(image_obs)
+            img = Image.fromarray(img).convert('L')
+            img = np.array(img)
         if self.normalize:
-            image_obs = image_obs / 255.0
+            img = img / 255.0
         if self.transpose:
-            image_obs = image_obs.transpose((2, 0, 1))
-        assert image_obs.shape[0] == self.channels
-        return image_obs.flatten()
+            img = img.transpose((2, 0, 1))
+        assert img.shape[0] == self.channels
+        return img.flatten()
 
     def render(self, mode='wrapped'):
         if mode == 'wrapped':

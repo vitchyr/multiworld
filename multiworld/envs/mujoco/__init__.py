@@ -811,6 +811,52 @@ def register_pnr_envs():
     )
 
     register(
+        id='SawyerPushDebugLEAPRealisticGoals-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_leap:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'a907434',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            goal_low=(-0.20, 0.50, -0.20, 0.50),
+            goal_high=(0.20, 0.70, 0.20, 0.70),
+            fix_reset=True,
+            fixed_reset=(0.0, 0.4, 0.0, 0.6),
+            sample_realistic_goals=True,
+            reward_type='hand_and_puck_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
+        id='SawyerPushDebugLEAPRealisticGoalsPuckRew-v2',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_leap:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'a907434',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            goal_low=(-0.20, 0.50, -0.20, 0.50),
+            goal_high=(0.20, 0.70, 0.20, 0.70),
+            fix_reset=True,
+            fixed_reset=(0.0, 0.4, 0.0, 0.6),
+            sample_realistic_goals=True,
+            reward_type='puck_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
         id='SawyerPushDebugCCRIG-v3',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_ccrig:SawyerMultiobjectEnv',
