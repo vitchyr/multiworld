@@ -120,6 +120,27 @@ def register_pygame_envs():
             'reward_type': 'dense_l1',
         },
     )
+
+    register(
+        id='Point2DEnv-Train-Everything-Eval-Everything-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '9ebe203',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'action_scale': 0.05,
+            'render_onscreen': False,
+            'fixed_reset': np.array([0, 0]),
+            'eval_goal_sampler': full_goal_sampler,
+            'expl_goal_sampler': full_goal_sampler,
+            'randomize_position_on_reset': False,
+            'reward_type': 'dense_l1',
+        },
+    )
     register(
         id='Point2DEnv-Wall-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
