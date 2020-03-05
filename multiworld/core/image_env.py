@@ -28,6 +28,7 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             non_presampled_goal_img_is_garbage=False,
             recompute_reward=True,
             presample_goals_on_fly=False,
+            num_presampled_goals_on_fly=10000,
     ):
 
         """
@@ -108,12 +109,14 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self.reward_type = reward_type
         self.threshold = threshold
         self._presampled_goals = presampled_goals
+        self.presample_goals_on_fly = presample_goals_on_fly
+        self.num_presampled_goals_on_fly = num_presampled_goals_on_fly
         if presample_goals_on_fly:
             assert self._presampled_goals is None
             self.num_goals_presampled = 0
-            self.wrapped_env.goal_sampling_mode = 'test'
             self.reset()
-            self._presampled_goals = presampled_goals = self.sample_goals(3000)
+            self._presampled_goals = presampled_goals = self.sample_goals(
+                num_presampled_goals_on_fly)
             print("Done sampling goals")
 
         if self._presampled_goals is None:
@@ -122,6 +125,15 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
             self.num_goals_presampled = presampled_goals[random.choice(list(presampled_goals))].shape[0]
         self._last_image = None
         self.cached_mesh_grid = None
+
+    def switch_wrapped_env_goal_sampling_mode(self, mode):
+        self.wrapped_env.goal_sampling_mode = mode
+        if self.presample_goals_on_fly:
+            self.num_goals_presampled = 0
+            self.reset()
+            self._presampled_goals = presampled_goals = self.sample_goals(
+                self.num_presampled_goals_on_fly)
+            print("Done sampling goals for mode: ", mode)
 
 
     def step(self, action):
@@ -285,7 +297,8 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
                                                    *args, **kwargs)
         if self.cached_mesh_grid is not None:
             return self.cached_mesh_grid
-        mesh_grid = self.wrapped_env.get_mesh_grid(*args, **kwargs)
+        mesh_grid = self.wrapped_env.get_mesh_grid(observation_key, *args,
+                                                   **kwargs)
         img_grid = []
         for goal in mesh_grid:
             self.wrapped_env.set_to_goal({'state_desired_goal': goal})
