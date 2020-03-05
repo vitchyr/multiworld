@@ -841,6 +841,39 @@ def register_pnr_envs():
     )
 
     register(
+        id='SawyerPushDebugCCRIGSlowPhysics-v3',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_ccrig:SawyerMultiobjectEnv',
+        tags={
+            'git-commit-hash': 'a907434',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            fixed_start=False,
+            fixed_colors=False,
+            reward_type="dense",
+            num_objects=1,
+            object_meshes=None,
+            num_scene_objects=[1],
+            maxlen=0.065,
+            action_repeat=1,
+            puck_goal_low=(-0.20 + 0.01, 0.50 + 0.01),
+            puck_goal_high=(0.20 - 0.01, 0.70 - 0.01),
+            hand_goal_low=(-0.20, 0.50),
+            hand_goal_high=(0.20, 0.70),
+            mocap_low=(-0.20, 0.50 , 0.0),
+            mocap_high=(0.20, 0.70, 0.5),
+            object_low=(-0.20 + 0.01, 0.50 + 0.01, 0.02),
+            object_high=(0.20 - 0.01, 0.70 - 0.01, 0.02),
+            use_textures=False,
+            sample_realistic_goals=True,
+
+            pos_action_scale=0.02,
+            heavy_puck=True,
+        )
+    )
+
+    register(
         id='SawyerPushDebugLEAP-v3',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_leap:SawyerPushAndReachXYEnv',

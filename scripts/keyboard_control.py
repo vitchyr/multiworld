@@ -70,7 +70,8 @@ import pygame
 
 # env = gym.make('SawyerPushDebugCCRIG-v2')
 # env = gym.make('SawyerPushDebugCCRIGSlowPhysics-v2')
-env = gym.make('SawyerPushDebugCCRIG-v3')
+env = gym.make('SawyerPushDebugCCRIGSlowPhysics-v3')
+# env = gym.make('SawyerPushDebugCCRIG-v3')
 # env = gym.make('SawyerPushDebugLEAP-v1')
 
 
