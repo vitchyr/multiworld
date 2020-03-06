@@ -23,6 +23,8 @@ def get_data_save_directory(args):
     else:
         data_save_directory += '_fixed_position'
 
+    data_save_directory += '_noise_std_{}'.format(args.noise_std)
+
     return data_save_directory
 
 
@@ -33,6 +35,7 @@ if __name__ == "__main__":
                                                           'SawyerReach-v0'))
     parser.add_argument("-d", "--data-save-directory", type=str)
     parser.add_argument("-n", "--num-trajectories", type=int, default=2000)
+    parser.add_argument("--noise-std", type=float, default=0.1)
     parser.add_argument("-p", "--num-parallel-threads", type=int, default=10)
     parser.add_argument("--sparse", dest="sparse", action="store_true",
                         default=False)
@@ -50,6 +53,8 @@ if __name__ == "__main__":
                'shapenet_scripts/randomized_scripted_grasping.py',
                '-e{}'.format(args.env),
                '-d{}'.format(save_directory),
+               '--noise-std',
+               str(args.noise_std),
                '-n {}'.format(num_trajectories_per_thread),
                '-p {}'.format(args.num_parallel_threads),
                '-o{}'.format(args.observation_mode),
