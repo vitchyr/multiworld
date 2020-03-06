@@ -131,20 +131,20 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
 
     def reset(self):
         obs = self.wrapped_env.reset()
-        if self.num_goals_presampled > 0:
-            goal = self.sample_goal()
-            self._img_goal = goal['image_desired_goal']
-            self.wrapped_env.set_goal(goal)
-            for key in goal:
-                obs[key] = goal[key]
-        elif self.non_presampled_goal_img_is_garbage:
-            # This is use mainly for debugging or pre-sampling goals.
-            self._img_goal = self._get_flat_img()
-        else:
-            env_state = self.wrapped_env.get_env_state()
-            self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
-            self._img_goal = self._get_flat_img()
-            self.wrapped_env.set_env_state(env_state)
+        # if self.num_goals_presampled > 0:
+        #     goal = self.sample_goal()
+        #     self._img_goal = goal['image_desired_goal']
+        #     self.wrapped_env.set_goal(goal)
+        #     for key in goal:
+        #         obs[key] = goal[key]
+        # elif self.non_presampled_goal_img_is_garbage:
+        #     # This is use mainly for debugging or pre-sampling goals.
+        #     self._img_goal = self._get_flat_img()
+        # else:
+        #     env_state = self.wrapped_env.get_env_state()
+        #     self.wrapped_env.set_to_goal(self.wrapped_env.get_goal())
+        #     self._img_goal = self._get_flat_img()
+        #     self.wrapped_env.set_env_state(env_state)
 
         return self._update_obs(obs)
 

@@ -110,8 +110,9 @@ class MujocoGymToMultiEnv(GymToMultiEnv):
 
     def initialize_camera(self, init_fctn):
         sim = self.sim
-        viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=self.device_id)
-        init_fctn(viewer.cam)
+        viewer = mujoco_py.MjRenderContextOffscreen(sim, device_id=-1)
+        if init_fctn:
+            init_fctn(viewer.cam)
         sim.add_render_context(viewer)
 
     def get_diagnostics(self, paths, **kwargs):
