@@ -332,8 +332,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         if reward_type is None:
             reward_type = self.reward_type
 
-        achieved_goals = obs['state_achieved_goal']
-        desired_goals = obs['state_desired_goal']
+        achieved_goals = obs['state_achieved_goal'].copy()
+        desired_goals = obs['state_desired_goal'].copy()
 
         if 'mask' in obs:
             achieved_goals = achieved_goals * obs['mask']

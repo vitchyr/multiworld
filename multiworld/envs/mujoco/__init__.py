@@ -896,6 +896,28 @@ def register_pnr_envs():
     )
 
     register(
+        id='SawyerPushDebugLEAPPuckRew-v3',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_leap:SawyerPushAndReachXYEnv',
+        tags={
+            'git-commit-hash': 'a907434',
+            'author': 'Soroush',
+        },
+        kwargs=dict(
+            hand_low=(-0.20, 0.50),
+            hand_high=(0.20, 0.70),
+            puck_low=(-0.20, 0.50),
+            puck_high=(0.20, 0.70),
+            goal_low=(-0.20, 0.50, -0.20, 0.50),
+            goal_high=(0.20, 0.70, 0.20, 0.70),
+            fix_reset=False,
+            sample_realistic_goals=True,
+            reward_type='puck_distance',
+            invisible_boundary_wall=True,
+        )
+    )
+
+    register(
         id='SawyerPushDebugLEAP-v4',
         entry_point='multiworld.envs.mujoco.sawyer_xyz'
                     '.sawyer_push_leap:SawyerPushAndReachXYEnv',
