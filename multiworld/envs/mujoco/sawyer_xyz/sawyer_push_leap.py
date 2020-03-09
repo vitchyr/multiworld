@@ -141,6 +141,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.fix_goal = fix_goal
         self.fixed_goal = np.array(fixed_goal)
         self._state_goal = None
+        self._state_mask = None
 
         self.test_mode_case_num = test_mode_case_num
         assert self.test_mode_case_num in [None, 1, 2, 3, 4, 5]
@@ -235,6 +236,15 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.data.set_mocap_pos('mocap', new_mocap_pos)
         self.data.set_mocap_quat('mocap', np.array([1, 0, 1, 0]))
 
+    def sample_masks(self, batch_size):
+        masks = np.array([
+            [1, 1, 0, 0], # hand
+            [0, 0, 1, 1], # puck
+            [1, 1, 1, 1], # hand and puck
+        ])
+        idx = np.random.choice(len(masks), batch_size)
+        return masks[idx]
+
     def _get_info(self):
         hand_goal = self._state_goal[:2]
         puck_goal = self._state_goal[-2:]
@@ -315,6 +325,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             proprio_observation=flat_obs[:2],
             proprio_desired_goal=self._state_goal[:2],
             proprio_achieved_goal=flat_obs[:2],
+            mask=self._state_mask,
         )
 
     def compute_rewards(self, actions, obs, prev_obs=None, reward_type=None):
@@ -323,6 +334,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
+
+        if 'mask' in obs:
+            achieved_goals = achieved_goals * obs['mask']
+            desired_goals = desired_goals * obs['mask']
+
         hand_pos = achieved_goals[:, :2]
         puck_pos = achieved_goals[:, -2:]
         hand_goals = desired_goals[:, :2]
@@ -427,6 +443,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         for k in goals.keys():
             goals[k] = goals[k][0]
         self.set_goal(goals)
+
+        self._state_mask = self.sample_masks(batch_size=1)[0]
+
         self.reset_counter += 1
         self.reset_mocap_welds()
         return self._get_obs()
@@ -563,16 +582,18 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         base_state = joint_state, mocap_state
         base_state = copy.deepcopy(base_state)
         goal = self._state_goal.copy()
-        return base_state, goal
+        mask = self._state_mask.copy()
+        return base_state, goal, mask
 
     def set_env_state(self, state):
-        base_state, goal = state
+        base_state, goal, mask = state
         joint_state, mocap_state = base_state
         self.sim.set_state(joint_state)
         mocap_pos, mocap_quat = mocap_state
         self.data.set_mocap_pos('mocap', mocap_pos)
         self.data.set_mocap_quat('mocap', mocap_quat)
         self.set_goal({'state_desired_goal': goal})
+        self._state_mask = mask
 
     def reset_mocap_welds(self):
         """Resets the mocap welds that we use for actuation."""
