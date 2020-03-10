@@ -193,7 +193,7 @@ def main(args):
         render_images = args.video_save_frequency > 0 and \
                         j % args.video_save_frequency == 0
 
-        if args.env == 'SawyerReachOne-v0':
+        if args.env == 'SawyerGraspOne-v0':
             if args.non_markovian:
                 success, images = scripted_non_markovian_grasping(env, pool, render_images)
             else:

@@ -22,7 +22,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         :param reward_type: one of 'shaped', 'sparse'
         :param reward_min: minimum possible reward per timestep
         :param randomize: whether to randomize the object position or not
-        :param observation_mode: state, pixel, pixel_debug
+        :param observation_mode: state, pixels, pixels_debug
         :param obs_img_dim: image dimensions for the observations
         """
         self._goal_pos = np.asarray(goal_pos)
