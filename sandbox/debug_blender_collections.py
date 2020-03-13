@@ -18,6 +18,22 @@ from roboverse.blender.utils import (
 bullet.connect()
 bullet.setup()
 
+
+####
+# import pybullet as p
+# base = flag
+
+# collision_flag = p.createCollisionShape()
+# visual_flag = p.createVisualShape()
+
+# linkMasses = [1]
+# linkCollisionShapeIndices = [collision_flag]
+# linkVisualShapeIndices = [visual_flag]
+# linkParentIndices = [0]
+# linkJointTypes = [p.JOINT_REVOLUTE]
+
+####
+
 ## load meshes
 # sawyer = bullet.objects.sawyer(quat=[0,0,1,0])
 # table = bullet.objects.table()
@@ -48,17 +64,36 @@ visual_shape_map = {
 	for mesh in meshes
 }
 
+primitive_collision_shape = p.createCollisionShape(
+		p.GEOM_BOX,
+		halfExtents=[.1,.1,.1])
+primitve_visual_shape = p.createVisualShape(
+		p.GEOM_BOX,
+		halfExtents=[.1,.1,.1])
+
+primitive_collision_shape2 = p.createCollisionShape(
+		p.GEOM_BOX,
+		halfExtents=[.01,.2,.2])
+primitve_visual_shape2 = p.createVisualShape(
+		p.GEOM_BOX,
+		halfExtents=[.01,.2,.2])
+
 base_mesh = meshes[0]
 link_meshes = meshes[5:6]
 
-collision_shapes = [
-	collision_shape_map[mesh]
-	for mesh in link_meshes
-]
-visual_shapes = [
-	visual_shape_map[mesh]
-	for mesh in link_meshes
-]
+# collision_shapes = [
+# 	collision_shape_map[mesh]
+# 	for mesh in link_meshes
+# ]
+# visual_shapes = [
+# 	visual_shape_map[mesh]
+# 	for mesh in link_meshes
+# ]
+collision_shapes = [primitive_collision_shape2]
+visual_shapes = [primitve_visual_shape2]
+
+
+print(collision_shapes, visual_shapes)
 
 link_masses = [
 	joints[mesh].get_mass()
@@ -88,7 +123,7 @@ joint_axes = [
 	for mesh in link_meshes
 ]
 
-link_positions = [[0,0,0]]*len(parent_meshes)
+link_positions = [[0,0,.2]]*len(parent_meshes)
 link_orientations = [[0,0,0,1]]*len(parent_meshes)
 intertial_positions = [[0,0,0]]*len(parent_meshes)
 inertial_orientations = [[0,0,0,1]]*len(parent_meshes)
@@ -108,7 +143,7 @@ base_orientation=[0,0,0,1]
 # joint_axes = [[0,1,0]]*len(collision_shapes)
 
 body = p.createMultiBody(base_mass,
-	base_shape,
+	primitive_collision_shape,
 	basePosition=base_position,
 	baseOrientation=base_orientation,
 	linkMasses=link_masses,
@@ -122,6 +157,21 @@ body = p.createMultiBody(base_mass,
 	linkJointTypes=joint_types,
 	linkJointAxis=joint_axes)
 
+print(
+	'base_mass: {}\n'.format(base_mass),
+	'base_shape: {}\n'.format(primitive_collision_shape),
+	'base_position: {}\n'.format(base_position),
+	'base_orientation: {}\n'.format(base_orientation),
+	'link_masses: {}\n'.format(link_masses),
+	'collision_shapes: {}\n'.format(collision_shapes),
+	'visual_shapes: {}\n'.format(visual_shapes),
+	'link_positions: {}\n'.format(link_positions),
+	'link_orientations: {}\n'.format(link_orientations),
+	'inertial_orientations: {}\n'.format(inertial_orientations),
+	'link_parents: {}\n'.format(link_parents),
+	'joint_types: {}\n'.format(joint_types),
+	'joint_axes: {}\n'.format(joint_axes)
+	)
 
 # pdb.set_trace()
 
