@@ -126,13 +126,19 @@ class ImageEnv(ProxyEnv, MultitaskEnv):
         self._last_image = None
         self.cached_mesh_grid = None
 
-    def switch_wrapped_env_goal_sampling_mode(self, mode):
+    @property
+    def goal_sampling_mode(self):
+        return self.wrapped_env.goal_sampling_mode
+
+    @goal_sampling_mode.setter
+    def goal_sampling_mode(self, mode):
         self.wrapped_env.goal_sampling_mode = mode
         if self.presample_goals_on_fly:
             self.num_goals_presampled = 0
             self.reset()
-            self._presampled_goals = presampled_goals = self.sample_goals(
+            self._presampled_goals = self.sample_goals(
                 self.num_presampled_goals_on_fly)
+            self.num_goals_presampled = self.num_presampled_goals_on_fly
             print("Done sampling goals for mode: ", mode)
 
 

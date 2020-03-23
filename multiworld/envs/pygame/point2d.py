@@ -39,6 +39,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             show_goal=True,
             expl_goal_sampler=None,
             eval_goal_sampler=None,
+            use_fixed_reset_for_eval=False,
             **kwargs
     ):
         if walls is None:
@@ -92,6 +93,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.expl_goal_sampler = expl_goal_sampler
         self.eval_goal_sampler = eval_goal_sampler
 
+        self.presampled_goals = None
+        self.use_fixed_reset_for_eval = use_fixed_reset_for_eval
+
     def step(self, velocities):
         assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
@@ -140,15 +144,15 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def reset(self):
         self._target_position = self.sample_goal()['state_desired_goal']
-        if self.randomize_position_on_reset:
-            assert self.fixed_reset is None, "Cannot have both fixed reset and randomized reset"
+        if self.goal_sampling_mode == 'test' and self.use_fixed_reset_for_eval:
+            self._position = self.fixed_reset
+        elif self.randomize_position_on_reset:
             self._position = self._sample_position(
                 self.obs_range.low,
                 self.obs_range.high,
             )
         elif self.fixed_reset is not None:
             self._position = self.fixed_reset
-
         return self._get_obs()
 
     def _position_inside_wall(self, pos):
@@ -236,17 +240,21 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 0
             )
         else:
-            goals = np.zeros((batch_size, self.obs_range.low.size))
-            for b in range(batch_size):
-                if batch_size > 1:
-                    logging.warning("This is very slow!")
-                goals[b, :] = self._sample_position(
-                    self.obs_range.low,
-                    self.obs_range.high,
-                )
+            if self.presampled_goals is None:
+                goals = np.zeros((10000, self.obs_range.low.size))
+                for b in range(10000):
+                    goals[b, :] = self._sample_position(
+                        self.obs_range.low,
+                        self.obs_range.high,
+                    )
+                self.presampled_goals = {
+                    'desired_goal': goals,
+                    'state_desired_goal': goals,
+                }
+        random_idxs = np.random.choice(len(list(self.presampled_goals.values())[0]), size=batch_size)
         return {
-            'desired_goal': goals,
-            'state_desired_goal': goals,
+            'desired_goal': self.presampled_goals['desired_goal'][random_idxs],
+            'state_desired_goal': self.presampled_goals['state_desired_goal'][random_idxs],
         }
 
     def get_image_plt(self, vals, vmin=None, vmax=None, extent=[-4, 4, -4, 4],
@@ -266,7 +274,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         marker_factor = 0.60
         if small_markers:
             marker_factor = 0.10
-
+        if draw_walls:
+            for wall in self.walls:
+                ax.vlines(x=wall.endpoint1[0], ymin=wall.endpoint2[1], ymax=wall.endpoint1[1])
+                ax.hlines(y=wall.endpoint2[1], xmin=wall.endpoint3[0], xmax=wall.endpoint2[0])
+                ax.vlines(x=wall.endpoint3[0], ymin=wall.endpoint3[1], ymax=wall.endpoint4[1])
+                ax.hlines(y=wall.endpoint4[1], xmin=wall.endpoint4[0], xmax=wall.endpoint1[0])
         ax.get_xaxis().set_visible(False)
         ax.get_yaxis().set_visible(False)
         fig.subplots_adjust(bottom=0)
@@ -290,6 +303,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
         plt.close()
         # X and Y are flipped for some reason
         data = data.transpose((1, 0, 2))
+        # Not sure why this is needed for Image envs
+        if hasattr(self, 'transpose') and self.transpose:
+            data = data[:, ::-1, :]
         # Normal processing from the image env
         data = data.transpose(2, 1, 0).flatten()
         return data
@@ -576,6 +592,23 @@ class Point2DWallEnv(Point2DEnv):
                     0,
                     -self.inner_wall_max_dist,
                     self.inner_wall_max_dist,
+                )
+            ]
+        if wall_shape == "-|":
+            self.walls = [
+                HorizontalWall(
+                    self.ball_radius,
+                    1.5 * self.inner_wall_max_dist,
+                    0.5 * self.inner_wall_max_dist,
+                    1.5 * self.inner_wall_max_dist,
+                    self.wall_thickness
+                ),
+                VerticalWall(
+                    self.ball_radius,
+                    1.5 * self.inner_wall_max_dist,
+                    0.5 * self.inner_wall_max_dist,
+                    1.5 * self.inner_wall_max_dist,
+                    self.wall_thickness
                 )
             ]
         if wall_shape == "big-u":
