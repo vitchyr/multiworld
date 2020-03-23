@@ -131,11 +131,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         ob = self._get_obs()
         reward = self.compute_reward(velocities, ob)
         info = {
-            'radius': self.target_radius,
-            'target_position': self._target_position,
             'distance_to_target': distance_to_target,
-            'velocity': velocities,
-            'speed': np.linalg.norm(velocities),
             'is_success': is_success,
         }
         done = False
@@ -196,11 +192,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'radius',
-            'target_position',
             'distance_to_target',
-            'velocity',
-            'speed',
             'is_success',
         ]:
             stat_name = stat_name
