@@ -13,6 +13,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  observation_mode='state',
                  obs_img_dim=48,
                  success_threshold=0.05,
+                 transpose_image=False,
                  *args,
                  **kwargs
                  ):
@@ -24,12 +25,15 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         :param randomize: whether to randomize the object position or not
         :param observation_mode: state, pixels, pixels_debug
         :param obs_img_dim: image dimensions for the observations
+        :param transpose_image: first dimension is channel when true
         """
         self._goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
         self._reward_min = reward_min
         self._randomize = randomize
         self._observation_mode = observation_mode
+        self._transpose_image = transpose_image
+        self.image_shape = (obs_img_dim, obs_img_dim)
 
         self._object_position_low = (.65, .10, -.36)
         self._object_position_high = (.8, .25, -.36)
@@ -101,6 +105,8 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         img, depth, segmentation = bullet.render(
             self.obs_img_dim, self.obs_img_dim, self._view_matrix_obs,
             self._projection_matrix_obs, shadow=0, gaussian_width=0)
+        if self._transpose_image:
+            img = np.transpose(img, (2, 0, 1))
         return img
 
     def get_reward(self, info):

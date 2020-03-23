@@ -32,7 +32,3 @@ class SawyerLidEnv(SawyerLiftEnv):
 
     def get_termination(self, observation):
         return self._sensors['lid'].sense()
-
-
-
-
