@@ -14,6 +14,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  obs_img_dim=48,
                  success_threshold=0.05,
                  transpose_image=False,
+                 invisible_robot=False,
                  *args,
                  **kwargs
                  ):
@@ -26,6 +27,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         :param observation_mode: state, pixels, pixels_debug
         :param obs_img_dim: image dimensions for the observations
         :param transpose_image: first dimension is channel when true
+        :param invisible_robot: the robot arm is invisible when set to True
         """
         self._goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
@@ -33,6 +35,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         self._randomize = randomize
         self._observation_mode = observation_mode
         self._transpose_image = transpose_image
+        self._invisible_robot = invisible_robot
         self.image_shape = (obs_img_dim, obs_img_dim)
 
         self._object_position_low = (.65, .10, -.36)
@@ -50,7 +53,10 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         super().__init__(*args, **kwargs)
 
     def _load_meshes(self):
-        self._sawyer = bullet.objects.sawyer_finger_visual_only()
+        if self._invisible_robot:
+            self._sawyer = bullet.objects.sawyer_invisible()
+        else:
+            self._sawyer = bullet.objects.sawyer_finger_visual_only()
         self._table = bullet.objects.table()
         self._objects = {}
         self._sensors = {}
