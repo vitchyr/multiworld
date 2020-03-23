@@ -124,6 +124,34 @@ def register_pygame_envs():
         },
     )
     register(
+        id='Point2DEnv-Train-Everything-Eval-Everything-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '9ebe203',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 2,
+            'action_scale': 0.05,
+            'render_onscreen': False,
+            'fixed_reset': np.array([0, 0]),
+            'eval_goal_sampler': full_goal_sampler,
+            'expl_goal_sampler': full_goal_sampler,
+            'randomize_position_on_reset': False,
+            'reward_type': 'dense_l1',
+        },
+    )
+
+    register(
+        id='Point2DEnv-Train-Everything-Eval-Everything-Images-48-v0',
+        entry_point=point2d_image_train_all_eval_all_48_v0,
+        tags={
+            'author': 'Vitchyr'
+        },
+    )
+    register(
         id='Point2DLargeEnv-offscreen-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
@@ -248,6 +276,28 @@ def point2d_image_v0(**kwargs):
         render_size=8,
     )
     env = ImageEnv(env, imsize=env.render_size, transpose=True)
+    return env
+
+def point2d_image_train_all_eval_all_48_v0(**kwargs):
+    from multiworld.core.image_env import ImageEnv
+    from multiworld.envs.pygame.point2d import Point2DEnv
+    env = Point2DEnv(
+        images_are_rgb=True,
+        render_onscreen=False,
+        show_goal=False,
+        render_size=48,
+        target_radius=2,
+        ball_radius=2,
+        action_scale=0.05,
+        fixed_reset=np.array([0, 0]),
+        eval_goal_sampler=full_goal_sampler,
+        expl_goal_sampler=full_goal_sampler,
+        randomize_position_on_reset=False,
+        reward_type='dense_l1',
+    )
+    env = ImageEnv(env, imsize=env.render_size, normalize=True, transpose=True,
+                   presample_goals_on_fly=True,
+                   num_presampled_goals_on_fly=10000)
     return env
 
 def point2d_image_train_half_axis_eval_all_16_v1(**kwargs):
