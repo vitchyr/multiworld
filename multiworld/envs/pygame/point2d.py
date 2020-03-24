@@ -215,12 +215,19 @@ class Point2DEnv(MultitaskEnv, Serializable):
             )
         else:
             goals = np.zeros((batch_size, self.obs_range.low.size))
-            for b in range(batch_size):
-                if batch_size > 1:
-                    logging.warning("This is very slow!")
-                goals[b, :] = self._sample_position(
+            if len(self.walls) > 0:
+                for b in range(batch_size):
+                    if batch_size > 1:
+                        logging.warning("This is very slow!")
+                    goals[b, :] = self._sample_position(
+                        self.obs_range.low,
+                        self.obs_range.high,
+                    )
+            else:
+                goals = np.random.uniform(
                     self.obs_range.low,
                     self.obs_range.high,
+                    size=(batch_size, self.obs_range.low.size),
                 )
         return {
             'desired_goal': goals,
