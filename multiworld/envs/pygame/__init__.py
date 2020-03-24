@@ -163,12 +163,6 @@ def register_pygame_envs():
     )
 
     register(
-        id='Point2DEnv-Train-Everything-Eval-Everything-Images-48-v0',
-        entry_point=point2d_image_train_all_eval_all_48_v0,
-        tags={
-            'author': 'Vitchyr'
-        },
-    )
         id='Point2DEnv-Wall-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
