@@ -226,27 +226,36 @@ class Point2DEnv(MultitaskEnv, Serializable):
         assert self.goal_sampling_mode is None, "Invalid goal sampling mode: {}".format(self.goal_sampling_mode)
 
         if not self.fixed_goal is None:
-            goals = np.repeat(
+            goals = state_goals = np.repeat(
                 self.fixed_goal.copy()[None],
                 batch_size,
                 0
             )
         else:
             if self.presampled_goals is None:
-                goals = np.zeros((10000, self.obs_range.low.size))
-                for b in range(10000):
-                    goals[b, :] = self._sample_position(
+                if len(self.walls) > 0:
+                    presampled_goals = np.zeros((10000, self.obs_range.low.size))
+                    for b in range(10000):
+                        presampled_goals[b, :] = self._sample_position(
+                            self.obs_range.low,
+                            self.obs_range.high,
+                        )
+                else:
+                    presampled_goals = np.random.uniform(
                         self.obs_range.low,
                         self.obs_range.high,
+                        size=(10000, self.obs_range.low.size),
                     )
                 self.presampled_goals = {
-                    'desired_goal': goals,
-                    'state_desired_goal': goals,
+                    'desired_goal': presampled_goals,
+                    'state_desired_goal': presampled_goals,
                 }
-        random_idxs = np.random.choice(len(list(self.presampled_goals.values())[0]), size=batch_size)
+            random_idxs = np.random.choice(len(list(self.presampled_goals.values())[0]), size=batch_size)
+            goals = self.presampled_goals['desired_goal'][random_idxs]
+            state_goals = self.presampled_goals['state_desired_goal'][random_idxs]
         return {
-            'desired_goal': self.presampled_goals['desired_goal'][random_idxs],
-            'state_desired_goal': self.presampled_goals['state_desired_goal'][random_idxs],
+            'desired_goal': goals,
+            'state_desired_goal': state_goals,
         }
 
     def get_image_plt(self, vals, vmin=None, vmax=None, extent=[-4, 4, -4, 4],
