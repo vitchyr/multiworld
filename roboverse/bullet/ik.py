@@ -155,3 +155,32 @@ def _get_continuous_gripper_state(gripper, gripper_bounds, l_limits, r_limits):
     return [l_state, r_state]
 
 
+#################
+#### pointmass###
+#################
+
+
+def set_pointmass_control(body_id):
+    jointFrictionForce = 1
+    for joint in range(p.getNumJoints(body_id)):
+        p.setJointMotorControl2(body_id, joint, p.POSITION_CONTROL,
+                                force=jointFrictionForce)
+
+
+def pointmass_velocity_step_simulation(body_id, action, sim_steps=15):
+    action[2] = 0.
+    p.resetBaseVelocity(body_id, linearVelocity=action,
+                        angularVelocity=[0, 0, 0])
+    for _ in range(sim_steps):
+        p.stepSimulation()
+
+
+def pointmass_position_step_simulation(body_id, action, action_scale=0.1):
+    current_pos = np.asarray(p.getBasePositionAndOrientation(body_id)[0])
+    target_pos = current_pos
+    target_pos[:2] = target_pos[:2] + action*action_scale
+    p.resetBasePositionAndOrientation(body_id, target_pos,
+                                      p.getQuaternionFromEuler([0., 0, 0]))
+    p.resetBaseVelocity(body_id, linearVelocity=[0, 0, 0],
+                        angularVelocity=[0, 0, 0])
+    p.stepSimulation()

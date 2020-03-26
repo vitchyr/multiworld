@@ -71,5 +71,3 @@ spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
               pos=[.75, -.4, -.3],
               deg=[90,0,-90],
               scale=0.025)
-
-
