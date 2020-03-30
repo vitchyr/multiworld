@@ -1,7 +1,7 @@
 import roboverse.bullet as bullet
 import numpy as np
 from roboverse.envs.sawyer_base import SawyerBaseEnv
-
+import gym
 
 class SawyerGraspOneEnv(SawyerBaseEnv):
 
@@ -37,6 +37,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         self._transpose_image = transpose_image
         self._invisible_robot = invisible_robot
         self.image_shape = (obs_img_dim, obs_img_dim)
+        self.image_length = np.prod(self.image_shape) * 3  # image has 3 channels
 
         self._object_position_low = (.65, .10, -.36)
         self._object_position_high = (.8, .25, -.36)
@@ -51,6 +52,32 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
 
         self.dt = 0.1
         super().__init__(*args, **kwargs)
+
+    def _set_spaces(self):
+        act_dim = 4
+        act_bound = 1
+        act_high = np.ones(act_dim) * act_bound
+        self.action_space = gym.spaces.Box(-act_high, act_high)
+
+        # obs = self.reset()
+        if self._observation_mode == 'state':
+            observation_dim = 11
+            obs_bound = 100
+            obs_high = np.ones(observation_dim) * obs_bound
+            self.observation_space = gym.spaces.Box(-obs_high, obs_high)
+        elif self._observation_mode == 'pixels' or self._observation_mode == 'pixels_debug':
+            img_space = gym.spaces.Box(0, 1, (self.image_length,), dtype=np.float32)
+            if self._observation_mode == 'pixels':
+                observation_dim = 7
+            elif self._observation_mode == 'pixels_debug':
+                observation_dim = 11
+            obs_bound = 100
+            obs_high = np.ones(observation_dim) * obs_bound
+            state_space = gym.spaces.Box(-obs_high, obs_high)
+            spaces = {'image': img_space, 'state': state_space}
+            self.observation_space = gym.spaces.Dict(spaces)
+        else:
+            raise NotImplementedError
 
     def _load_meshes(self):
         if self._invisible_robot:
@@ -153,6 +180,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
                  object_pos, object_theta))
         elif self._observation_mode == 'pixels':
             image_observation = self.render_obs()
+            image_observation = np.float32(image_observation.flatten())/255.0
             # image_observation = np.zeros((48, 48, 3), dtype=np.uint8)
             observation = {
                 'state': np.concatenate(
@@ -162,7 +190,7 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         elif self._observation_mode == 'pixels_debug':
             # This mode passes in all the true state information + images
             image_observation = self.render_obs()
-
+            image_observation = np.float32(image_observation.flatten())/255.0
             object_info = bullet.get_body_info(self._objects['lego'],
                                                quat_to_deg=False)
             object_pos = object_info['pos']
