@@ -34,7 +34,9 @@ char_to_action = {
 
 register_pygame_envs()
 env = gym.make('Point2D-Big-UWall-v1')
-env = MultiObject2DPushEnv(action_scale=0.25)
+env = MultiObject2DPushEnv(
+    action_scale=0.25, num_objects=3, render_size=240
+)
 env.render_dt_msec = 100
 NDIM = env.action_space.low.size
 lock_action = False
