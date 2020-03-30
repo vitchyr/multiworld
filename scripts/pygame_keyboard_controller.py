@@ -9,6 +9,7 @@ import sys
 
 import numpy as np
 import pygame
+from multiworld.envs.pygame.multi_obj_push import MultiObject2DPushEnv
 from pygame.locals import QUIT, KEYDOWN
 
 from multiworld import register_pygame_envs
@@ -27,15 +28,18 @@ char_to_action = {
     'c': np.array([1, 1]),
     'x': 'toggle',
     'r': 'reset',
+    'j': 'drop',
+    'k': 'pickup',
 }
 
 register_pygame_envs()
 env = gym.make('Point2D-Big-UWall-v1')
+env = MultiObject2DPushEnv(action_scale=0.25)
 env.render_dt_msec = 100
 NDIM = env.action_space.low.size
 lock_action = False
 obs = env.reset()
-action = np.zeros(2)
+action = np.zeros(3)
 while True:
     done = False
     if not lock_action:
@@ -51,11 +55,15 @@ while True:
                 lock_action = not lock_action
             elif new_action == 'reset':
                 done = True
+            elif new_action == 'pickup':
+                action[2] = 1
+            elif new_action == 'drop':
+                action[2] = -1
             elif new_action is not None:
                 action[:2] = new_action[:2]
             else:
-                action = np.zeros(2)
-    env.step(action)
+                action = np.zeros(3)
+    env.step(action[:NDIM])
     if done:
         obs = env.reset()
     env.render(mode='interactive')
