@@ -9,7 +9,7 @@ import sys
 
 import numpy as np
 import pygame
-from multiworld.envs.pygame.multi_obj_push import MultiObject2DPushEnv
+from multiworld.envs.pygame.pick_and_place import PickAndPlaceEnv
 from pygame.locals import QUIT, KEYDOWN
 
 from multiworld import register_pygame_envs
@@ -34,8 +34,9 @@ char_to_action = {
 
 register_pygame_envs()
 env = gym.make('Point2D-Big-UWall-v1')
-env = MultiObject2DPushEnv(
-    action_scale=0.25, num_objects=3, render_size=240
+env = PickAndPlaceEnv(
+    num_objects=3, render_size=240,
+    render_onscreen=True,
 )
 env.render_dt_msec = 100
 NDIM = env.action_space.low.size

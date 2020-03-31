@@ -82,7 +82,7 @@ def draw_wall(drawer, wall):
     )
 
 
-class MultiObject2DPushEnv(MultitaskEnv, Serializable):
+class PickAndPlaceEnv(MultitaskEnv, Serializable):
     """
     A simple env where a 'cursor' robot can push objects around.
     """
@@ -95,21 +95,21 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
             render_size=84,
             reward_type="dense",
             action_scale=1.0,
-            target_radius=0.60,
+            success_threshold=0.60,
             boundary_dist=4,
             ball_radius=.75,
             object_radius=0.50,
             walls=None,
             fixed_goal=None,
-            randomize_position_on_reset=True,
-            fixed_reset=None,
-            images_are_rgb=False,  # else black and white
+            randomize_position_on_reset=False,
+            fixed_init_position=None,
+            images_are_rgb=True,  # else black and white
             show_goal=True,
-            expl_goal_sampler=None,
-            eval_goal_sampler=None,
-            use_fixed_reset_for_eval=False,
+            goal_samplers=None,
+            goal_sampling_mode='random',
             num_objects=2,
             min_grab_distance=0.5,
+            num_presampled_goals=10000,
             **kwargs
     ):
         walls = walls or []
@@ -129,7 +129,7 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
         self.render_size = render_size
         self.reward_type = reward_type
         self.action_scale = action_scale
-        self.target_radius = target_radius
+        self.success_threshold = success_threshold
         self.boundary_dist = boundary_dist
         self.ball_radius = ball_radius
         self.walls = walls
@@ -166,13 +166,23 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
 
         self._drawer = None
         self._render_drawer = None
-        self.goal_sampling_mode = "test"
-        self.fixed_reset = fixed_reset
-        self.expl_goal_sampler = expl_goal_sampler
-        self.eval_goal_sampler = eval_goal_sampler
+        if not fixed_init_position:
+            fixed_init_position = np.zeros_like(self.obs_range.low)
+        self._fixed_init_position = fixed_init_position
 
-        self.presampled_goals = None
-        self.use_fixed_reset_for_eval = use_fixed_reset_for_eval
+        self._presampled_goals = None
+        goal_samplers = goal_samplers or {}
+        goal_samplers['fixed'] = PickAndPlaceEnv._sample_fixed_goal
+        goal_samplers['presampled'] = PickAndPlaceEnv._sample_presampled_goals
+        goal_samplers['random'] = PickAndPlaceEnv._sample_random_feasible_goals
+        self._custom_goal_sampler = goal_samplers
+        self._num_presampled_goals = num_presampled_goals
+        if goal_sampling_mode is None:
+            if fixed_goal:
+                goal_sampling_mode = 'fixed'
+            else:
+                goal_sampling_mode = 'presampled'
+        self.goal_sampling_mode = goal_sampling_mode
 
     @property
     def cursor(self):
@@ -222,23 +232,28 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
 
     def _get_info(self):
         distance_to_target = self.cursor.distance_to_target()
-        is_success = distance_to_target < self.target_radius
+        is_success = distance_to_target < self.success_threshold
         info = {
-            'distance_to_target': distance_to_target,
-            'is_success': is_success,
+            'distance_to_target_cursor': distance_to_target,
+            'success_cursor': is_success,
         }
         for i, obj in enumerate(self.objects):
             obj_distance = obj.distance_to_target()
-            info['distance_to_target_obj_{}'.format(i)] = (
-                obj_distance
-            )
+            success = obj_distance < self.success_threshold
+            info['distance_to_target_obj_{}'.format(i)] = obj_distance
+            info['success_obj_{}'.format(i)] = success
         return info
 
     def reset(self):
         goal = self.sample_goal()['state_desired_goal']
         self._set_target_positions(goal)
 
-        init_pos = np.zeros_like(self.obs_range.low)
+        if self.randomize_position_on_reset:
+            init_pos = (
+                self.observation_space.spaces['state_observation'].sample()
+            )
+        else:
+            init_pos = self._fixed_init_position.copy()
         self._set_positions(init_pos)
 
         return self._get_obs()
@@ -272,7 +287,8 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
         desired_goals = obs['state_desired_goal']
         d = np.linalg.norm(achieved_goals - desired_goals, axis=-1)
         if self.reward_type == "sparse":
-            return -(d > self.target_radius).astype(np.float32)
+            return -(d > self.success_threshold * len(self._all_objects)
+                     ).astype(np.float32)
         elif self.reward_type == "dense":
             return -d
         elif self.reward_type == "dense_l1":
@@ -326,40 +342,50 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
         self._set_target_positions(goal['state_desired_goal'])
 
     def sample_goals(self, batch_size):
-        # if self.goal_sampling_mode == 'train' and self.expl_goal_sampler:
-        #     return self.expl_goal_sampler(self, batch_size)
-        # if self.goal_sampling_mode == 'test' and self.eval_goal_sampler:
-        #     return self.eval_goal_sampler(self, batch_size)
-        # assert self.goal_sampling_mode is None, "Invalid goal sampling mode: {}".format(self.goal_sampling_mode)
+        goal_sampler = self._custom_goal_sampler[self.goal_sampling_mode]
+        return goal_sampler(self, batch_size)
 
-        if self.fixed_goal is not None:
-            goals = state_goals = np.repeat(
-                self.fixed_goal.copy()[None],
-                batch_size,
-                0
+    def _sample_random_feasible_goals(self, batch_size):
+        if len(self.walls) > 0:
+            goals = np.zeros(
+                (batch_size, self.obs_range.low.size)
             )
+            for b in range(batch_size):
+                goals[b, :] = self._sample_position(
+                    self.obs_range.low,
+                    self.obs_range.high,
+                )
         else:
-            if self.presampled_goals is None:
-                if len(self.walls) > 0:
-                    presampled_goals = np.zeros((10000, self.obs_range.low.size))
-                    for b in range(10000):
-                        presampled_goals[b, :] = self._sample_position(
-                            self.obs_range.low,
-                            self.obs_range.high,
-                        )
-                else:
-                    presampled_goals = np.random.uniform(
-                        self.obs_range.low,
-                        self.obs_range.high,
-                        size=(10000, self.obs_range.low.size),
-                    )
-                self.presampled_goals = {
-                    'desired_goal': presampled_goals,
-                    'state_desired_goal': presampled_goals,
-                }
-            random_idxs = np.random.choice(len(list(self.presampled_goals.values())[0]), size=batch_size)
-            goals = self.presampled_goals['desired_goal'][random_idxs]
-            state_goals = self.presampled_goals['state_desired_goal'][random_idxs]
+            goals = np.random.uniform(
+                self.obs_range.low,
+                self.obs_range.high,
+                size=(batch_size, self.obs_range.low.size),
+            )
+        state_goals = goals
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': state_goals,
+        }
+
+    def _sample_fixed_goal(self, batch_size):
+        goals = state_goals = np.repeat(
+            self.fixed_goal.copy()[None],
+            batch_size,
+            0
+        )
+        return {
+            'desired_goal': goals,
+            'state_desired_goal': state_goals,
+        }
+
+    def _sample_presampled_goals(self, batch_size):
+        if self._presampled_goals is None:
+            self._presampled_goals = self._sample_random_feasible_goals(
+                self._num_presampled_goals
+            )
+        random_idxs = np.random.choice(len(list(self._presampled_goals.values())[0]), size=batch_size)
+        goals = self._presampled_goals['desired_goal'][random_idxs]
+        state_goals = self._presampled_goals['state_desired_goal'][random_idxs]
         return {
             'desired_goal': goals,
             'state_desired_goal': state_goals,
@@ -407,7 +433,7 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
             return img.transpose((1, 0, 2))
         else:
             r, g, b = img[:, :, 0], img[:, :, 1], img[:, :, 2]
-            img = (-r + b).transpose().flatten()
+            img = (r + g + b).transpose() / 3
             return img
 
     def set_to_goal(self, goal_dict):
@@ -451,9 +477,15 @@ class MultiObject2DPushEnv(MultitaskEnv, Serializable):
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
         for stat_name in [
-            'distance_to_target_obj_{}'
+            'distance_to_target_obj_{}'.format(i)
             for i in range(len(self.objects))
-        ] + ['distance_to_target']:
+        ] + [
+            'success_obj_{}'.format(i)
+            for i in range(len(self.objects))
+        ] + [
+            'distance_to_target_cursor',
+            'success_cursor',
+        ]:
             stat_name = stat_name
             stat = get_stat_in_paths(paths, 'env_infos', stat_name)
             statistics.update(create_stats_ordered_dict(
