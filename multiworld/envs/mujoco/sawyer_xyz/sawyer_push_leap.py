@@ -238,9 +238,9 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
     def sample_masks(self, batch_size):
         masks = np.array([
-            [1, 1, 0, 0], # hand
+            # [1, 1, 0, 0], # hand
             [0, 0, 1, 1], # puck
-            [1, 1, 1, 1], # hand and puck
+            # [1, 1, 1, 1], # hand and puck
         ])
         idx = np.random.choice(len(masks), batch_size)
         return masks[idx]
@@ -438,11 +438,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._reset_hand()
         self._reset_puck()
 
-        # goal = self._sample_realistic_goal()
-        goals = self.sample_goals(batch_size=1)
-        for k in goals.keys():
-            goals[k] = goals[k][0]
-        self.set_goal(goals)
+        goal = self._sample_realistic_goal()
+        # goals = self.sample_goals(batch_size=1)
+        # for k in goals.keys():
+            # goals[k] = goals[k][0]
+        self.set_goal(goal)
 
         self._state_mask = self.sample_masks(batch_size=1)[0]
 
