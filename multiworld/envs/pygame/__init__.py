@@ -1,6 +1,8 @@
 from gym.envs.registration import register
 import logging
 
+from multiworld.envs.pygame.pick_and_place import PickAndPlaceEnv
+
 LOGGER = logging.getLogger(__name__)
 REGISTERED = False
 
@@ -11,6 +13,34 @@ def register_pygame_envs():
         return
     REGISTERED = True
     LOGGER.info("Registering multiworld pygame gym environments")
+    register(
+        id='TwoObjectPickAndPlace2DEnv-v0',
+        entry_point=PickAndPlaceEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            render_size=84,
+            reward_type="dense",
+            action_scale=.5,
+            target_radius=0.60,
+            boundary_dist=4,
+            ball_radius=.75,
+            object_radius=0.50,
+            walls=None,
+            fixed_goal=None,
+            randomize_position_on_reset=True,
+            fixed_reset=None,
+            images_are_rgb=True,
+            show_goal=True,
+            expl_goal_sampler=None,
+            eval_goal_sampler=None,
+            use_fixed_reset_for_eval=False,
+            num_objects=2,
+            min_grab_distance=0.5,
+        ),
+    )
     register(
         id='Point2DLargeEnv-offscreen-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
