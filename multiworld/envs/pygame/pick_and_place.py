@@ -89,28 +89,32 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
     def __init__(
             self,
+            num_objects=2,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=False,
+            # Visualization settings
+            images_are_rgb=True,
             render_dt_msec=0,
-            action_l2norm_penalty=0,  # disabled for now
             render_onscreen=False,
             render_size=84,
-            reward_type="dense",
-            action_scale=1.0,
-            success_threshold=0.60,
-            boundary_dist=4,
-            ball_radius=.75,
-            object_radius=0.50,
-            walls=None,
-            fixed_goal=None,
-            randomize_position_on_reset=False,
-            fixed_init_position=None,
-            images_are_rgb=True,  # else black and white
             show_goal=True,
+            # Goal sampling
             goal_samplers=None,
             goal_sampling_mode='random',
-            num_objects=2,
-            min_grab_distance=0.5,
             num_presampled_goals=10000,
-            **kwargs
     ):
         walls = walls or []
         if fixed_goal is not None:
@@ -119,9 +123,6 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             raise ValueError("Invalid action scale: {}".format(
                 action_scale
             ))
-        if len(kwargs) > 0:
-            LOGGER = logging.getLogger(__name__)
-            LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
