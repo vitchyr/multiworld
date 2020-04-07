@@ -21,25 +21,48 @@ def register_pygame_envs():
             'author': 'vitchyr'
         },
         kwargs=dict(
-            render_size=84,
-            reward_type="dense",
-            action_scale=.5,
-            target_radius=0.60,
-            boundary_dist=4,
-            ball_radius=.75,
-            object_radius=0.50,
-            walls=None,
-            fixed_goal=None,
-            randomize_position_on_reset=True,
-            fixed_reset=None,
-            images_are_rgb=True,
-            show_goal=True,
-            expl_goal_sampler=None,
-            eval_goal_sampler=None,
-            use_fixed_reset_for_eval=False,
             num_objects=2,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
             min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=False,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
         ),
+    )
+    register(
+        id='Point2DLargeEnv-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'git-commit-hash': '4efe2be',
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 1,
+            'render_onscreen': False,
+            'show_goal': False,
+        },
     )
     register(
         id='Point2DLargeEnv-offscreen-v0',
