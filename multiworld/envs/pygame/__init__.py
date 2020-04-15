@@ -50,6 +50,42 @@ def register_pygame_envs():
         ),
     )
     register(
+        id='OneObjectPickAndPlace2DEnv-v0',
+        entry_point=PickAndPlaceEnv,
+        tags={
+            'git-commit-hash': '518675c',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=1,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=False,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+        ),
+    )
+    register(
         id='Point2DLargeEnv-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
