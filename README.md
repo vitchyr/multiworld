@@ -182,3 +182,6 @@ Primary developers:
 [Murtaza Dalal](https://github.com/mdalal2020),
 [Steven Lin](https://github.com/stevenlin1111), and
 [Ashvin Nair](https://github.com/anair13).
+
+## Acknowledgements
+Sawyer MuJoCo Models: [Vikash Kumar](https://github.com/vikashplus/sawyer_sim) [under Apache-2.0 License](https://github.com/vikashplus/sawyer_sim/blob/master/LICENSE)
