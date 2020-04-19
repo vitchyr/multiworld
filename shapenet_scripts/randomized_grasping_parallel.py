@@ -31,7 +31,8 @@ def get_data_save_directory(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("-e", "--env", type=str, choices=('SawyerGraspOne-v0',
+    parser.add_argument("-e", "--env", type=str, choices=('SawyerGraspV2-v0',
+                                                          'SawyerGraspOne-v0',
                                                           'SawyerReach-v0'))
     parser.add_argument("-d", "--data-save-directory", type=str)
     parser.add_argument("-n", "--num-trajectories", type=int, default=2000)
@@ -70,8 +71,8 @@ if __name__ == "__main__":
         time.sleep(1)
 
     exit_codes = [p.wait() for p in subprocesses]
-    subprocess.call(['python',
-                     'shapenet_scripts/combine_trajectories.py',
-                     '-d{}'.format(save_directory)]
-                    )
+    # subprocess.call(['python',
+    #                  'shapenet_scripts/combine_trajectories.py',
+    #                  '-d{}'.format(save_directory)]
+    #                 )
     # print(exit_codes)

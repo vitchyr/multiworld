@@ -99,6 +99,10 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
             'lego': bullet.objects.lego(pos=object_position)
         }
 
+        # Allow the objects to settle down after they are dropped in sim
+        for _ in range(50):
+            bullet.step()
+
     def step(self, *action):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')

@@ -71,3 +71,10 @@ spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
               pos=[.75, -.4, -.3],
               deg=[90,0,-90],
               scale=0.025)
+
+## tray
+
+tray = loader('', 'tray/tray.urdf',
+              pos=[0.70, 0.15, -0.36],
+              deg=[0, 0, 0],
+              scale=0.75)
