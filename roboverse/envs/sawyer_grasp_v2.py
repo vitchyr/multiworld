@@ -13,8 +13,6 @@ SHAPENET_ASSET_PATH = osp.join(
 
 
 def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5):
-
-
     path = object_path.split('/')
     dir_name = path[-2]
     object_name = path[-1]
