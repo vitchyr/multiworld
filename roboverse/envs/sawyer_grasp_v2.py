@@ -5,19 +5,24 @@ import gym
 # from roboverse.utils.shapenet_utils import load_shapenet_objects
 from roboverse.bullet.misc import load_obj
 from roboverse.utils.shapenet_utils import get_shapenet_object_list
+import os.path as osp
 
-PATH = '/media/avi/data/Work/github/jannerm/bullet-manipulation/roboverse/envs/assets/ShapeNetCore'
 REWARD_NEGATIVE = -1.0
 REWARD_POSITIVE = 10.0
 
 def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5):
+
+    shapenet_assets_path = osp.join(
+        osp.dirname(osp.abspath(__file__)),
+        'assets/ShapeNetCore'
+    )
     path = object_path.split('/')
     dir_name = path[-2]
     object_name = path[-1]
     obj = load_obj(
-        PATH + '/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dir_name,
-                                                              object_name),
-        PATH + '/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(
+        shapenet_assets_path + '/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(
+            dir_name, object_name),
+        shapenet_assets_path + '/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(
             dir_name, object_name),
         object_position,
         [0, 0, 1, 0],
