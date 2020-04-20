@@ -2,27 +2,26 @@ import roboverse.bullet as bullet
 import numpy as np
 from roboverse.envs.sawyer_base import SawyerBaseEnv
 import gym
-# from roboverse.utils.shapenet_utils import load_shapenet_objects
 from roboverse.bullet.misc import load_obj
-from roboverse.utils.shapenet_utils import get_shapenet_object_list
 import os.path as osp
+import pickle
 
 REWARD_NEGATIVE = -1.0
 REWARD_POSITIVE = 10.0
+SHAPENET_ASSET_PATH = osp.join(
+    osp.dirname(osp.abspath(__file__)), 'assets/ShapeNetCore')
+
 
 def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5):
 
-    shapenet_assets_path = osp.join(
-        osp.dirname(osp.abspath(__file__)),
-        'assets/ShapeNetCore'
-    )
+
     path = object_path.split('/')
     dir_name = path[-2]
     object_name = path[-1]
     obj = load_obj(
-        shapenet_assets_path + '/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(
+        SHAPENET_ASSET_PATH + '/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(
             dir_name, object_name),
-        shapenet_assets_path + '/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(
+        SHAPENET_ASSET_PATH + '/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(
             dir_name, object_name),
         object_position,
         [0, 0, 1, 0],
@@ -77,7 +76,10 @@ class SawyerGraspV2Env(SawyerBaseEnv):
         self.image_length = obs_img_dim*obs_img_dim*3
         self.object_ids = object_ids
         self._scaling_local = [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.3, 0.5, 0.5, 0.5]
-        self.object_list, self.scaling = get_shapenet_object_list()
+        shapenet_data = pickle.load(
+            open(osp.join(SHAPENET_ASSET_PATH, 'metadata.pkl'), 'rb'))
+        self.object_list = shapenet_data['object_list']
+        self.scaling = shapenet_data['scaling']
 
         super().__init__(*args, **kwargs)
         self.theta = bullet.deg_to_quat([180, 0, 90])
