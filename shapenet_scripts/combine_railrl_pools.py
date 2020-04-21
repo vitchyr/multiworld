@@ -72,9 +72,37 @@ if __name__ == "__main__":
                 )
 
     elif args.observation_mode in ['pixels', 'pixels_debug']:
+        obs_key = 'image'
         consolidated_pool = ObsDictReplayBuffer(pool_size, env,
-                                                observation_key='image')
-        raise NotImplementedError
+                                                observation_key=obs_key)
+        for pool in pools:
+            # import IPython; IPython.embed()
+            path = dict(
+                rewards=[],
+                actions=[],
+                terminals=[],
+                observations=[],
+                next_observations=[],
+            )
+            for i in range(pool._top):
+                path['rewards'].append(pool._rewards[i])
+                path['actions'].append(pool._actions[i])
+                path['terminals'].append(pool._terminals[i])
+                path['observations'].append(dict(image=pool._obs[obs_key][i]))
+                path['next_observations'].append(dict(image=pool._next_obs[obs_key][i]))
+
+                if pool._terminals[i]:
+                    consolidated_pool.add_path(path)
+                    path = dict(
+                        rewards=[],
+                        actions=[],
+                        terminals=[],
+                        observations=[],
+                        next_observations=[],
+                    )
+
+            if len(path['rewards']) > 0:
+                consolidated_pool.add_path(path)
 
     else:
         raise NotImplementedError

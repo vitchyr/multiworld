@@ -160,7 +160,8 @@ def scripted_grasping_V2(env, pool, success_pool, random_actions=False):
                              object_ind*7 + 8: object_ind*7 + 8 + 3]
                 ee_pos = observation['state'][:3]
             else:
-                object_pos = observation[object_ind * 7 + 8: object_ind * 7 + 8 + 3]
+                object_pos = observation[
+                             object_ind * 7 + 8: object_ind * 7 + 8 + 3]
                 ee_pos = observation[:3]
 
             action = object_pos - ee_pos
@@ -274,7 +275,7 @@ def main(args):
     if args.env == 'SawyerGraspOne-v0' or args.env == 'SawyerReach-v0':
         pool = roboverse.utils.DemoPool()
         success_pool = roboverse.utils.DemoPool()
-    elif args.env == 'SawyerGraspV2-v0' and 'pixels' in args.observation_mode:
+    elif args.env in V2_GRASPING_ENVS and 'pixels' in args.observation_mode:
         pool_size = args.num_trajectories*args.num_timesteps
         railrl_pool = ObsDictReplayBuffer(pool_size, env, observation_key='image')
         railrl_success_pool = ObsDictReplayBuffer(pool_size, env, observation_key='image')
@@ -361,7 +362,7 @@ if __name__ == "__main__":
                         default=0, help="Set to zero for no video saving")
     parser.add_argument("--randomize", dest="randomize",
                         action="store_true", default=False)
-    parser.add_argument("--random_actions", dest="random_actions",
+    parser.add_argument("--random-actions", dest="random_actions",
                         action="store_true", default=False)
     parser.add_argument("--gui", dest="gui", action="store_true", default=False)
     parser.add_argument("--sparse", dest="sparse", action="store_true",
@@ -372,5 +373,8 @@ if __name__ == "__main__":
                         choices=('state', 'pixels', 'pixels_debug'))
 
     args = parser.parse_args()
+
+    if args.env in V2_GRASPING_ENVS:
+        args.num_timesteps = 20
 
     main(args)
