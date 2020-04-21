@@ -621,14 +621,6 @@ class Point2DWallEnv(Point2DEnv):
             self.walls = []
 
 
-def get_finals(stats):
-    return [s[-1:] for s in stats]
-
-
-def get_initials(stats):
-    return [s[:1] for s in stats]
-
-
 if __name__ == "__main__":
     import gym
     import matplotlib.pyplot as plt
