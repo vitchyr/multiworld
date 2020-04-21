@@ -200,6 +200,41 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 ))
         return statistics
 
+    def goal_conditioned_diagnostics(self, paths, goals):
+        statistics = OrderedDict()
+        distance_to_target_list = []
+        is_success_list = []
+        for path, goal in zip(paths, goals):
+            distance_to_target = np.linalg.norm(
+                path['observations'] - goal,
+                axis=1
+            )
+            is_success = distance_to_target < self.target_radius
+            distance_to_target_list.append(distance_to_target)
+            is_success_list.append(is_success)
+        for stat_name, stat_list in [
+            ('distance_to_target', distance_to_target_list),
+            ('is_success', is_success_list),
+        ]:
+            statistics.update(create_stats_ordered_dict(
+                stat_name,
+                stat_list,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/final'.format(stat_name),
+                [s[-1:] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/initial'.format(stat_name),
+                [s[:1] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+        return statistics
+
     def get_goal(self):
         return {
             'desired_goal': self._target_position.copy(),
@@ -584,6 +619,14 @@ class Point2DWallEnv(Point2DEnv):
             ]
         if wall_shape == "none":
             self.walls = []
+
+
+def get_finals(stats):
+    return [s[-1:] for s in stats]
+
+
+def get_initials(stats):
+    return [s[:1] for s in stats]
 
 
 if __name__ == "__main__":
