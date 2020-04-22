@@ -90,6 +90,8 @@ class SawyerGraspOneEnv(SawyerBaseEnv):
         self._workspace = bullet.Sensor(self._sawyer,
             xyz_min=self._pos_low, xyz_max=self._pos_high,
             visualize=False, rgba=[0,1,0,.1])
+        self._end_effector = bullet.get_index_by_attribute(
+            self._sawyer, 'link_name', 'gripper_site')
         if self._randomize:
             object_position = np.random.uniform(
                 low=self._object_position_low, high=self._object_position_high)
