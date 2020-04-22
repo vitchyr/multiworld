@@ -82,13 +82,14 @@ class SawyerGraspV2Env(SawyerBaseEnv):
         super().__init__(*args, **kwargs)
         self.theta = bullet.deg_to_quat([180, 0, 90])
 
-
-    def _set_spaces(self):
+    def _set_action_space(self):
         act_dim = 4
         act_bound = 1
         act_high = np.ones(act_dim) * act_bound
         self.action_space = gym.spaces.Box(-act_high, act_high)
 
+    def _set_spaces(self):
+        self._set_action_space()
         # obs = self.reset()
         if self._observation_mode == 'state':
             observation_dim = 7 + 1 + 7*self._num_objects
