@@ -26,6 +26,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             action_l2norm_penalty=0,  # disabled for now
             render_onscreen=False,
             render_size=84,
+            get_image_base_render_size=None,
             reward_type="dense",
             action_scale=1.0,
             target_radius=0.60,
@@ -82,8 +83,19 @@ class Point2DEnv(MultitaskEnv, Serializable):
             ('state_achieved_goal', self.obs_range),
         ])
 
-        self.drawer = None
-        self.render_drawer = None
+        if get_image_base_render_size:
+            base_width, base_height = get_image_base_render_size
+            self._drawer = PygameViewer(
+                screen_width=base_width,
+                screen_height=base_height,
+                x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                render_onscreen=self.render_onscreen,
+            )
+            self._fixed_get_image_render_size = True
+        else:
+            self._drawer = None
+            self._fixed_get_image_render_size = False
 
     def step(self, velocities):
         assert self.action_scale <= 1.0
@@ -277,18 +289,25 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if self.drawer is None:
+        if self._drawer is None or (
+                not self._fixed_get_image_render_size
+                and (self._drawer.width != width or self._drawer.height != height)
+        ):
             if width != height:
                 raise NotImplementedError()
-            self.drawer = PygameViewer(
+            self._drawer = PygameViewer(
                 screen_width=width,
                 screen_height=height,
                 x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
                 y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
                 render_onscreen=self.render_onscreen,
             )
-        self.draw(self.drawer)
-        img = self.drawer.get_image()
+        self.draw(self._drawer)
+        if width and height:
+            wh_size = (width, height)
+        else:
+            wh_size = None
+        img = self._drawer.get_image(wh_size)
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
         else:
