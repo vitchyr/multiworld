@@ -65,8 +65,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
 
         self.max_target_distance = self.boundary_dist - self.target_radius
 
-        self._target_position = None
-        self._position = np.zeros((2))
+        self._target_position = np.zeros(2)
+        self._position = np.zeros(2)
 
         u = np.ones(2)
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
