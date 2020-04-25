@@ -93,6 +93,15 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
         'id': 'SawyerSoup-v0',
         'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
     },
+    {
+        'id': 'WidowBase-v0',
+        'entry_point': ('roboverse.envs.widow_base:WidowBaseEnv'),
+    },
+    {
+        'id': 'WidowX200Grasp-v0',
+        'entry_point': ('roboverse.envs.widowx200_grasp:WidowX200GraspEnv'),
+        'kwargs': {'max_force': 100, 'action_scale': 0.05}
+    },
 )
 
 PROJECTION_ENVIRONMENT_SPECS = tuple(
