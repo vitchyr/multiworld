@@ -103,6 +103,11 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
         'kwargs': {'max_force': 100, 'action_scale': 0.05}
     },
     {
+        'id': 'Widow200GraspV2-v0',
+        'entry_point': ('roboverse.envs.widow200_grasp_v2:Widow200GraspV2Env'),
+        'kwargs': {'max_force': 100, 'action_scale': 0.05}
+    },
+    {
         'id': 'WidowBoxPackingOne-v0',
         'entry_point': ('roboverse.envs.widow_box_packing:WidowBoxPackingOneEnv'),
         'kwargs': {'max_force': 100, 'action_scale': 0.05}

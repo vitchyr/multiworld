@@ -19,16 +19,18 @@ class WidowX200GraspEnv(WidowBaseEnv):
 
     def _load_meshes(self):
         super()._load_meshes()
-        self._objects = {
-            'lego': bullet.objects.lego(),
-            # 'box': load_single_object('48862d7ed8b28f5425ebd1cd0b422e32',
-            #                             [.7, -0.15, -.28], quat=[1, 1, 1, 1], scale=1)[0],
-            # 'box1': load_single_object('48862d7ed8b28f5425ebd1cd0b422e32',
-            #                             [.7, -0.35, -.28], quat=[1, 1, 1, 1], scale=1)[0],
-            # 'bowl': load_single_object('36ca3b684dbb9c159599371049c32d38',
-            #                              [.7, -0.35, 0], quat=[1, 1, 1, 1],scale=0.7)[0],
-            'box': bullet.objects.box(),
-        }
+        print("self._env_name wx200graspenv", self._env_name)
+        if self._env_name == "WidowX200GraspEnv":
+            self._objects = {
+                'lego': bullet.objects.lego(),
+                # 'box': load_single_object('48862d7ed8b28f5425ebd1cd0b422e32',
+                #                             [.7, -0.15, -.28], quat=[1, 1, 1, 1], scale=1)[0],
+                # 'box1': load_single_object('48862d7ed8b28f5425ebd1cd0b422e32',
+                #                             [.7, -0.35, -.28], quat=[1, 1, 1, 1], scale=1)[0],
+                # 'bowl': load_single_object('36ca3b684dbb9c159599371049c32d38',
+                #                              [.7, -0.35, 0], quat=[1, 1, 1, 1],scale=0.7)[0],
+                'box': bullet.objects.box(),
+            }
 
     def reset(self):
         bullet.reset()
@@ -112,6 +114,9 @@ class WidowX200GraspEnv(WidowBaseEnv):
         gripper_tips_distance = [np.linalg.norm(
             left_tip_pos - right_tip_pos)]
         end_effector_pos = self.get_end_effector_pos()
+
+        if 'lego' not in self._objects:
+            return np.concatenate((end_effector_pos, gripper_tips_distance))
 
         object_info = bullet.get_body_info(self._objects['lego'],
                                            quat_to_deg=False)

@@ -93,3 +93,8 @@ box = loader(ASSET_PATH, 'objects/box/box.urdf',
                 pos=[0.8, 0.075, -.35],
                 scale=0.125)
 
+widow200_tray = loader('', 'tray/tray.urdf',
+              pos=[0.8, -0.05, -0.36],
+              deg=[0, 0, 0],
+              scale=0.5)
+
