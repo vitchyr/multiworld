@@ -81,6 +81,20 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
                    }
     },
     {
+        'id': 'SawyerGraspOneObjectSetTenV3-v0',
+        'entry_point': ('roboverse.envs.sawyer_grasp_v3:SawyerGraspV3ObjectSetEnv'),
+        'kwargs': {'max_force': 100,
+                   'action_scale': 0.05,
+                   'pos_init': [0.7, 0.2, -0.2],
+                   'pos_low': [.5, -.05, -.38],
+                   'pos_high': [.9, .30, -.15],
+                   'object_position_low': (.65, .10, -.20),
+                   'object_position_high': (.80, .25, -.20),
+                   'num_objects': 1,
+                   'height_threshold': -0.3,
+                   }
+    },
+    {
         'id': 'SawyerReach-v0',
         'entry_point': ('roboverse.envs.sawyer_reach:SawyerReachEnv'),
         'kwargs': {'max_force': 100, 'action_scale': 0.05}
