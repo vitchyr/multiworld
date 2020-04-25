@@ -16,7 +16,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-e", "--env", type=str,
                         choices=('SawyerGraspV2-v0', 'SawyerGraspOneV2-v0',
-                                 'SawyerGraspTenV2-v0'))
+                                 'SawyerGraspTenV2-v0', 'SawyerGraspOneV4-v0'))
     parser.add_argument("-d", "--data-directory", type=str, required=True)
     parser.add_argument("-o", "--observation-mode", type=str, default='state',
                         choices=('state', 'pixels', 'pixels_debug'))
