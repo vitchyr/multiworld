@@ -3,6 +3,7 @@ import datetime
 import numpy as np
 import pickle
 from distutils.util import strtobool
+import math
 
 
 def timestamp(divider='-', datetime_divider='T'):
@@ -15,6 +16,21 @@ def timestamp(divider='-', datetime_divider='T'):
 def str2bool(x):
     return bool(strtobool(x))
 
+def angle(p0, p1):
+    v0 = np.array(p0) - np.array(p1)
+
+    angle_radians = math.atan2(v0[1], v0[0])
+    while angle_radians < 0:
+        angle_radians += 2 * math.pi
+    while angle_radians > 2 * math.pi:
+        angle_radians -= 2 * math.pi
+    return angle_radians
+
+def true_angle_diff(theta):
+    """theta is before the absolute value is applied"""
+    print("abs(theta)", abs(theta))
+    print("abs(theta - 2 * np.pi)", abs(theta - 2 * np.pi))
+    return min(abs(theta), abs(theta - 2 * np.pi))
 
 class DemoPool:
 
@@ -84,3 +100,41 @@ class Meta:
     def __call__(self, *args, **kwargs):
         self._kwargs.update(**kwargs)
         return self._fn(*args, *self._args, **self._kwargs)
+
+class Trajectory:
+    def __init__(self, max_size=1e6):
+        self._keys = ('observations', 'actions', 'next_observations', 'rewards', 'terminals')
+        self._pointer = 0
+        self._fields = {}
+        for k in self._keys:
+            self._fields[k] = []
+        self._size = 0
+        self._max_size = int(max_size)
+
+    @property
+    def size(self):
+        return self._size
+
+    def add_sample(self, *arrays):
+        if self.size < self._max_size:
+            self._add(arrays)
+            self._advance()
+
+    def _add(self, arrays):
+        for key, array in zip(self._keys, arrays):
+            self._fields[key].append(array)
+
+    def _advance(self):
+        self._size = min(self._size + 1, self._max_size)
+        self._pointer = (self._pointer + 1) % self._max_size
+    def get_samples(self):
+        return self._fields
+    def __init__(self, fn, *args, **kwargs):
+        self._fn = fn
+        self._args = args
+        self._kwargs = kwargs
+
+    def __call__(self, *args, **kwargs):
+        self._kwargs.update(**kwargs)
+        return self._fn(*args, *self._args, **self._kwargs)
+
