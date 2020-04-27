@@ -35,7 +35,7 @@ class WidowBaseEnv(RobotBaseEnv):
         if self.downwards:
             self._robot_id = bullet.objects.widow_downwards()
         else:
-            print("self._env_name", self._env_name)
+            # print("self._env_name", self._env_name)
             if self._env_name in ['WidowX200GraspEnv', 'Widow200GraspV2Env']:
                 self._robot_id = bullet.objects.widowx_200()
             else:

@@ -19,7 +19,7 @@ class WidowX200GraspEnv(WidowBaseEnv):
 
     def _load_meshes(self):
         super()._load_meshes()
-        print("self._env_name wx200graspenv", self._env_name)
+        # print("self._env_name wx200graspenv", self._env_name)
         if self._env_name == "WidowX200GraspEnv":
             self._objects = {
                 'lego': bullet.objects.lego(),
@@ -53,6 +53,7 @@ class WidowX200GraspEnv(WidowBaseEnv):
         #     self.RESET_JOINTS
         # )
         self._prev_pos, self.theta = bullet.p.getLinkState(self._robot_id, 5, computeForwardKinematics=1)[4:6]
+        # print("self.theta", self.theta)
         self.open_gripper()
         #self._reset_hook(self)
         return self.get_observation()

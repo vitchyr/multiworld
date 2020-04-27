@@ -7,5 +7,5 @@ env.reset()
 
 for i in range(1000):
     # env.step([0, ((i//10)%2) * 2 - 1, 0, (i//10)%2])
-    env.step([0,0,0.1,0])
+    env.step([0,0,0,0.1])
 time.sleep(2)
