@@ -166,7 +166,7 @@ class RobotBaseEnv(gym.Env, Serializable):
         for _ in range(self._action_repeat):
             bullet.sawyer_position_ik(
                 self._robot_id, self._end_effector,
-                pos, self.theta,
+                pos, theta,
                 gripper, gripper_name=self._gripper_joint_name, gripper_bounds=self._gripper_bounds,
                 discrete_gripper=discrete_gripper, max_force=self._max_force
             )

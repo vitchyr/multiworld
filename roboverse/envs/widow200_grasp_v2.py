@@ -88,17 +88,20 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         pos += delta_pos[:3] * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
+        # theta = bullet.quat_to_deg(self.theta)
         theta = list(bullet.get_link_state(self._robot_id, self._end_effector, 'theta'))
 
         # print("delta_pos", delta_pos)
         # print("gripper", gripper)
         # print("action", action)
+        # print("self.theta", self.theta)
         if len(delta_pos) > 3:
             delta_theta = delta_pos[3]
             # print("delta_theta", delta_theta)
-            target_theta = theta + np.asarray([0., 0., delta_theta*20])
-            target_theta = np.clip(target_theta, [180, 0., 0.], [180, 0., 180.])
+            target_theta = theta + np.asarray([0., 0., 20*delta_theta])
+            # target_theta = np.clip(target_theta, [180, 0., 0.], [180, 0., 180.])
             target_theta = bullet.deg_to_quat(target_theta)
+            # print("target_theta", target_theta)
         else:
             target_theta = self.theta
 
@@ -218,7 +221,9 @@ if __name__ == "__main__":
         action = action*4.0
         action += np.random.normal(scale=0.1, size=(3,))
 
-        theta_action = -0.1 # currently wrist theta doesn't work.
+        action = np.array([0,0,0])
+
+        theta_action = -1
         gripper = -1
 
         action = np.concatenate((action, np.asarray([theta_action, gripper])))
