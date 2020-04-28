@@ -85,6 +85,9 @@ def draw_wall(drawer, wall):
 class PickAndPlaceEnv(MultitaskEnv, Serializable):
     """
     A simple env where a 'cursor' robot can push objects around.
+
+    TODO: refactor to have base class shared with point2d.py code
+    TODO: rather than recreating a drawer, just save the previous drawers
     """
 
     def __init__(
