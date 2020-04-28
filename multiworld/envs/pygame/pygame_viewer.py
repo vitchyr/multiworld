@@ -1,7 +1,4 @@
-from enum import Enum
-
 import pygame
-from collections import Iterable
 
 
 class PygameViewer(object):
@@ -88,9 +85,8 @@ class PygameViewer(object):
         return min(self.scale_y(value), self.scale_y(value))
 
     def get_image(self, wh_size=None):
-        import pygame as pg
         if wh_size is not None:
-            screen = pg.transform.smoothscale(self.screen, wh_size)
+            screen = pygame.transform.smoothscale(self.screen, wh_size)
         else:
             screen = self.screen
         return pygame.surfarray.array3d(screen)
