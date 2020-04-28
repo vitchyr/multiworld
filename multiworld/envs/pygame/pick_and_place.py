@@ -85,6 +85,9 @@ def draw_wall(drawer, wall):
 class PickAndPlaceEnv(MultitaskEnv, Serializable):
     """
     A simple env where a 'cursor' robot can push objects around.
+
+    TODO: refactor to have base class shared with point2d.py code
+    TODO: rather than recreating a drawer, just save the previous drawers
     """
 
     def __init__(
@@ -110,12 +113,18 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             render_dt_msec=0,
             render_onscreen=False,
             render_size=84,
+            get_image_base_render_size=None,
             show_goal=True,
             # Goal sampling
             goal_samplers=None,
             goal_sampling_mode='random',
             num_presampled_goals=10000,
     ):
+        """
+        :param get_image_base_render_size: If set, then the drawer will always
+        generate images according to this size, and (smoothly) downsampled
+        images will be returned by `get_image`
+        """
         walls = walls or []
         if fixed_goal is not None:
             fixed_goal = np.array(fixed_goal)
@@ -165,7 +174,19 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             ('state_achieved_goal', self.obs_range),
         ])
 
-        self._drawer = None
+        if get_image_base_render_size:
+            base_width, base_height = get_image_base_render_size
+            self._drawer = PygameViewer(
+                screen_width=base_width,
+                screen_height=base_height,
+                x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                render_onscreen=self.render_onscreen,
+            )
+            self._fixed_get_image_render_size = True
+        else:
+            self._drawer = None
+            self._fixed_get_image_render_size = False
         self._render_drawer = None
         if not fixed_init_position:
             fixed_init_position = np.zeros_like(self.obs_range.low)
@@ -418,7 +439,10 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if self._drawer is None:
+        if self._drawer is None or (
+            not self._fixed_get_image_render_size
+            and (self._drawer.width != width or self._drawer.height != height)
+        ):
             if width != height:
                 raise NotImplementedError()
             self._drawer = PygameViewer(
@@ -429,7 +453,11 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 render_onscreen=self.render_onscreen,
             )
         self._draw(self._drawer)
-        img = self._drawer.get_image()
+        if width and height:
+            wh_size = (width, height)
+        else:
+            wh_size = None
+        img = self._drawer.get_image(wh_size)
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
         else:
