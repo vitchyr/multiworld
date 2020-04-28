@@ -206,7 +206,7 @@ if __name__ == "__main__":
     i = 0
     xy_dist_thresh = 0.02
     action = env.action_space.sample()
-    for _ in range(100):
+    for _ in range(200):
         time.sleep(0.1)
         object_pos = obs[4: 4 + 3]
         # print("obs", obs)
@@ -221,9 +221,10 @@ if __name__ == "__main__":
         action = action*4.0
         action += np.random.normal(scale=0.1, size=(3,))
 
-        action = np.array([0,0,0])
+        # action = np.array([0,0,0])
 
-        theta_action = -1
+        # theta_action = -1
+        theta_action = 0
         gripper = -1
 
         action = np.concatenate((action, np.asarray([theta_action, gripper])))
