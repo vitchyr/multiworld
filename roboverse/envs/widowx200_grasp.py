@@ -12,23 +12,13 @@ class WidowX200GraspEnv(WidowBaseEnv):
         self._goal_pos = goal_pos
         self._reward_type = 'shaped'
         self.RESET_JOINTS = [1.57, -0.6, -0.6, -1.57, 1.57]
-        # [ 0.5, 0, -0.5, -0.5, 1.57,  9.16906432e+00  3.70000000e-02 -3.70000000e-02]
-        # -0.15
         self._end_effector = 8
-
 
     def _load_meshes(self):
         super()._load_meshes()
-        # print("self._env_name wx200graspenv", self._env_name)
         if self._env_name == "WidowX200GraspEnv":
             self._objects = {
                 'lego': bullet.objects.lego(),
-                # 'box': load_single_object('48862d7ed8b28f5425ebd1cd0b422e32',
-                #                             [.7, -0.15, -.28], quat=[1, 1, 1, 1], scale=1)[0],
-                # 'box1': load_single_object('48862d7ed8b28f5425ebd1cd0b422e32',
-                #                             [.7, -0.35, -.28], quat=[1, 1, 1, 1], scale=1)[0],
-                # 'bowl': load_single_object('36ca3b684dbb9c159599371049c32d38',
-                #                              [.7, -0.35, 0], quat=[1, 1, 1, 1],scale=0.7)[0],
                 'box': bullet.objects.box(),
             }
 
@@ -41,21 +31,13 @@ class WidowX200GraspEnv(WidowBaseEnv):
 
         self._format_state_query()
 
-        bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
-
+        bullet.setup_headless(self._timestep,
+                              solver_iterations=self._solver_iterations)
         for i in range(len(self.RESET_JOINTS)):
             bullet.p.resetJointState(self._robot_id, i, self.RESET_JOINTS[i])
-        # This is probably useless (Jonathan)
-        # bullet.p.setJointMotorControlArray(
-        #     self._robot_id, 
-        #     [_ for _ in range(5)],
-        #     bullet.p.POSITION_CONTROL,
-        #     self.RESET_JOINTS
-        # )
-        self._prev_pos, self.theta = bullet.p.getLinkState(self._robot_id, 5, computeForwardKinematics=1)[4:6]
-        # print("self.theta", self.theta)
+        self._prev_pos, self.theta = bullet.p.getLinkState(
+            self._robot_id, 5, computeForwardKinematics=1)[4:6]
         self.open_gripper()
-        #self._reset_hook(self)
         return self.get_observation()
 
     def get_reward(self, info):
@@ -76,8 +58,9 @@ class WidowX200GraspEnv(WidowBaseEnv):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
 
-        # # Debug
-        q_indices = [bullet.get_joint_info(self._robot_id, j, 'joint_name') for j in range(10)]
+        # Debug
+        q_indices = [bullet.get_joint_info(self._robot_id, j, 'joint_name')
+                     for j in range(10)]
         # print("q_indices", q_indices)
         pos += delta_pos * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
@@ -89,7 +72,8 @@ class WidowX200GraspEnv(WidowBaseEnv):
         info = self.get_info()
         reward = self.get_reward(info)
         done = self.get_termination(observation)
-        self._prev_pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
+        self._prev_pos = bullet.get_link_state(self._robot_id,
+                                               self._end_effector, 'pos')
         return observation, reward, done, info
 
     def get_info(self):
