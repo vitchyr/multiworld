@@ -29,8 +29,17 @@ def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5)
             '{0}/{1}'.format(dir_name, object_name)])
     return obj
 
+
 class Widow200GraspV2Env(WidowX200GraspEnv):
-    def __init__(self, *args, **kwargs):
+    def __init__(self,
+                 *args,
+                 observation_mode='state',
+                 transpose_image=False,
+                 reward_type=False,  # Not actually used
+                 randomize=True,  # Not actually used
+                 **kwargs):
+
+
         self._object_position_high = (.82, .075, -.20)
         self._object_position_low = (.78, -.125, -.20)
         self._num_objects = 1
@@ -40,7 +49,11 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         self.object_list = shapenet_data['object_list']
         self.scaling = shapenet_data['scaling']
         self._scaling_local = [0.5]*10
+        self._observation_mode = observation_mode
+        self._transpose_image = transpose_image
+
         super().__init__(*args, **kwargs)
+
         self._env_name = 'Widow200GraspV2Env'
         self._height_threshold = -0.31
         self._reward_height_thresh = -0.3
@@ -147,17 +160,49 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         gripper_tips_distance = [np.linalg.norm(
             left_tip_pos - right_tip_pos)]
         end_effector_pos = self.get_end_effector_pos()
+        end_effector_theta = bullet.get_link_state(
+            self._robot_id, self._end_effector, 'theta', quat_to_deg=False)
 
-        for object_name in range(self._num_objects):
+        if self._observation_mode == 'state':
             observation = np.concatenate(
-                (end_effector_pos, gripper_tips_distance))
-
-            object_info = bullet.get_body_info(self._objects[object_name],
+                (end_effector_pos, end_effector_theta, gripper_tips_distance))
+            # object_list = self._objects.keys()
+            for object_name in range(self._num_objects):
+                object_info = bullet.get_body_info(self._objects[object_name],
                                                    quat_to_deg=False)
-            object_pos = object_info['pos']
-            object_theta = object_info['theta']
-            observation = np.concatenate(
-                (observation, object_pos, object_theta))
+                object_pos = object_info['pos']
+                object_theta = object_info['theta']
+                observation = np.concatenate(
+                    (observation, object_pos, object_theta))
+        elif self._observation_mode == 'pixels':
+            image_observation = self.render_obs()
+            image_observation = np.float32(image_observation.flatten())/255.0
+            # image_observation = np.zeros((48, 48, 3), dtype=np.uint8)
+            observation = {
+                'state': np.concatenate(
+                    (end_effector_pos, gripper_tips_distance)),
+                'image': image_observation
+            }
+        elif self._observation_mode == 'pixels_debug':
+            # This mode passes in all the true state information + images
+            image_observation = self.render_obs()
+            image_observation = np.float32(image_observation.flatten())/255.0
+            state_observation = np.concatenate(
+                (end_effector_pos, end_effector_theta, gripper_tips_distance))
+
+            for object_name in range(self._num_objects):
+                object_info = bullet.get_body_info(self._objects[object_name],
+                                                   quat_to_deg=False)
+                object_pos = object_info['pos']
+                object_theta = object_info['theta']
+                state_observation = np.concatenate(
+                    (state_observation, object_pos, object_theta))
+            observation = {
+                'state': state_observation,
+                'image': image_observation,
+            }
+        else:
+            raise NotImplementedError
 
         return observation
 
@@ -186,6 +231,7 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
                 if object_gripper_distance < 0.1:
                     reward = REWARD_POSITIVE
         return reward
+
 
 if __name__ == "__main__":
     import roboverse

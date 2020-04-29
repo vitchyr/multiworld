@@ -45,4 +45,3 @@ class WidowBaseEnv(RobotBaseEnv):
         self._workspace = bullet.Sensor(self._robot_id,
                                         xyz_min=self._pos_low, xyz_max=self._pos_high,
                                         visualize=False, rgba=[0, 1, 0, .1])
-
