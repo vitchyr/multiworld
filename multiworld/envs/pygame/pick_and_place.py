@@ -30,7 +30,7 @@ class Object(object):
         self._max_pos = max_pos
         self._min_pos = min_pos
         self._radius = radius
-        self.target_position = None
+        self.target_position = position
 
     def distance_to_target(self):
         return np.linalg.norm(self.position - self.target_position)
