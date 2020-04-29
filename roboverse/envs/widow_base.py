@@ -8,7 +8,7 @@ from roboverse.envs.serializable import Serializable
 
 class WidowBaseEnv(gym.Env, Serializable):
     def __init__(self,
-                 img_dim=256,
+                 img_dim=48,
                  gui=False,
                  action_scale=.2,
                  action_repeat=10,
@@ -38,6 +38,10 @@ class WidowBaseEnv(gym.Env, Serializable):
         if self._env_name == 'WidowX200GraspEnv':
             self._end_effector_link_name = 'wx200/gripper_bar_link'
 
+        self.obs_img_dim = img_dim
+        self.image_shape = (img_dim, img_dim)
+        self.image_length = img_dim*img_dim*3
+
         self._gui = gui
         self._action_scale = action_scale
         self._action_repeat = action_repeat
@@ -52,12 +56,26 @@ class WidowBaseEnv(gym.Env, Serializable):
         self._img_dim = img_dim
 
         bullet.connect_headless(self._gui)
-
         self._load_meshes()
+
+        self._view_matrix = bullet.get_view_matrix(
+            target_pos=[.95, 0., 0.], distance=0.05, yaw=90, pitch=-60,
+            roll=0, up_axis_index=2)
+        self._projection_matrix = bullet.get_projection_matrix(
+            self._img_dim, self._img_dim)
+
+        self._view_matrix_obs = bullet.get_view_matrix(
+            target_pos=[.95, 0., 0.], distance=0.05, yaw=90, pitch=-60,
+            roll=0, up_axis_index=2)
+        self._projection_matrix_obs = bullet.get_projection_matrix(
+            self._img_dim, self._img_dim)
+
+        # self._setup_environment()
+
         self._end_effector = self._end_effector = bullet.get_index_by_attribute(
             self._robot_id, 'link_name', self._end_effector_link_name)
+        self._set_spaces()
 
-        self._setup_environment()
 
     def _load_meshes(self):
         if self.downwards:
@@ -74,14 +92,6 @@ class WidowBaseEnv(gym.Env, Serializable):
                                         xyz_min=self._pos_low,
                                         xyz_max=self._pos_high,
                                         visualize=False, rgba=[0, 1, 0, .1])
-
-    def _setup_environment(self):
-        #self.set_reset_hook()
-        self._set_spaces()
-
-        self._view_matrix = bullet.get_view_matrix()
-        self._projection_matrix = bullet.get_projection_matrix(
-            self._img_dim, self._img_dim)
 
     def get_params(self):
         labels = ['_action_scale', '_action_repeat',

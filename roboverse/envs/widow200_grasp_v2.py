@@ -39,7 +39,6 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
                  randomize=True,  # Not actually used
                  **kwargs):
 
-
         self._object_position_high = (.82, .075, -.20)
         self._object_position_low = (.78, -.125, -.20)
         self._num_objects = 1
@@ -51,6 +50,7 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         self._scaling_local = [0.5]*10
         self._observation_mode = observation_mode
         self._transpose_image = transpose_image
+        self._num_objects = 1
 
         super().__init__(*args, **kwargs)
 
@@ -58,7 +58,43 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         self._height_threshold = -0.31
         self._reward_height_thresh = -0.3
         self._max_force = 10000
-        
+
+    def render_obs(self):
+        img, depth, segmentation = bullet.render(
+            self.obs_img_dim, self.obs_img_dim, self._view_matrix_obs,
+            self._projection_matrix_obs, shadow=0, gaussian_width=0)
+        if self._transpose_image:
+            img = np.transpose(img, (2, 0, 1))
+        return img
+
+    def _set_action_space(self):
+        act_dim = 4
+        act_bound = 1
+        act_high = np.ones(act_dim) * act_bound
+        self.action_space = gym.spaces.Box(-act_high, act_high)
+
+    def _set_spaces(self):
+        self._set_action_space()
+        # obs = self.reset()
+        if self._observation_mode == 'state':
+            observation_dim = 7 + 1 + 7*self._num_objects
+            obs_bound = 100
+            obs_high = np.ones(observation_dim) * obs_bound
+            self.observation_space = gym.spaces.Box(-obs_high, obs_high)
+        elif self._observation_mode == 'pixels' or self._observation_mode == 'pixels_debug':
+            img_space = gym.spaces.Box(0, 1, (self.image_length,), dtype=np.float32)
+            if self._observation_mode == 'pixels':
+                observation_dim = 7
+            elif self._observation_mode == 'pixels_debug':
+                observation_dim = 7 + 1 + 7*self._num_objects
+            obs_bound = 100
+            obs_high = np.ones(observation_dim) * obs_bound
+            state_space = gym.spaces.Box(-obs_high, obs_high)
+            spaces = {'image': img_space, 'state': state_space}
+            self.observation_space = gym.spaces.Dict(spaces)
+        else:
+            raise NotImplementedError
+
     def _load_meshes(self):
         super()._load_meshes()
         self._tray = bullet.objects.widow200_tray()
@@ -108,17 +144,9 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         theta = list(bullet.get_link_state(self._robot_id, self._end_effector,
                                            'theta'))
         target_theta = theta
-        print('theta: {}'.format(theta))
+
         delta_theta = action[3]
-        # # theta init theta: [134.58, 85.59, 137.68]
-        # target_theta = theta + np.asarray([delta_theta*20, 0., 0])
-        # # target_theta = np.clip(target_theta, [0, 85, 137], [180, 85, 137])
         target_theta = np.clip(target_theta, [0, 85, 137], [180, 85, 137])
-
-        # print('target theta: {}'.format(target_theta))
-
-        # target_theta = self.theta
-        # target_theta = np.clip(target_theta, [0, 0., 0.], [90, 0., 0.])
         target_theta = bullet.deg_to_quat(target_theta)
         gripper = -0.8
 
