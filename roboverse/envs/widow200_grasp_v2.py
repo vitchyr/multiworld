@@ -97,52 +97,44 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
             for _ in range(10):
                 bullet.step()
 
-    def step(self, *action):
-        delta_pos, gripper = self._format_action(*action)
-        pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
-        pos += delta_pos[:3] * self._action_scale
+    def step(self, action):
+        action = np.asarray(action)
+        pos = list(bullet.get_link_state(self._robot_id, self._end_effector,
+                                         'pos'))
+        delta_pos = action[:3]
+        pos += delta_pos * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
-        # theta = bullet.quat_to_deg(self.theta)
-        joints, current = bullet.get_joint_positions(self._robot_id)
-        wrist_theta = current[4]
-        wrist_theta_step_multiplier = 1
 
-        # print("delta_pos", delta_pos)
-        # print("gripper", gripper)
-        # print("action", action)
-        # print("self.theta", self.theta)
-        if len(delta_pos) > 3:
-            delta_wrist_theta = delta_pos[3]
-            # print("delta_theta", delta_theta)
-            # target_theta = theta + np.asarray([0., 0., 20*delta_theta])
-            # target_theta = np.clip(target_theta, [180, 0., 0.], [180, 0., 180.])
-            # target_theta = bullet.deg_to_quat(target_theta)
-            # print("target_theta", target_theta)
-        else:
-            delta_wrist_theta = 0
-            # target_theta = self.theta
+        theta = list(bullet.get_link_state(self._robot_id, self._end_effector,
+                                           'theta'))
+        target_theta = theta
+        print('theta: {}'.format(theta))
+        delta_theta = action[3]
+        # # theta init theta: [134.58, 85.59, 137.68]
+        # target_theta = theta + np.asarray([delta_theta*20, 0., 0])
+        # # target_theta = np.clip(target_theta, [0, 85, 137], [180, 85, 137])
+        target_theta = np.clip(target_theta, [0, 85, 137], [180, 85, 137])
 
-        print("wrist_theta before", wrist_theta)
-        wrist_theta = wrist_theta + wrist_theta_step_multiplier * delta_wrist_theta
-        wrist_theta = np.clip(wrist_theta, -np.pi, np.pi)
-        print("wrist_theta after", wrist_theta)
+        # print('target theta: {}'.format(target_theta))
 
+        # target_theta = self.theta
+        # target_theta = np.clip(target_theta, [0, 0., 0.], [90, 0., 0.])
+        target_theta = bullet.deg_to_quat(target_theta)
         gripper = -0.8
 
-        self._simulate(pos, self.theta, gripper, wrist_theta)
-        # if self._visualize: self.visualize_targets(pos)
+        self._simulate(pos, target_theta, gripper, delta_theta=delta_theta)
 
         pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         if pos[2] < self._height_threshold:
             gripper = 0.8
             for i in range(10):
-                self._simulate(pos, target_theta, gripper)
+                self._simulate(pos, target_theta, gripper, target_theta[2])
             for i in range(50):
                 pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
                 pos = list(pos)
                 pos = np.clip(pos, self._pos_low, self._pos_high)
                 pos[2] += 0.05
-                self._simulate(pos, target_theta, gripper)
+                self._simulate(pos, target_theta, gripper, target_theta[2])
             done = True
             reward = self.get_reward({})
             if reward > 0:
@@ -158,13 +150,13 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         self._prev_pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         return observation, reward, done, info
 
-    def _simulate(self, pos, theta, gripper, wrist_theta, discrete_gripper=True):
+    def _simulate(self, pos, theta, gripper, delta_theta, discrete_gripper=True):
+        wrist_theta = delta_theta
         for _ in range(self._action_repeat):
-            bullet.sawyer_position_theta_ik(	
-                self._robot_id, self._end_effector,
-                pos, self.theta,
-                gripper, wrist_theta,
-                gripper_name=self._gripper_joint_name, gripper_bounds=self._gripper_bounds,
+            bullet.sawyer_position_theta_ik(
+                self._robot_id, self._end_effector, pos, theta, gripper,
+                wrist_theta, gripper_name=self._gripper_joint_name,
+                gripper_bounds=self._gripper_bounds,
                 discrete_gripper=discrete_gripper, max_force=self._max_force
             )
             bullet.step_ik(self._gripper_range)
@@ -287,14 +279,10 @@ if __name__ == "__main__":
         action = action*4.0
         action += np.random.normal(scale=0.1, size=(3,))
 
-        action = np.array([0,0,0])
-
-        theta_action = 0.1
-        # theta_action = 0
-        gripper = -1
-
-        action = np.concatenate((action, np.asarray([theta_action, gripper])))
-        # print('action', action)
+        action = np.array([0, 0, 0])
+        theta_action = +0.0
+        action = np.concatenate((action, np.asarray([theta_action])))
+        print('action', action)
         obs, rew, done, info = env.step(action)
 
         img = env.render()
@@ -303,7 +291,7 @@ if __name__ == "__main__":
 
         # print("info", env.get_info())
         i+=1
-        if done or i > 50:
+        if done or i > 25:
             # object_ind = np.random.randint(0, env._num_objects)
             object_ind = num_objects - 1
             obs = env.reset()

@@ -131,7 +131,8 @@ class WidowBaseEnv(gym.Env, Serializable):
                               solver_iterations=self._solver_iterations)
 
         self._prev_pos = np.array(self._pos_init)
-        self.theta = bullet.deg_to_quat([180, 0, 0])
+        # self.theta = bullet.deg_to_quat([180, 0, 0])
+        self.theta = bullet.deg_to_quat([110, 85, 37])
 
         bullet.position_control(self._robot_id, self._end_effector,
                                 self._prev_pos, self.theta)

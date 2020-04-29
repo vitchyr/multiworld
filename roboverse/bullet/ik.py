@@ -120,8 +120,8 @@ def sawyer_position_theta_ik(body, link, pos, theta, gripper, wrist_theta,
                              gripper_bounds=(-1,1), discrete_gripper=True,
                              max_force=1000.):
     """
-    sawyer_position_ik, but allows for a wrist_theta
-    argument to control wrist rotation
+    sawyer_position_ik, but allows for a wrist_theta argument to control
+    wrist rotation
     """
     gripper_state = get_gripper_state(body, gripper, gripper_bounds,
                                       discrete_gripper, gripper_name)
@@ -132,7 +132,7 @@ def sawyer_position_theta_ik(body, link, pos, theta, gripper, wrist_theta,
     joints, current = get_joint_positions(body)
     #### position control
     forces = [max_force for _ in range(len(joints))]
-    ik_solution[4] = wrist_theta
+    ik_solution[4] += 3.0*wrist_theta
     # print("ik_solution[4]", ik_solution[4])
     p.setJointMotorControlArray(body, joints, p.POSITION_CONTROL,
                                 targetPositions=ik_solution, forces=forces)

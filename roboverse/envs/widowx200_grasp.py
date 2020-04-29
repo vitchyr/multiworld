@@ -37,7 +37,7 @@ class WidowX200GraspEnv(WidowBaseEnv):
             bullet.p.resetJointState(self._robot_id, i, self.RESET_JOINTS[i])
         self._prev_pos, self.theta = bullet.p.getLinkState(
             self._robot_id, 5, computeForwardKinematics=1)[4:6]
-        self.open_gripper()
+        # self.open_gripper()
         return self.get_observation()
 
     def get_reward(self, info):
