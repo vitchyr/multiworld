@@ -155,14 +155,14 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         if pos[2] < self._height_threshold:
             gripper = 0.8
-            for i in range(10):
-                self._simulate(pos, target_theta, gripper, target_theta[2])
-            for i in range(50):
+            for _ in range(5):
+                self._simulate(pos, target_theta, gripper, delta_theta=0)
+            for _ in range(5):
                 pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
                 pos = list(pos)
                 pos = np.clip(pos, self._pos_low, self._pos_high)
                 pos[2] += 0.05
-                self._simulate(pos, target_theta, gripper, target_theta[2])
+                self._simulate(pos, target_theta, gripper, delta_theta=0)
             done = True
             reward = self.get_reward({})
             if reward > 0:
@@ -293,7 +293,7 @@ if __name__ == "__main__":
         action = xyz_delta
         if xy_diff > xy_dist_thresh:
             action[2] = 0 # prevent downward motion if too far.
-        action = action*4.0
+        action = action*7.0
         action += np.random.normal(scale=0.1, size=(3,))
 
         # action = np.array([0, 0, 0])
