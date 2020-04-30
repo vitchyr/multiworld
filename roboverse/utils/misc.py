@@ -3,6 +3,7 @@ import datetime
 import numpy as np
 import pickle
 from distutils.util import strtobool
+import math
 
 
 def timestamp(divider='-', datetime_divider='T'):
@@ -15,6 +16,21 @@ def timestamp(divider='-', datetime_divider='T'):
 def str2bool(x):
     return bool(strtobool(x))
 
+def angle(p0, p1):
+    v0 = np.array(p0) - np.array(p1)
+
+    angle_radians = math.atan2(v0[1], v0[0])
+    while angle_radians < 0:
+        angle_radians += 2 * math.pi
+    while angle_radians > 2 * math.pi:
+        angle_radians -= 2 * math.pi
+    return angle_radians
+
+def true_angle_diff(theta):
+    """theta is before the absolute value is applied"""
+    print("abs(theta)", abs(theta))
+    print("abs(theta - 2 * np.pi)", abs(theta - 2 * np.pi))
+    return min(abs(theta), abs(theta - 2 * np.pi))
 
 class DemoPool:
 
@@ -84,3 +100,4 @@ class Meta:
     def __call__(self, *args, **kwargs):
         self._kwargs.update(**kwargs)
         return self._fn(*args, *self._args, **self._kwargs)
+

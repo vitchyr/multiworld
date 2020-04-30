@@ -3,4 +3,6 @@
 *.pyc*
 roboverse/envs/assets/ShapeNetCore/*
 data/*
-
+*.zip*
+*.png*
+*.avi*

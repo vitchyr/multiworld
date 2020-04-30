@@ -111,3 +111,37 @@ def load_shapenet_objects(object_positions,
     assert  len(object_dict.keys()) == len(object_ids)
     return object_dict
 
+def load_single_object(id, pos, quat=[0, 0, 1, 0], scale=1.0):
+    file_path = SHAPENET_PATH
+    objects = []
+
+    for root, dirs, files in os.walk(file_path + '/ShapeNetCore.v2'):
+        for d in dirs:
+            for modelroot, modeldirs, modelfiles in os.walk(
+                    os.path.join(root, d)):
+                for md in modeldirs:
+                    if md == id:
+                        objects.append(os.path.join(modelroot, md))
+                break
+        break
+
+    with open('{0}/scaling.json'.format(file_path), 'r') as fp:
+        scaling = json.load(fp)
+
+    object_ids = []
+    count = 0
+    for i in range(len(objects)):
+        path = objects[i].split('/')
+        dir_name = path[-2]
+        object_name = path[-1]
+        obj = load_obj(
+            file_path + '/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dir_name,
+                                                                       object_name),
+            file_path + '/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(
+                dir_name, object_name),
+            pos, quat,
+            scale=scale * scaling[
+                '{0}/{1}'.format(dir_name, object_name)])
+        object_ids.append(obj)
+        count += 1
+    return object_ids

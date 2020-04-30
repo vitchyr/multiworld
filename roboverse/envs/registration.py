@@ -107,6 +107,25 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
         'id': 'SawyerSoup-v0',
         'entry_point': ('roboverse.envs.sawyer_soup:SawyerSoupEnv'),
     },
+    {
+        'id': 'WidowBase-v0',
+        'entry_point': ('roboverse.envs.widow_base:WidowBaseEnv'),
+    },
+    {
+        'id': 'WidowX200Grasp-v0',
+        'entry_point': ('roboverse.envs.widowx200_grasp:WidowX200GraspEnv'),
+        'kwargs': {'max_force': 100, 'action_scale': 0.05}
+    },
+    {
+        'id': 'Widow200GraspV2-v0',
+        'entry_point': ('roboverse.envs.widow200_grasp_v2:Widow200GraspV2Env'),
+        'kwargs': {'max_force': 100, 'action_scale': 0.05}
+    },
+    {
+        'id': 'WidowBoxPackingOne-v0',
+        'entry_point': ('roboverse.envs.widow_box_packing:WidowBoxPackingOneEnv'),
+        'kwargs': {'max_force': 100, 'action_scale': 0.05}
+    },
 )
 
 GRASP_V3_ENV_SPECS = []

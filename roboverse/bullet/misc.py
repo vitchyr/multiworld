@@ -1,7 +1,11 @@
 import os
 import random
 import numpy as np
+ros_path = '/opt/ros/kinetic/lib/python2.7/dist-packages'
+if ros_path in os.sys.path:
+    os.sys.path.remove(ros_path)
 import cv2
+os.sys.path.append(ros_path)
 import pdb
 
 import pybullet as p

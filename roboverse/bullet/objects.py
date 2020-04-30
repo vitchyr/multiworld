@@ -3,6 +3,7 @@ import pdb
 
 import pybullet as p
 import pybullet_data as pdata
+import math
 
 from roboverse.bullet.misc import (
   load_urdf,
@@ -32,6 +33,14 @@ PDATA_PATH = pdata.getDataPath()
 sawyer = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro.urdf')
 sawyer_invisible = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro_invisible.urdf')
 sawyer_finger_visual_only = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro_finger_visual_only.urdf')
+widowx_200 = loader(
+  ASSET_PATH,
+  'interbotix_descriptions/urdf/wx200.urdf',
+  pos=[0.6, 0, -0.4],
+  deg=[math.pi, math.pi, math.pi],
+  scale=1
+) #pos=[0.4, 0, -0.4], quat=[0, 0, -0.707, -0.707]
+#pos=[0.7, 0, 0.1]
 
 
 ## pybullet_data objects
@@ -78,3 +87,14 @@ tray = loader('', 'tray/tray.urdf',
               pos=[0.70, 0.15, -0.36],
               deg=[0, 0, 0],
               scale=0.75)
+
+box = loader(ASSET_PATH, 'objects/box/box.urdf',
+                # pos=[0.85, 0, -.35],
+                pos=[0.8, 0.075, -.35],
+                scale=0.125)
+
+widow200_tray = loader(ASSET_PATH, 'objects/tray/tray.urdf',
+              pos=[0.8, -0.05, -0.36],
+              deg=[0, 0, 0],
+              scale=0.5)
+
