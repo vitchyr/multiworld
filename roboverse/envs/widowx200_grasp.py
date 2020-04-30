@@ -22,6 +22,17 @@ class WidowX200GraspEnv(WidowBaseEnv):
                 'box': bullet.objects.box(),
             }
 
+    def _simulate(self, pos, theta, gripper, delta_theta, discrete_gripper=True):
+        wrist_theta = delta_theta
+        for _ in range(self._action_repeat):
+            bullet.sawyer_position_theta_ik(
+                self._robot_id, self._end_effector, pos, theta, gripper,
+                wrist_theta, gripper_name=self._gripper_joint_name,
+                gripper_bounds=self._gripper_bounds,
+                discrete_gripper=discrete_gripper, max_force=self._max_force
+            )
+            bullet.step_ik(self._gripper_range)
+
     def reset(self):
         bullet.reset()
         self._load_meshes()
@@ -37,7 +48,16 @@ class WidowX200GraspEnv(WidowBaseEnv):
             bullet.p.resetJointState(self._robot_id, i, self.RESET_JOINTS[i])
         self._prev_pos, self.theta = bullet.p.getLinkState(
             self._robot_id, 5, computeForwardKinematics=1)[4:6]
-        # self.open_gripper()
+
+        for _ in range(5):
+            pos = list(bullet.get_link_state(self._robot_id, self._end_effector,
+                                             'pos'))
+            theta = list(
+                bullet.get_link_state(self._robot_id, self._end_effector,
+                                      'theta'))
+            gripper = -0.8
+            self._simulate(pos, theta, gripper, delta_theta=0.)
+
         return self.get_observation()
 
     def get_reward(self, info):

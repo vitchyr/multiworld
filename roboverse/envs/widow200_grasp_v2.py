@@ -178,17 +178,6 @@ class Widow200GraspV2Env(WidowX200GraspEnv):
         self._prev_pos = bullet.get_link_state(self._robot_id, self._end_effector, 'pos')
         return observation, reward, done, info
 
-    def _simulate(self, pos, theta, gripper, delta_theta, discrete_gripper=True):
-        wrist_theta = delta_theta
-        for _ in range(self._action_repeat):
-            bullet.sawyer_position_theta_ik(
-                self._robot_id, self._end_effector, pos, theta, gripper,
-                wrist_theta, gripper_name=self._gripper_joint_name,
-                gripper_bounds=self._gripper_bounds,
-                discrete_gripper=discrete_gripper, max_force=self._max_force
-            )
-            bullet.step_ik(self._gripper_range)
-
     def get_observation(self):
         left_tip_pos = bullet.get_link_state(
             self._robot_id, self._gripper_joint_name[0], keys='pos')
@@ -307,7 +296,7 @@ if __name__ == "__main__":
         action = action*4.0
         action += np.random.normal(scale=0.1, size=(3,))
 
-        action = np.array([0, 0, 0])
+        # action = np.array([0, 0, 0])
         theta_action = +0.0
         action = np.concatenate((action, np.asarray([theta_action])))
         print('action', action)
