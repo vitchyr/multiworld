@@ -26,7 +26,7 @@ def loader(*filepath, **defaults):
 cur_path = os.path.dirname(os.path.realpath(__file__))
 ASSET_PATH = os.path.join(cur_path, '../envs/assets')
 PDATA_PATH = pdata.getDataPath()
-
+obj_dir = "bullet-objects"
 
 ## robots
 
@@ -64,36 +64,36 @@ lego = loader(PDATA_PATH, 'lego/lego.urdf',
 
 ## custom objects
 
-bowl = loader(ASSET_PATH, 'objects/bowl/bowl.urdf',
+bowl = loader(ASSET_PATH, os.path.join(obj_dir, "bowl", "bowl.urdf"),
               pos=[.75, 0, -.3],
               scale=0.25)
 
-lid = loader(ASSET_PATH, 'objects/bowl/lid.urdf',
+lid = loader(ASSET_PATH, os.path.join(obj_dir, "bowl", "lid.urdf"),
               pos=[.75, 0, -.3],
               scale=0.25)
 
-cube = loader(ASSET_PATH, 'objects/cube/cube.urdf',
+cube = loader(ASSET_PATH, os.path.join(obj_dir, "cube", "cube.urdf"),
               pos=[.75, -.4, -.3],
               scale=0.05)
 
-spam = loader(ASSET_PATH, 'objects/spam/spam.urdf',
+spam = loader(ASSET_PATH, os.path.join(obj_dir, "spam", "spam.urdf"),
               pos=[.75, -.4, -.3],
               deg=[90,0,-90],
               scale=0.025)
 
 ## tray
 
-tray = loader('', 'tray/tray.urdf',
+tray = loader('', os.path.join("tray", "tray.urdf"),
               pos=[0.70, 0.15, -0.36],
               deg=[0, 0, 0],
               scale=0.75)
 
-box = loader(ASSET_PATH, 'objects/box/box.urdf',
+box = loader(ASSET_PATH, os.path.join(obj_dir, "box", "box.urdf"),
                 # pos=[0.85, 0, -.35],
                 pos=[0.8, 0.075, -.35],
                 scale=0.125)
 
-widow200_tray = loader(ASSET_PATH, 'objects/tray/tray.urdf',
+widow200_tray = loader(ASSET_PATH, os.path.join(obj_dir, "tray", "tray.urdf"),
               pos=[0.8, -0.05, -0.36],
               deg=[0, 0, 0],
               scale=0.5)
