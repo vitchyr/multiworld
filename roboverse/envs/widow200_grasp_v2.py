@@ -274,7 +274,8 @@ if __name__ == "__main__":
     #                      gui=True,
     #                      observation_mode='state',)
     #                      # num_objects=num_objects)
-    env = roboverse.make("Widow200GraspV2-v0", gui=True)
+    env = roboverse.make("Widow200GraspV2-v0",
+                         gui=True, observation_mode='pixels_debug')
     obs = env.reset()
     # object_ind = np.random.randint(0, env._num_objects)
     object_ind = num_objects - 1
@@ -283,10 +284,10 @@ if __name__ == "__main__":
     action = env.action_space.sample()
     for _ in range(200):
         time.sleep(0.1)
-        object_pos = obs[8: 8 + 3]
+        object_pos = obs['state'][8: 8 + 3]
         # print("obs", obs)
         # print("object_pos", object_pos)
-        ee_pos = obs[:3]
+        ee_pos = obs['state'][:3]
 
         xyz_delta = object_pos - ee_pos
         xy_diff = np.linalg.norm(xyz_delta[:2])

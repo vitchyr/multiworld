@@ -58,15 +58,15 @@ class WidowBaseEnv(gym.Env, Serializable):
         bullet.connect_headless(self._gui)
         self._load_meshes()
 
+        view_matrix_args = dict(target_pos=[.95, -0.05, -0.2], distance=0.10,
+                                yaw=90, pitch=-40, roll=0, up_axis_index=2)
         self._view_matrix = bullet.get_view_matrix(
-            target_pos=[.95, 0., 0.], distance=0.05, yaw=90, pitch=-60,
-            roll=0, up_axis_index=2)
+            **view_matrix_args)
         self._projection_matrix = bullet.get_projection_matrix(
             self._img_dim, self._img_dim)
 
         self._view_matrix_obs = bullet.get_view_matrix(
-            target_pos=[.95, 0., 0.], distance=0.05, yaw=90, pitch=-60,
-            roll=0, up_axis_index=2)
+            **view_matrix_args)
         self._projection_matrix_obs = bullet.get_projection_matrix(
             self._img_dim, self._img_dim)
 
