@@ -11,7 +11,7 @@ import pickle
 REWARD_NEGATIVE = -1.0
 REWARD_POSITIVE = 10.0
 SHAPENET_ASSET_PATH = osp.join(
-    osp.dirname(osp.abspath(__file__)), 'assets/ShapeNetCore')
+    osp.dirname(osp.abspath(__file__)), 'assets/bullet-objects/ShapeNetCore')
 
 
 def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5):

@@ -5,14 +5,16 @@ from roboverse.bullet.misc import load_urdf, load_obj
 from roboverse.bullet.queries import get_index_by_attribute, get_link_state
 import numpy as np
 import pybullet as p
-from roboverse.envs.sawyer_reach import SawyerReachEnv
+# from roboverse.envs.sawyer_reach import SawyerReachEnv
 import pygame
 from pygame.locals import QUIT, KEYDOWN, KEYUP
 import json
+import roboverse
 
 curr_dir = os.path.dirname(os.path.abspath(__file__))
 home_dir = os.path.dirname(curr_dir)
 filePath = home_dir + '/roboverse/envs/assets/ShapeNetCore'
+# filePath = home_dir + '/../bullet-manipulation/roboverse/envs/assets/ShapeNetCore'
 jsonPath = filePath + '/scaling.json'
 
 objects = []
@@ -68,8 +70,8 @@ def json_dump():
     with open(jsonPath, 'w') as fp:
         json.dump(scaling, fp)
 
-SawyerReachEnv.reset = new_reset
-env = SawyerReachEnv(renders=True, control_xyz_position_only=False)
+# SawyerReachEnv.reset = new_reset
+env = roboverse.make('SawyerGraspOne-v0', gui=True) # SawyerReachEnv(render=True, control_xyz_position_only=False)
 env.reset()
 pygame.init()
 screen = pygame.display.set_mode((100, 100))
@@ -86,22 +88,19 @@ while True:
             json_dump()
             sys.exit()
         if event.type == KEYDOWN:
-            if event.key == pygame.K_LEFT:
+            if event.key in [pygame.K_LEFT, pygame.K_RIGHT]:
                 json_dump()
-                index -= indexStep
+                if event.key == pygame.K_LEFT:
+                    index -= indexStep
+                else: # RIGHT
+                    index += indexStep
                 index %= len(objects)
                 while index < 0:
                     index += len(objects)
                 env.reset()
                 render_object(objects[index], scaling[json_key(index)])
                 print('Index: ', index)
-            elif event.key == pygame.K_RIGHT:
-                json_dump()
-                index += indexStep
-                index %= len(objects)
-                env.reset()
-                render_object(objects[index], scaling[json_key(index)])
-                print('Index: ', index)
+                print("objects[index]", objects[index])
             elif event.key == pygame.K_UP:
                 scaling[json_key(index)] += scaleAmount
             elif event.key == pygame.K_DOWN:
