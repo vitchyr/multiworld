@@ -350,6 +350,7 @@ def register_pygame_envs():
             render_onscreen=False,
             render_size=84,
             show_goal=False,
+            get_image_base_render_size=(48, 48),
             # Goal sampling
             goal_samplers=None,
             goal_sampling_mode='random',
@@ -386,6 +387,7 @@ def register_pygame_envs():
             render_onscreen=False,
             render_size=84,
             show_goal=False,
+            get_image_base_render_size=(48, 48),
             # Goal sampling
             goal_samplers=None,
             goal_sampling_mode='random',
@@ -405,6 +407,7 @@ def register_pygame_envs():
             'ball_radius': 1,
             'render_onscreen': False,
             'show_goal': False,
+            'get_image_base_render_size': (48, 48),
         },
     )
     register(

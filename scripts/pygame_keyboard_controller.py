@@ -35,8 +35,11 @@ char_to_action = {
 register_pygame_envs()
 env = gym.make('Point2D-Big-UWall-v1')
 env = PickAndPlaceEnv(
-    num_objects=3, render_size=240,
+    num_objects=3,
+    render_size=240,
     render_onscreen=True,
+    # render_onscreen=False,
+    # get_image_base_render_size=(48, 48),
 )
 env.render_dt_msec = 100
 NDIM = env.action_space.low.size
@@ -70,3 +73,8 @@ while True:
     if done:
         obs = env.reset()
     env.render(mode='interactive')
+    # img = env.get_image(48, 48)
+    # import cv2
+    # print(img.shape)
+    # cv2.imshow('tmp', img)
+    # cv2.waitKey(1)

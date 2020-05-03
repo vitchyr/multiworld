@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 import logging
 
 import numpy as np
@@ -30,7 +30,7 @@ class Object(object):
         self._max_pos = max_pos
         self._min_pos = min_pos
         self._radius = radius
-        self.target_position = None
+        self.target_position = position
 
     def distance_to_target(self):
         return np.linalg.norm(self.position - self.target_position)
@@ -85,6 +85,9 @@ def draw_wall(drawer, wall):
 class PickAndPlaceEnv(MultitaskEnv, Serializable):
     """
     A simple env where a 'cursor' robot can push objects around.
+
+    TODO: refactor to have base class shared with point2d.py code
+    TODO: rather than recreating a drawer, just save the previous drawers
     """
 
     def __init__(
@@ -110,6 +113,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             render_dt_msec=0,
             render_onscreen=False,
             render_size=84,
+            get_image_base_render_size=None,
             show_goal=True,
             # Goal sampling
             goal_samplers=None,
@@ -118,6 +122,11 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
             object_reward_only=False,
     ):
+        """
+        :param get_image_base_render_size: If set, then the drawer will always
+        generate images according to this size, and (smoothly) downsampled
+        images will be returned by `get_image`
+        """
         walls = walls or []
         if fixed_goal is not None:
             fixed_goal = np.array(fixed_goal)
@@ -168,7 +177,19 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             ('state_achieved_goal', self.obs_range),
         ])
 
-        self._drawer = None
+        if get_image_base_render_size:
+            base_width, base_height = get_image_base_render_size
+            self._drawer = PygameViewer(
+                screen_width=base_width,
+                screen_height=base_height,
+                x_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                y_bounds=(-self.boundary_dist - self.ball_radius, self.boundary_dist + self.ball_radius),
+                render_onscreen=self.render_onscreen,
+            )
+            self._fixed_get_image_render_size = True
+        else:
+            self._drawer = None
+            self._fixed_get_image_render_size = False
         self._render_drawer = None
         if fixed_init_position is None:
             fixed_init_position = np.zeros_like(self.obs_range.low)
@@ -425,7 +446,10 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
     def get_image(self, width=None, height=None):
         """Returns a black and white image"""
-        if self._drawer is None:
+        if self._drawer is None or (
+            not self._fixed_get_image_render_size
+            and (self._drawer.width != width or self._drawer.height != height)
+        ):
             if width != height:
                 raise NotImplementedError()
             self._drawer = PygameViewer(
@@ -436,7 +460,11 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 render_onscreen=self.render_onscreen,
             )
         self._draw(self._drawer)
-        img = self._drawer.get_image()
+        if width and height:
+            wh_size = (width, height)
+        else:
+            wh_size = None
+        img = self._drawer.get_image(wh_size)
         if self.images_are_rgb:
             return img.transpose((1, 0, 2))
         else:
@@ -520,6 +548,41 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 min_dis = distance
                 closest_object = obj
         return closest_object
+
+    def goal_conditioned_diagnostics(self, paths, goals):
+        statistics = OrderedDict()
+        stat_to_lists = defaultdict(list)
+        for path, goal in zip(paths, goals):
+            difference = path['observations'] - goal
+            for i in range(len(self._all_objects)):
+                distance = np.linalg.norm(
+                    difference[:, 2*i:2*i+2], axis=-1
+                )
+                distance_key = 'distance_to_target_obj_{}'.format(i)
+                stat_to_lists[distance_key].append(distance)
+                success_key = 'success_obj_{}'.format(i)
+                stat_to_lists[success_key].append(
+                    distance < self.success_threshold
+                )
+        for stat_name, stat_list in stat_to_lists.items():
+            statistics.update(create_stats_ordered_dict(
+                stat_name,
+                stat_list,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/final'.format(stat_name),
+                [s[-1:] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/initial'.format(stat_name),
+                [s[:1] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+        return statistics
 
 class PickAndPlace1DEnv(PickAndPlaceEnv):
     def __init__(self, *args, **kwargs):
