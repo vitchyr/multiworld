@@ -1,7 +1,11 @@
 from gym.envs.registration import register
 import logging
+import numpy as np
 
-from multiworld.envs.pygame.pick_and_place import PickAndPlaceEnv
+from multiworld.envs.pygame.pick_and_place import (
+    PickAndPlaceEnv,
+    PickAndPlace1DEnv
+)
 
 LOGGER = logging.getLogger(__name__)
 REGISTERED = False
@@ -13,6 +17,309 @@ def register_pygame_envs():
         return
     REGISTERED = True
     LOGGER.info("Registering multiworld pygame gym environments")
+    register(
+        id='FiveObjectPickAndPlaceRandomInit1DEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=5,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            randomize_position_on_reset=True,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+            object_reward_only=True,
+        ),
+    )
+
+
+    register(
+        id='TwoObjectPickAndPlaceRandomInit1DEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=2,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.75,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            randomize_position_on_reset=True,
+            # fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+        ),
+    )
+
+
+    register(
+        id='ThreeObjectPickAndPlaceRandomInit1DEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=3,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.75,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            randomize_position_on_reset=True,
+            # fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+            object_reward_only=True,
+        ),
+    )
+
+
+    register(
+        id='FourObjectPickAndPlace1DEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=4,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.75,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            randomize_position_on_reset=False,
+            fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+        ),
+    )
+
+
+    register(
+        id='FiveObjectPickAndPlace1DEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=5,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            randomize_position_on_reset=False,
+            fixed_init_position=np.array([0, 0, 0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+        ),
+    )
+
+    register(
+        id='TwoObjectPickAndPlace1DSpreadEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=2,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=np.array([0, 0, 0, 2, 0, -2]),
+            randomize_position_on_reset=False,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+        ),
+    )
+
+
+
+    register(
+        id='TwoObjectPickAndPlace1DEnv-v0',
+        entry_point=PickAndPlace1DEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=2,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=False,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+        ),
+    )
+    register(
+        id='FourObjectPickAndPlace2DRandomInitEnv-v0',
+        entry_point=PickAndPlaceEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=4,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=True,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+            object_reward_only=True,
+        ),
+    )
+
     register(
         id='TwoObjectPickAndPlace2DEnv-v0',
         entry_point=PickAndPlaceEnv,

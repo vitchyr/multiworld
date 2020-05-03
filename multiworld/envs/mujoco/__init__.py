@@ -5,7 +5,6 @@ import logging
 LOGGER = logging.getLogger(__name__)
 REGISTERED = False
 
-
 def register_mujoco_envs():
     global REGISTERED
     if REGISTERED:
@@ -687,3 +686,4 @@ def create_image_48_sawyer_pickup_easy_v0():
         normalize=True,
         presampled_goals=goals,
     )
+register_mujoco_envs()
