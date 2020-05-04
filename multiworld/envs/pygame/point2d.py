@@ -330,7 +330,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._target_position = goal
 
     def draw(self, drawer):
-        drawer.fill(Color('white'))
+        drawer.fill(Color('black'))
         if self.show_goal:
             drawer.draw_solid_circle(
                 self._target_position,
