@@ -495,7 +495,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             self._render_drawer.check_for_exit()
 
     def _draw(self, drawer):
-        drawer.fill(Color('white'))
+        drawer.fill(Color('black'))
         for obj in self._all_objects:
             obj.draw(drawer, draw_target_position=self._show_goal)
 
