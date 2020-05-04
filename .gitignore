@@ -6,3 +6,4 @@ data/*
 *.zip*
 *.png*
 *.avi*
+.DS_Store

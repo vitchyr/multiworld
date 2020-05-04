@@ -8,8 +8,8 @@ import pickle
 
 REWARD_NEGATIVE = -1.0
 REWARD_POSITIVE = 10.0
-SHAPENET_ASSET_PATH = osp.join(
-    osp.dirname(osp.abspath(__file__)), 'assets/ShapeNetCore')
+SHAPENET_ASSET_PATH = "/Users/ashvin/code/gauss/bullet-objects/ShapeNetCore/"
+# osp.join(osp.dirname(osp.abspath(__file__)), 'assets/ShapeNetCore')
 
 
 def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5):
@@ -43,7 +43,7 @@ class SawyerGraspV2Env(SawyerBaseEnv):
                  object_position_high = (.80, .25, -.20),
                  object_ids = [0, 1, 25, 30, 50, 215, 255, 265, 300, 310],
                  *args,
-                 **kwargs,
+                 **kwargs
                  ):
         """
         :param observation_mode: state, pixels

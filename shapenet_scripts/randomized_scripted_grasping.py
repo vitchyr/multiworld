@@ -210,13 +210,15 @@ def scripted_grasping_V2(env, pool, success_pool, random_actions=False):
         success_pool.add_path(path)
 
 
-def scripted_grasping_V4(env, pool, success_pool):
+def scripted_grasping_V4(env, pool, success_pool, render_images):
     observation = env.reset()
     object_ind = np.random.randint(0, env._num_objects)
     actions, observations, next_observations, rewards, terminals, infos = \
         [], [], [], [], [], []
 
     dist_thresh = 0.04 + np.random.normal(scale=0.01)
+
+    images = []
 
     for _ in range(args.num_timesteps):
 
@@ -273,6 +275,11 @@ def scripted_grasping_V4(env, pool, success_pool):
         infos.append(info)
         next_observations.append(next_observation)
 
+        if render_images:
+            img = observation['image']
+            img = img.reshape((3, 48, 48)) * 255
+            images.append(img.transpose([1, 2, 0]).astype(np.uint8))
+
         observation = next_observation
 
         if done:
@@ -296,6 +303,7 @@ def scripted_grasping_V4(env, pool, success_pool):
     if rewards[-1] > 0:
         success_pool.add_path(path)
 
+    return False, images
 
 def scripted_markovian_reaching(env, pool, render_images):
     observation = env.reset()
@@ -353,14 +361,14 @@ def main(args):
 
     reward_type = 'sparse' if args.sparse else 'shaped'
     if args.env in V2_GRASPING_ENVS or args.env in V4_GRASPING_ENVS:
-        tranpose_image = True
+        transpose_image = True
     else:
         transpose_image = False
 
     env = roboverse.make(args.env, reward_type=reward_type,
                          gui=args.gui, randomize=args.randomize,
                          observation_mode=args.observation_mode,
-                         transpose_image=tranpose_image)
+                         transpose_image=transpose_image)
 
     num_success = 0
     if args.env == 'SawyerGraspOne-v0' or args.env == 'SawyerReach-v0':
@@ -393,9 +401,9 @@ def main(args):
             scripted_grasping_V2(env, railrl_pool, railrl_success_pool,
                                  random_actions=args.random_actions)
         elif args.env in V4_GRASPING_ENVS:
-            assert not render_images
-            success = False
-            scripted_grasping_V4(env, railrl_pool, railrl_success_pool)
+            # assert not render_images
+            # success = False
+            success, images = scripted_grasping_V4(env, railrl_pool, railrl_success_pool, render_images)
         else:
             raise NotImplementedError
 
@@ -414,6 +422,7 @@ def main(args):
                 )
         if render_images:
             filename = '{}/{}.mp4'.format(video_save_path, j)
+            print(filename)
             writer = skvideo.io.FFmpegWriter(
                 filename,
                 inputdict={"-r": "10"},

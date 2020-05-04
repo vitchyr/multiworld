@@ -75,9 +75,9 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
                    'pos_high': [.9, .30, -.15],
                    'object_position_low': (.65, .10, -.20),
                    'object_position_high': (.80, .25, -.20),
-                   'num_objects': 1,
+                   'num_objects': 10,
                    # 'height_threshold': -0.3,
-                   'object_ids': [1]
+                   # 'object_ids': [1]
                    }
     },
     {
