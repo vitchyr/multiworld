@@ -440,7 +440,7 @@ def main(args):
                         '{}_pool_{}_success_only.pkl'.format(
                             timestamp, pool_size))
         pickle.dump(railrl_success_pool, open(path, 'wb'), protocol=4)
-        print('Num success: {}'.format(np.sum(railrl_success_pool._rewards)))
+        print('Num success: {}'.format(np.sum(railrl_success_pool._rewards > 0)))
 
 
 if __name__ == "__main__":
