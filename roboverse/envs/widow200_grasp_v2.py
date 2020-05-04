@@ -1,8 +1,7 @@
 import roboverse.bullet as bullet
 import numpy as np
 import roboverse.utils as utils
-from roboverse.envs.sawyer_base import SawyerBaseEnv
-from roboverse.envs.widowx200_grasp import WidowX200GraspEnv
+from roboverse.envs.widow200_grasp import Widow200GraspEnv
 import gym
 from roboverse.bullet.misc import load_obj
 import os.path as osp
@@ -30,7 +29,7 @@ def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5)
     return obj
 
 
-class Widow200GraspV2Env(WidowX200GraspEnv):
+class Widow200GraspV2Env(Widow200GraspEnv):
     def __init__(self,
                  *args,
                  observation_mode='state',

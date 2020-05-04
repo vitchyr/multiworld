@@ -4,7 +4,7 @@ from roboverse.envs.widow_base import WidowBaseEnv
 from roboverse.utils.shapenet_utils import load_single_object
 
 
-class WidowX200GraspEnv(WidowBaseEnv):
+class Widow200GraspEnv(WidowBaseEnv):
     def __init__(self, goal_pos=(.7, 0.15, -0.20), *args, **kwargs):
         self._env_name = 'WidowX200GraspEnv'
         kwargs['downwards'] = False
@@ -22,7 +22,8 @@ class WidowX200GraspEnv(WidowBaseEnv):
                 'box': bullet.objects.box(),
             }
 
-    def _simulate(self, pos, theta, gripper, delta_theta, discrete_gripper=True):
+    def _simulate(self, pos, theta, gripper, delta_theta,
+                  discrete_gripper=True):
         wrist_theta = delta_theta
         for _ in range(self._action_repeat):
             bullet.sawyer_position_theta_ik(

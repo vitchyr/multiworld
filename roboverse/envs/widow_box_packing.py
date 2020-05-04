@@ -1,11 +1,11 @@
 import roboverse.bullet as bullet
 import numpy as np
 # from roboverse.envs.widow_grasp_downwards import WidowGraspDownwardsOneEnv
-from roboverse.envs.widowx200_grasp import WidowX200GraspEnv
+from roboverse.envs.widow200_grasp import Widow200GraspEnv
 from roboverse.utils.shapenet_utils import load_single_object
 
 
-class WidowBoxPackingOneEnv(WidowX200GraspEnv):
+class WidowBoxPackingOneEnv(Widow200GraspEnv):
     OPENED_DOOR_ANGLE = 1.2
     PARTIAL_OPENED_DOOR_ANGLE = 0.4
     SUCCESS_THRESH = 0.065
