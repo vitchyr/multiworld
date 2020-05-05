@@ -37,6 +37,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             randomize_position_on_reset=True,
             images_are_rgb=False,  # else black and white
             show_goal=True,
+            pointmass_color="blue",
+            bg_color="black",
             **kwargs
     ):
         if walls is None:
@@ -63,6 +65,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.randomize_position_on_reset = randomize_position_on_reset
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
+        self.pointmass_color = pointmass_color
+        self.bg_color = bg_color
 
         self.max_target_distance = self.boundary_dist - self.target_radius
 
@@ -330,7 +334,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self._target_position = goal
 
     def draw(self, drawer):
-        drawer.fill(Color('black'))
+        drawer.fill(Color(self.bg_color))
         if self.show_goal:
             drawer.draw_solid_circle(
                 self._target_position,
@@ -340,7 +344,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         drawer.draw_solid_circle(
             self._position,
             self.ball_radius,
-            Color('blue'),
+            Color(self.pointmass_color),
         )
 
         for wall in self.walls:
