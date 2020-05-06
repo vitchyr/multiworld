@@ -22,7 +22,7 @@ def register_pygame_envs():
         entry_point=PickAndPlace1DEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
+            'author': 'steven'
         },
         kwargs=dict(
             num_objects=5,
@@ -60,7 +60,7 @@ def register_pygame_envs():
         entry_point=PickAndPlace1DEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
+            'author': 'steven'
         },
         kwargs=dict(
             num_objects=2,
@@ -98,7 +98,7 @@ def register_pygame_envs():
         entry_point=PickAndPlace1DEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
+            'author': 'steven'
         },
         kwargs=dict(
             num_objects=3,
@@ -137,7 +137,7 @@ def register_pygame_envs():
         entry_point=PickAndPlace1DEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
+            'author': 'steven'
         },
         kwargs=dict(
             num_objects=4,
@@ -175,7 +175,7 @@ def register_pygame_envs():
         entry_point=PickAndPlace1DEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
+            'author': 'steven'
         },
         kwargs=dict(
             num_objects=5,
@@ -208,50 +208,11 @@ def register_pygame_envs():
     )
 
     register(
-        id='TwoObjectPickAndPlace1DSpreadEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            num_objects=2,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=np.array([0, 0, 0, 2, 0, -2]),
-            randomize_position_on_reset=False,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
-
-
-
-    register(
         id='TwoObjectPickAndPlace1DEnv-v0',
         entry_point=PickAndPlace1DEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
+            'author': 'steven'
         },
         kwargs=dict(
             num_objects=2,
@@ -283,7 +244,45 @@ def register_pygame_envs():
         ),
     )
     register(
-        id='FourObjectPickAndPlace2DRandomInitEnv-v0',
+        id='TwoObjectPickAndPlaceRandomInit2DEnv-v0',
+        entry_point=PickAndPlaceEnv,
+        tags={
+            'git-commit-hash': 'f2c7f9f',
+            'author': 'vitchyr'
+        },
+        kwargs=dict(
+            num_objects=2,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=True,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+            object_reward_only=True,
+        ),
+    )
+
+    register(
+        id='FourObjectPickAndPlaceRandomInit2DEnv-v0',
         entry_point=PickAndPlaceEnv,
         tags={
             'git-commit-hash': 'f2c7f9f',
