@@ -410,6 +410,22 @@ def register_pygame_envs():
         },
     )
     register(
+        id='Point2DEasyEnv-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'author': 'Ashvin'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 2,
+            'render_onscreen': False,
+            'show_goal': False,
+            'get_image_base_render_size': (48, 48),
+            'bg_color': 'white',
+        },
+    )
+    register(
         id='Point2DLargeEnv-offscreen-v0',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
