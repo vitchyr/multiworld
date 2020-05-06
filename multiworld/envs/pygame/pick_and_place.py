@@ -119,6 +119,8 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             goal_samplers=None,
             goal_sampling_mode='random',
             num_presampled_goals=10000,
+
+            object_reward_only=False,
     ):
         """
         :param get_image_base_render_size: If set, then the drawer will always
@@ -164,6 +166,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         self.action_space = spaces.Box(-u, u, dtype=np.float32)
 
         o = self.boundary_dist * np.ones(2 * (num_objects+1))
+        self.num_objects = num_objects
         self.obs_range = spaces.Box(-o, o, dtype='float32')
         self.observation_space = spaces.Dict([
             ('observation', self.obs_range),
@@ -188,7 +191,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             self._drawer = None
             self._fixed_get_image_render_size = False
         self._render_drawer = None
-        if not fixed_init_position:
+        if fixed_init_position is None:
             fixed_init_position = np.zeros_like(self.obs_range.low)
         self._fixed_init_position = fixed_init_position
 
@@ -205,6 +208,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             else:
                 goal_sampling_mode = 'presampled'
         self.goal_sampling_mode = goal_sampling_mode
+        self.object_reward_only = object_reward_only
 
     @property
     def cursor(self):
@@ -307,6 +311,9 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
+        if self.object_reward_only:
+            achieved_goals = achieved_goals[:, 2:]
+            desired_goals = desired_goals[:, 2:]
         d = np.linalg.norm(achieved_goals - desired_goals, axis=-1)
         if self.reward_type == "sparse":
             return -(d > self.success_threshold * len(self._all_objects)
@@ -576,3 +583,26 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 exclude_max_min=True,
             ))
         return statistics
+
+class PickAndPlace1DEnv(PickAndPlaceEnv):
+    def __init__(self, *args, **kwargs):
+        self.quick_init(locals())
+        super().__init__(*args, **kwargs)
+
+        o = self.boundary_dist * np.ones(2 * (self.num_objects+1))
+        for obj_idx in range(self.num_objects + 1):
+            o[obj_idx * 2] = 0.0
+        self.obs_range = spaces.Box(-o, o, dtype='float32')
+        self.observation_space = spaces.Dict([
+            ('observation', self.obs_range),
+            ('desired_goal', self.obs_range),
+            ('achieved_goal', self.obs_range),
+            ('state_observation', self.obs_range),
+            ('state_desired_goal', self.obs_range),
+            ('state_achieved_goal', self.obs_range),
+        ])
+
+    def step(self, raw_action):
+        action = raw_action.copy()
+        action[0] = 0.0
+        return super().step(action)
