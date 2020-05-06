@@ -216,6 +216,36 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 ))
         return statistics
 
+    def get_contextual_diagnostics(self, paths, contexts):
+        diagnostics = OrderedDict()
+        state_key = "state_observation"
+        goal_key = "state_desired_goal"
+        values = []
+        for i in range(len(paths)):
+            state = paths[i]["observations"][-1][state_key]
+            goal = contexts[i][goal_key]
+            distance = np.linalg.norm(state - goal)
+            values.append(distance)
+        diagnostics_key = goal_key + "/final/distance"
+        diagnostics.update(create_stats_ordered_dict(
+            diagnostics_key,
+            values,
+        ))
+
+        values = []
+        for i in range(len(paths)):
+            for j in range(len(paths[i]["observations"])):
+                state = paths[i]["observations"][j][state_key]
+                goal = contexts[i][goal_key]
+                distance = np.linalg.norm(state - goal)
+                values.append(distance)
+        diagnostics_key = goal_key + "/distance"
+        diagnostics.update(create_stats_ordered_dict(
+            diagnostics_key,
+            values,
+        ))
+        return diagnostics
+
     def goal_conditioned_diagnostics(self, paths, goals):
         statistics = OrderedDict()
         distance_to_target_list = []

@@ -74,6 +74,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             goal_low,
             goal_high,
         )
+        self.hand_box = Box(self.hand_goal_low, self.hand_goal_high)
+        self.puck_box = Box(self.puck_goal_low, self.puck_goal_high)
         self.observation_space = Dict([
             ('observation', self.obs_box),
             ('state_observation', self.obs_box),
@@ -81,6 +83,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             ('state_desired_goal', self.goal_box),
             ('achieved_goal', self.goal_box),
             ('state_achieved_goal', self.goal_box),
+            ('hand_pos', self.hand_box),
+            ('puck_pos', self.puck_box),
         ])
         # hack for state-based experiments for other envs
         # self.observation_space = Box(
@@ -205,6 +209,8 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             state_desired_goal=g,
             achieved_goal=x,
             state_achieved_goal=x,
+            puck_pos=b,
+            hand_pos=e,
         )
 
         return new_obs
@@ -464,6 +470,42 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.data.set_mocap_pos('mocap', mocap_pos)
         self.data.set_mocap_quat('mocap', mocap_quat)
         self.sim.forward()
+
+    def get_contextual_diagnostics(self, paths, contexts):
+        diagnostics = OrderedDict()
+        state_key = "state_observation"
+        goal_key = "state_desired_goal"
+
+        for idx, name in [
+            (slice(0,2), "hand_goal"),
+            (slice(2, 4), "puck_goal"),
+        ]:
+            values = []
+            for i in range(len(paths)):
+                state = paths[i]["observations"][-1][state_key][idx]
+                goal = contexts[i][goal_key][idx]
+                distance = np.linalg.norm(state - goal)
+                values.append(distance)
+                diagnostics_key = name + "/final/distance"
+                diagnostics.update(create_stats_ordered_dict(
+                    diagnostics_key,
+                    values,
+                ))
+
+            values = []
+            for i in range(len(paths)):
+                for j in range(len(paths[i]["observations"])):
+                    state = paths[i]["observations"][j][state_key][idx]
+                    goal = contexts[i][goal_key][idx]
+                    distance = np.linalg.norm(state - goal)
+                values.append(distance)
+                diagnostics_key = name + "/distance"
+                diagnostics.update(create_stats_ordered_dict(
+                    diagnostics_key,
+                    values,
+                ))
+
+        return diagnostics
 
 
 class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
