@@ -642,6 +642,42 @@ class SawyerMultiobjectEnv(MujocoEnv, Serializable, MultitaskEnv):
         self.data.set_mocap_quat('mocap', mocap_quat)
         self.sim.forward()
 
+    def get_contextual_diagnostics(self, paths, contexts):
+        diagnostics = OrderedDict()
+        state_key = "state_observation"
+        goal_key = "state_desired_goal"
+
+        for idx, name in [
+            (slice(0,2), "hand_goal"),
+            (slice(2, 4), "puck_goal"),
+        ]:
+            values = []
+            for i in range(len(paths)):
+                state = paths[i]["observations"][-1][state_key][idx]
+                goal = contexts[i][goal_key][idx]
+                distance = np.linalg.norm(state - goal)
+                values.append(distance)
+                diagnostics_key = name + "/final/distance"
+                diagnostics.update(create_stats_ordered_dict(
+                    diagnostics_key,
+                    values,
+                ))
+
+            values = []
+            for i in range(len(paths)):
+                for j in range(len(paths[i]["observations"])):
+                    state = paths[i]["observations"][j][state_key][idx]
+                    goal = contexts[i][goal_key][idx]
+                    distance = np.linalg.norm(state - goal)
+                values.append(distance)
+                diagnostics_key = name + "/distance"
+                diagnostics.update(create_stats_ordered_dict(
+                    diagnostics_key,
+                    values,
+                ))
+
+        return diagnostics
+
 
 
 
