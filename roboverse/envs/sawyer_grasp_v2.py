@@ -8,7 +8,7 @@ import pickle
 
 REWARD_NEGATIVE = -1.0
 REWARD_POSITIVE = 10.0
-SHAPENET_ASSET_PATH = "/Users/ashvin/code/gauss/bullet-objects/ShapeNetCore/"
+SHAPENET_ASSET_PATH = "/home/ashvin/ros_ws/src/ashvindev/bullet-objects/ShapeNetCore/"
 # osp.join(osp.dirname(osp.abspath(__file__)), 'assets/ShapeNetCore')
 
 
@@ -249,6 +249,7 @@ class SawyerGraspV2Env(SawyerBaseEnv):
                                                    quat_to_deg=False)
                 object_pos = object_info['pos']
                 object_theta = object_info['theta']
+
                 observation = np.concatenate(
                     (observation, object_pos, object_theta))
         elif self._observation_mode == 'pixels':
