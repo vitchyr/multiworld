@@ -280,6 +280,39 @@ def register_pygame_envs():
             object_reward_only=True,
         ),
     )
+    register(
+        id='OneObjectPickAndPlaceRandomInit2DEnv-v0',
+        entry_point=PickAndPlaceEnv,
+        kwargs=dict(
+            num_objects=1,
+            # Environment dynamics
+            action_scale=1.0,
+            ball_radius=.75,
+            boundary_dist=4,
+            object_radius=0.50,
+            min_grab_distance=0.5,
+            walls=None,
+            # Rewards
+            action_l2norm_penalty=0,
+            reward_type="dense_l1",
+            success_threshold=0.60,
+            # Reset settings
+            fixed_goal=None,
+            fixed_init_position=None,
+            randomize_position_on_reset=True,
+            # Visualization settings
+            images_are_rgb=True,
+            render_dt_msec=0,
+            render_onscreen=False,
+            render_size=84,
+            show_goal=False,
+            # Goal sampling
+            goal_samplers=None,
+            goal_sampling_mode='random',
+            num_presampled_goals=10000,
+            object_reward_only=True,
+        ),
+    )
 
     register(
         id='FourObjectPickAndPlaceRandomInit2DEnv-v0',
