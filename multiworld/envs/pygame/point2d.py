@@ -34,11 +34,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
             ball_radius=0.50,
             walls=None,
             fixed_goal=None,
+            fixed_init_position=None,
             randomize_position_on_reset=True,
             images_are_rgb=False,  # else black and white
             show_goal=True,
             pointmass_color="blue",
             bg_color="black",
+            wall_color="white",
             **kwargs
     ):
         if walls is None:
@@ -47,6 +49,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
             walls = []
         if fixed_goal is not None:
             fixed_goal = np.array(fixed_goal)
+        if fixed_init_position is not None:
+            fixed_init_position = np.array(fixed_init_position)
         if len(kwargs) > 0:
             LOGGER = logging.getLogger(__name__)
             LOGGER.log(logging.WARNING, "WARNING, ignoring kwargs:", kwargs)
@@ -62,11 +66,13 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.ball_radius = ball_radius
         self.walls = walls
         self.fixed_goal = fixed_goal
+        self._fixed_init_position = fixed_init_position
         self.randomize_position_on_reset = randomize_position_on_reset
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
         self.pointmass_color = pointmass_color
         self.bg_color = bg_color
+        self._wall_color = wall_color
 
         self.max_target_distance = self.boundary_dist - self.target_radius
 
@@ -154,6 +160,8 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 self.obs_range.low,
                 self.obs_range.high,
             )
+        else:
+            self._position = self._fixed_init_position
 
         return self._get_obs()
 
@@ -297,9 +305,9 @@ class Point2DEnv(MultitaskEnv, Serializable):
         else:
             goals = np.zeros((batch_size, self.obs_range.low.size))
             if len(self.walls) > 0:
+                if batch_size > 1:
+                    logging.warning("This is very slow!")
                 for b in range(batch_size):
-                    if batch_size > 1:
-                        logging.warning("This is very slow!")
                     goals[b, :] = self._sample_position(
                         self.obs_range.low,
                         self.obs_range.high,
@@ -381,22 +389,22 @@ class Point2DEnv(MultitaskEnv, Serializable):
             drawer.draw_segment(
                 wall.endpoint1,
                 wall.endpoint2,
-                Color('black'),
+                Color(self._wall_color),
             )
             drawer.draw_segment(
                 wall.endpoint2,
                 wall.endpoint3,
-                Color('black'),
+                Color(self._wall_color),
             )
             drawer.draw_segment(
                 wall.endpoint3,
                 wall.endpoint4,
-                Color('black'),
+                Color(self._wall_color),
             )
             drawer.draw_segment(
                 wall.endpoint4,
                 wall.endpoint1,
-                Color('black'),
+                Color(self._wall_color),
             )
         drawer.render()
 

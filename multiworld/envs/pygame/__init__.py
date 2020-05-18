@@ -605,6 +605,51 @@ def register_pygame_envs():
             'images_are_rgb': True,
             'render_onscreen': True,
             'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Easy-UWall-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'wall_color': 'white',
+            'bg_color': 'black',
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'show_goal': False,
+            'get_image_base_render_size': (48, 48),
+        },
+    )
+    register(
+        id='Point2D-Easy-UWall-Hard-Init-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'wall_color': 'white',
+            'bg_color': 'black',
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'show_goal': False,
+            'fixed_init_position': (0, -2),
+            'randomize_position_on_reset': False,
+            'fixed_goal': (0, 3),
+            'get_image_base_render_size': (48, 48),
         },
     )
     register(
