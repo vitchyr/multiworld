@@ -1,5 +1,5 @@
 from collections import OrderedDict, defaultdict
-import logging
+import random
 
 import numpy as np
 from gym import spaces
@@ -107,7 +107,8 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             # Reset settings
             fixed_goal=None,
             fixed_init_position=None,
-            randomize_position_on_reset=False,
+            init_position_strategy='random',
+            start_near_object=False,
             # Visualization settings
             images_are_rgb=True,
             render_dt_msec=0,
@@ -134,6 +135,11 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             raise ValueError("Invalid action scale: {}".format(
                 action_scale
             ))
+        if init_position_strategy not in {'random', 'on_random_object', 'fixed'}:
+            raise ValueError('Invalid init position strategy: {}'.format(
+                init_position_strategy
+            ))
+
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
@@ -146,7 +152,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         self.ball_radius = ball_radius
         self.walls = walls
         self.fixed_goal = fixed_goal
-        self.randomize_position_on_reset = randomize_position_on_reset
+        self.init_position_strategy = init_position_strategy
         self.images_are_rgb = images_are_rgb
         self._show_goal = show_goal
 
@@ -274,12 +280,21 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         goal = self.sample_goal()['state_desired_goal']
         self._set_target_positions(goal)
 
-        if self.randomize_position_on_reset:
+        if self.init_position_strategy == 'random':
             init_pos = (
                 self.observation_space.spaces['state_observation'].sample()
             )
-        else:
+        elif self.init_position_strategy == 'fixed':
             init_pos = self._fixed_init_position.copy()
+        elif self.init_position_strategy == 'on_random_object':
+            init_pos = (
+                self.observation_space.spaces['state_observation'].sample()
+            )
+            start_i = 2 + 2 * random.randint(0, len(self._all_objects) - 2)
+            end_i = start_i + 2
+            init_pos[:2] = init_pos[start_i:end_i].copy()
+        else:
+            raise ValueError(self.init_position_strategy)
         self._set_positions(init_pos)
 
         return self._get_obs()
