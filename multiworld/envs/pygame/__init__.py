@@ -212,6 +212,7 @@ def register_pnp_envs():
         render_onscreen=False,
         render_size=84,
         show_goal=False,
+        get_image_base_render_size=(48, 48),
         # Goal sampling
         goal_samplers=None,
         goal_sampling_mode='random',
