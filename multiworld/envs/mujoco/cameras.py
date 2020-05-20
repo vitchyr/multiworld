@@ -1,6 +1,8 @@
 import numpy as np
+from mujoco_py.generated import const
 
-def create_sawyer_camera_init(
+
+def create_camera_init(
         lookat=(0, 0.85, 0.3),
         distance=0.3,
         elevation=-35,
@@ -15,6 +17,8 @@ def create_sawyer_camera_init(
         camera.elevation = elevation
         camera.azimuth = azimuth
         camera.trackbodyid = trackbodyid
+        if trackbodyid >= 0:
+            camera.type = const.CAMERA_TRACKING
 
     return init
 
