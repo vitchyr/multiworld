@@ -33,14 +33,18 @@ char_to_action = {
 }
 
 register_pygame_envs()
-env = gym.make('Point2D-Big-UWall-v1')
-env = PickAndPlaceEnv(
-    num_objects=3,
-    render_size=240,
-    render_onscreen=True,
-    # render_onscreen=False,
-    # get_image_base_render_size=(48, 48),
-)
+# env = gym.make('Point2D-Big-UWall-v1')
+# env = gym.make('FiveObjectPickAndPlaceRandomInit1DEnv-v1')
+# env = gym.make('OneObject-PickAndPlace-OnRandomObjectInit-2D-v1')
+env = gym.make('OneObject-PickAndPlace-OriginInit-2D-v1')
+# env = PickAndPlaceEnv(
+#     num_objects=3,
+#     render_size=240,
+#     render_onscreen=True,
+#     # render_onscreen=False,
+#     # get_image_base_render_size=(48, 48),
+# )
+env.render_onscreen=True
 env.render_dt_msec = 100
 NDIM = env.action_space.low.size
 lock_action = False

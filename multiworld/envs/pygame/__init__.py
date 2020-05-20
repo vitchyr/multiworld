@@ -1,10 +1,9 @@
 from gym.envs.registration import register
 import logging
-import numpy as np
 
 from multiworld.envs.pygame.pick_and_place import (
     PickAndPlaceEnv,
-    PickAndPlace1DEnv
+    PickAndPlace1DEnv,
 )
 
 LOGGER = logging.getLogger(__name__)
@@ -17,488 +16,10 @@ def register_pygame_envs():
         return
     REGISTERED = True
     LOGGER.info("Registering multiworld pygame gym environments")
-    register(
-        id='FiveObjectPickAndPlaceRandomInit1DEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=5,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=True,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-
-    register(
-        id='FiveObjectPickAndPlaceRandomInit2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        kwargs=dict(
-            num_objects=5,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=True,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-
-    register(
-        id='TwoObjectPickAndPlaceRandomInit1DEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=2,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.75,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=True,
-            # fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
-
-
-    register(
-        id='ThreeObjectPickAndPlaceRandomInit1DEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=3,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.75,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=True,
-            # fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-
-    register(
-        id='ThreeObjectPickAndPlaceRandomInit2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=3,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.75,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=True,
-            # fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-
-
-    register(
-        id='FourObjectPickAndPlace1DEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=4,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.75,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=False,
-            fixed_init_position=np.array([0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
-
-
-    register(
-        id='FiveObjectPickAndPlace1DEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=5,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            randomize_position_on_reset=False,
-            fixed_init_position=np.array([0, 0, 0, 0, 0, 2, 0, -2, 0, 4, 0, -4]),
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
-
-    register(
-        id='TwoObjectPickAndPlace1DEnv-v0',
-        entry_point=PickAndPlace1DEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'steven'
-        },
-        kwargs=dict(
-            num_objects=2,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=None,
-            randomize_position_on_reset=False,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
-    register(
-        id='TwoObjectPickAndPlaceRandomInit2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            num_objects=2,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=None,
-            randomize_position_on_reset=True,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-    register(
-        id='OneObjectPickAndPlaceRandomInit2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        kwargs=dict(
-            num_objects=1,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=None,
-            randomize_position_on_reset=True,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-
-    register(
-        id='FourObjectPickAndPlaceRandomInit2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            num_objects=4,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=None,
-            randomize_position_on_reset=True,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-            object_reward_only=True,
-        ),
-    )
-
-    register(
-        id='TwoObjectPickAndPlace2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        tags={
-            'git-commit-hash': 'f2c7f9f',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            num_objects=2,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=None,
-            randomize_position_on_reset=False,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            get_image_base_render_size=(48, 48),
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
-    register(
-        id='OneObjectPickAndPlace2DEnv-v0',
-        entry_point=PickAndPlaceEnv,
-        tags={
-            'git-commit-hash': '518675c',
-            'author': 'vitchyr'
-        },
-        kwargs=dict(
-            num_objects=1,
-            # Environment dynamics
-            action_scale=1.0,
-            ball_radius=.75,
-            boundary_dist=4,
-            object_radius=0.50,
-            min_grab_distance=0.5,
-            walls=None,
-            # Rewards
-            action_l2norm_penalty=0,
-            reward_type="dense_l1",
-            success_threshold=0.60,
-            # Reset settings
-            fixed_goal=None,
-            fixed_init_position=None,
-            randomize_position_on_reset=False,
-            # Visualization settings
-            images_are_rgb=True,
-            render_dt_msec=0,
-            render_onscreen=False,
-            render_size=84,
-            show_goal=False,
-            get_image_base_render_size=(48, 48),
-            # Goal sampling
-            goal_samplers=None,
-            goal_sampling_mode='random',
-            num_presampled_goals=10000,
-        ),
-    )
+    register_pnp_envs()
     register(
         id='Point2DLargeEnv-v1',
-        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        entry_point='multiworld.envs.pygame.point2d:Point2D',
         tags={
             'git-commit-hash': '4efe2be',
             'author': 'Vitchyr'
@@ -514,7 +35,7 @@ def register_pygame_envs():
     )
     register(
         id='Point2DEasyEnv-v1',
-        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        entry_point='multiworld.envs.pygame.point2d:Point2D',
         tags={
             'author': 'Ashvin'
         },
@@ -530,7 +51,7 @@ def register_pygame_envs():
     )
     register(
         id='Point2DLargeEnv-offscreen-v0',
-        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        entry_point='multiworld.envs.pygame.point2d:Point2D',
         tags={
             'git-commit-hash': '166f0f3',
             'author': 'Vitchyr'
@@ -544,7 +65,7 @@ def register_pygame_envs():
     )
     register(
         id='Point2DLargeEnv-onscreen-v0',
-        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        entry_point='multiworld.envs.pygame.point2d:Point2D',
         tags={
             'git-commit-hash': '166f0f3',
             'author': 'Vitchyr'
@@ -653,7 +174,7 @@ def register_pygame_envs():
         },
     )
     register(
-        id='Point2DEnv-ImageFixedGoal-v0',
+        id='Point2D-ImageFixedGoal-v0',
         entry_point=point2d_image_fixed_goal_v0,
         tags={
             'git-commit-hash': '2e92a51',
@@ -661,13 +182,181 @@ def register_pygame_envs():
         },
     )
     register(
-        id='Point2DEnv-Image-v0',
+        id='Point2D-Image-v0',
         entry_point=point2d_image_v0,
         tags={
             'git-commit-hash': '78c9f9e',
             'author': 'vitchyr'
         },
     )
+
+
+def register_pnp_envs():
+    shared_settings = dict(
+        # Environment dynamics
+        action_scale=1.0,
+        ball_radius=1.,
+        boundary_dist=4,
+        object_radius=0.50,
+        min_grab_distance=0.5,
+        walls=None,
+        # Rewards
+        action_l2norm_penalty=0,
+        reward_type="dense_l1",
+        success_threshold=0.60,
+        # Reset settings
+        fixed_goal=None,
+        # Visualization settings
+        images_are_rgb=True,
+        render_dt_msec=0,
+        render_onscreen=False,
+        render_size=84,
+        show_goal=False,
+        get_image_base_render_size=(48, 48),
+        # Goal sampling
+        goal_samplers=None,
+        goal_sampling_mode='random',
+        num_presampled_goals=10000,
+        object_reward_only=True,
+    )
+    for env_id, extra_settings in [
+        (
+                'FiveObject-PickAndPlace-RandomInit-1D-v1',
+                dict(num_objects=5, init_position_strategy='random'),
+        ),
+        (
+                'FourObject-PickAndPlace-RandomInit-1D-v1',
+                dict(num_objects=4, init_position_strategy='random'),
+        ),
+        (
+                'ThreeObject-PickAndPlace-RandomInit-1D-v1',
+                dict(num_objects=3, init_position_strategy='random'),
+        ),
+        (
+                'TwoObject-PickAndPlace-RandomInit-1D-v1',
+                dict(num_objects=2, init_position_strategy='random'),
+        ),
+        (
+                'OneObject-PickAndPlace-RandomInit-1D-v1',
+                dict(num_objects=1, init_position_strategy='random'),
+        ),
+        (
+                'FiveObject-PickAndPlace-OriginInit-1D-v1',
+                dict(num_objects=5, init_position_strategy='fixed'),
+        ),
+        (
+                'FourObject-PickAndPlace-OriginInit-1D-v1',
+                dict(num_objects=4, init_position_strategy='fixed'),
+        ),
+        (
+                'ThreeObject-PickAndPlace-OriginInit-1D-v1',
+                dict(num_objects=3, init_position_strategy='fixed'),
+        ),
+        (
+                'TwoObject-PickAndPlace-OriginInit-1D-v1',
+                dict(num_objects=2, init_position_strategy='fixed'),
+        ),
+        (
+                'OneObject-PickAndPlace-OriginInit-1D-v1',
+                dict(num_objects=1, init_position_strategy='fixed'),
+        ),
+        (
+                'FiveObject-PickAndPlace-OnRandomObjectInit-1D-v1',
+                dict(num_objects=5, init_position_strategy='on_random_object'),
+        ),
+        (
+                'FourObject-PickAndPlace-OnRandomObjectInit-1D-v1',
+                dict(num_objects=4, init_position_strategy='on_random_object'),
+        ),
+        (
+                'ThreeObject-PickAndPlace-OnRandomObjectInit-1D-v1',
+                dict(num_objects=3, init_position_strategy='on_random_object'),
+        ),
+        (
+                'TwoObject-PickAndPlace-OnRandomObjectInit-1D-v1',
+                dict(num_objects=2, init_position_strategy='on_random_object'),
+        ),
+        (
+                'OneObject-PickAndPlace-OnRandomObjectInit-1D-v1',
+                dict(num_objects=1, init_position_strategy='on_random_object'),
+        ),
+    ]:
+        new_kwargs = shared_settings.copy()
+        new_kwargs.update(extra_settings)
+        register(
+            id=env_id,
+            entry_point=PickAndPlace1DEnv,
+            kwargs=new_kwargs,
+        )
+    for env_id, extra_settings in [
+        (
+                'FiveObject-PickAndPlace-RandomInit-2D-v1',
+                dict(num_objects=5, init_position_strategy='random'),
+        ),
+        (
+                'FourObject-PickAndPlace-RandomInit-2D-v1',
+                dict(num_objects=4, init_position_strategy='random'),
+        ),
+        (
+                'ThreeObject-PickAndPlace-RandomInit-2D-v1',
+                dict(num_objects=3, init_position_strategy='random'),
+        ),
+        (
+                'TwoObject-PickAndPlace-RandomInit-2D-v1',
+                dict(num_objects=2, init_position_strategy='random'),
+        ),
+        (
+                'OneObject-PickAndPlace-RandomInit-2D-v1',
+                dict(num_objects=1, init_position_strategy='random'),
+        ),
+        (
+                'FiveObject-PickAndPlace-OriginInit-2D-v1',
+                dict(num_objects=5, init_position_strategy='fixed'),
+        ),
+        (
+                'FourObject-PickAndPlace-OriginInit-2D-v1',
+                dict(num_objects=4, init_position_strategy='fixed'),
+        ),
+        (
+                'ThreeObject-PickAndPlace-OriginInit-2D-v1',
+                dict(num_objects=3, init_position_strategy='fixed'),
+        ),
+        (
+                'TwoObject-PickAndPlace-OriginInit-2D-v1',
+                dict(num_objects=2, init_position_strategy='fixed'),
+        ),
+        (
+                'OneObject-PickAndPlace-OriginInit-2D-v1',
+                dict(num_objects=1, init_position_strategy='fixed'),
+        ),
+        (
+                'FiveObject-PickAndPlace-OnRandomObjectInit-2D-v1',
+                dict(num_objects=5, init_position_strategy='on_random_object'),
+        ),
+        (
+                'FourObject-PickAndPlace-OnRandomObjectInit-2D-v1',
+                dict(num_objects=4, init_position_strategy='on_random_object'),
+        ),
+        (
+                'ThreeObject-PickAndPlace-OnRandomObjectInit-2D-v1',
+                dict(num_objects=3, init_position_strategy='on_random_object'),
+        ),
+        (
+                'TwoObject-PickAndPlace-OnRandomObjectInit-2D-v1',
+                dict(num_objects=2, init_position_strategy='on_random_object'),
+        ),
+        (
+                'OneObject-PickAndPlace-OnRandomObjectInit-2D-v1',
+                dict(num_objects=1, init_position_strategy='on_random_object'),
+        ),
+    ]:
+        new_kwargs = shared_settings.copy()
+        new_kwargs.update(extra_settings)
+        register(
+            id=env_id,
+            entry_point=PickAndPlaceEnv,
+            kwargs=new_kwargs,
+        )
 
 
 def point2d_image_fixed_goal_v0(**kwargs):
