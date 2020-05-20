@@ -103,7 +103,7 @@ class AntXYGoalEnv(AntEnv, GoalEnv, Serializable):
             lookat=(0, 0, 0),
             distance=15,
             elevation=-45,
-            trackbodyid=self.sim.model.body_name2id('torso'),
+            # trackbodyid=self.sim.model.body_name2id('torso'),
         )
 
     def reset(self):
