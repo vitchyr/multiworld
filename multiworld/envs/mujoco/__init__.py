@@ -607,10 +607,35 @@ def register_classic_mujoco_envs():
         },
     )
     register(
-        id='LowGearAntXY-v0',
+        id='AntXY-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': False,
+            'include_contact_forces_in_state': True
+        },
+    )
+    register(
+        id='AntXY-NoContactSensors-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': False,
+            'include_contact_forces_in_state': False
+        },
+    )
+    register(
+        id='AntXY-LowGear-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
         kwargs={
             'use_low_gear_ratio': True,
+            'include_contact_forces_in_state': True
+        },
+    )
+    register(
+        id='AntXY-LowGear-NoContactSensors-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': True,
+            'include_contact_forces_in_state': False
         },
     )
 

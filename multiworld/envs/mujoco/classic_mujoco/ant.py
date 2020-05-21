@@ -13,7 +13,7 @@ from multiworld.envs.env_util import get_asset_full_path
 
 
 class AntEnv(MujocoEnv, Serializable):
-    def __init__(self, use_low_gear_ratio=True):
+    def __init__(self, use_low_gear_ratio=False, include_contact_forces_in_state=True):
         self.quick_init(locals())
         if use_low_gear_ratio:
             xml_path = 'classic_mujoco/low_gear_ratio_ant.xml'
@@ -23,6 +23,7 @@ class AntEnv(MujocoEnv, Serializable):
             get_asset_full_path(xml_path),
             frame_skip=5,
         )
+        self.include_contact_forces_in_state = include_contact_forces_in_state
         bounds = self.model.actuator_ctrlrange.copy()
         low = bounds[:, 0]
         high = bounds[:, 1]
@@ -48,7 +49,8 @@ class AntEnv(MujocoEnv, Serializable):
                 np.isfinite(state).all()
                 and 0.2 <= state[2] <= 1.0
         )
-        done = not notdone
+        # done = not notdone
+        done = False
         ob = self._get_obs()
         return ob, reward, done, dict(
             reward_forward=forward_reward,
@@ -67,11 +69,17 @@ class AntEnv(MujocoEnv, Serializable):
         )
 
     def _get_env_obs(self):
-        return np.concatenate([
-            self.sim.data.qpos.flat[2:],
-            self.sim.data.qvel.flat,
-            np.clip(self.sim.data.cfrc_ext, -1, 1).flat,
-        ])
+        if self.include_contact_forces_in_state:
+            return np.concatenate([
+                self.sim.data.qpos.flat[2:],
+                self.sim.data.qvel.flat,
+                np.clip(self.sim.data.cfrc_ext, -1, 1).flat,
+            ])
+        else:
+            return np.concatenate([
+                self.sim.data.qpos.flat[2:],
+                self.sim.data.qvel.flat,
+            ])
 
     def reset_model(self):
         qpos = self.init_qpos + self.np_random.uniform(size=self.model.nq,
