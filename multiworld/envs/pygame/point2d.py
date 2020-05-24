@@ -549,9 +549,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
         pass
 
 
-Point2D = Point2DEnv  # for backwards compatibility
-
-
 class Point2DWallEnv(Point2DEnv):
     """Point2D with walls"""
 

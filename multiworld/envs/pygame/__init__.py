@@ -51,7 +51,7 @@ def register_pygame_envs():
     )
     register(
         id='Point2DLargeEnv-offscreen-v0',
-        entry_point='multiworld.envs.pygame.point2d:Point2D',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
             'git-commit-hash': '166f0f3',
             'author': 'Vitchyr'
@@ -65,7 +65,7 @@ def register_pygame_envs():
     )
     register(
         id='Point2DLargeEnv-onscreen-v0',
-        entry_point='multiworld.envs.pygame.point2d:Point2D',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
         tags={
             'git-commit-hash': '166f0f3',
             'author': 'Vitchyr'
