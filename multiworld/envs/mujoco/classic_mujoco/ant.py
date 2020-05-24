@@ -61,14 +61,6 @@ class AntEnv(MujocoEnv, Serializable):
         )
 
     def _get_obs(self):
-        state_obs = self._get_env_obs()
-        return dict(
-            observation=state_obs,
-            desired_goal=state_obs,
-            achieved_goal=state_obs,
-        )
-
-    def _get_env_obs(self):
         if self.include_contact_forces_in_state:
             return np.concatenate([
                 self.sim.data.qpos.flat[2:],
@@ -125,6 +117,20 @@ class AntXYGoalEnv(AntEnv, GoalEnv, Serializable):
             desired_goal=self.goal,
             achieved_goal=self.get_body_com('torso')[:2],
         )
+
+    def _get_env_obs(self):
+        if self.include_contact_forces_in_state:
+            return np.concatenate([
+                self.sim.data.qpos.flat,
+                self.sim.data.qvel.flat,
+                np.clip(self.sim.data.cfrc_ext, -1, 1).flat,
+            ])
+        else:
+            return np.concatenate([
+                self.sim.data.qpos.flat,
+                self.sim.data.qvel.flat,
+            ])
+
 
     def compute_reward(self, achieved_goal, desired_goal, info):
         return - np.linalg.norm(achieved_goal - desired_goal)
