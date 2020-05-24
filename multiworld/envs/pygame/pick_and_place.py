@@ -378,7 +378,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
     def get_goal(self):
         return {
-            'desired_goal': self._get_positions(),
+            'desired_goal': self._get_target_positions(),
             'state_desired_goal': self._get_target_positions(),
         }
 
