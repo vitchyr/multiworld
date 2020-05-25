@@ -13,12 +13,16 @@ from multiworld.envs.env_util import get_asset_full_path
 
 
 class AntEnv(MujocoEnv, Serializable):
-    def __init__(self, use_low_gear_ratio=False, include_contact_forces_in_state=True):
+    def __init__(
+            self,
+            use_low_gear_ratio=False,
+            include_contact_forces_in_state=True,
+    ):
         self.quick_init(locals())
         if use_low_gear_ratio:
             xml_path = 'classic_mujoco/low_gear_ratio_ant.xml'
         else:
-            xml_path = 'classic_mujoco/normal_gear_ratio_ant.xml'
+            xml_path = 'classic_mujoco/ant.xml'
         super().__init__(
             get_asset_full_path(xml_path),
             frame_skip=5,
