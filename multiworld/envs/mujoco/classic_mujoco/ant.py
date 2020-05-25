@@ -115,7 +115,7 @@ class AntXYGoalEnv(AntEnv, GoalEnv, Serializable):
         return dict(
             observation=state_obs,
             desired_goal=self.goal,
-            achieved_goal=self.get_body_com('torso')[:2],
+            achieved_goal=state_obs[:2],
         )
 
     def _get_env_obs(self):
