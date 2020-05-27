@@ -274,6 +274,9 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             success = obj_distance < self.success_threshold
             info['distance_to_target_obj_{}'.format(i)] = obj_distance
             # info['success_obj_{}'.format(i)] = success
+
+            info['distance_cursor_to_obj_{}'.format(i)] = self.cursor.distance(obj.position)
+
         return info
 
     def reset(self):
@@ -326,6 +329,21 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
     def compute_rewards(self, actions, obs):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
+
+        assert 'mask' not in obs
+        # if 'mask' in obs:
+        #     mask = obs['mask']
+        #     batch_size, state_dim = achieved_goals.shape
+        #     if mask.shape[-1] == state_dim:
+        #         # vector mask
+        #         prod = (achieved_goals - desired_goals) * mask
+        #     else:
+        #         # matrix mask
+        #         mask = mask.reshape((batch_size, state_dim, state_dim))
+        #         diff = (achieved_goals - desired_goals).reshape((batch_size, state_dim, 1))
+        #         prod = (mask@diff).reshape((batch_size, state_dim))
+        #     return -np.linalg.norm(prod, axis=-1)
+
         if self.object_reward_only:
             achieved_goals = achieved_goals[:, 2:]
             desired_goals = desired_goals[:, 2:]
