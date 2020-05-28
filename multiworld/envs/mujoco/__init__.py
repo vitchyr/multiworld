@@ -15,6 +15,7 @@ def register_mujoco_envs():
     from multiworld.envs.mujoco.cameras import (
         sawyer_init_camera_zoomed_in
     )
+    register_classic_mujoco_envs()
     """
     Reaching tasks
     """
@@ -593,6 +594,48 @@ def register_mujoco_envs():
         kwargs={
             'hide_goal_markers': True,
             'norm_order': 2,
+        },
+    )
+
+
+def register_classic_mujoco_envs():
+    register(
+        id='LowGearAnt-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntEnv',
+        kwargs={
+            'use_low_gear_ratio': True,
+        },
+    )
+    register(
+        id='AntXY-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': False,
+            'include_contact_forces_in_state': True
+        },
+    )
+    register(
+        id='AntXY-NoContactSensors-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': False,
+            'include_contact_forces_in_state': False
+        },
+    )
+    register(
+        id='AntXY-LowGear-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': True,
+            'include_contact_forces_in_state': True
+        },
+    )
+    register(
+        id='AntXY-LowGear-NoContactSensors-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntXYGoalEnv',
+        kwargs={
+            'use_low_gear_ratio': True,
+            'include_contact_forces_in_state': False
         },
     )
 
