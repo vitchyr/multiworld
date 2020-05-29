@@ -639,12 +639,9 @@ def register_classic_mujoco_envs():
         },
     )
     register(
-        id='AntFullState-v0',
+        id='AntFullPositionGoal-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntFullPositionGoalEnv',
-        kwargs={
-            'use_low_gear_ratio': False,
-            'include_contact_forces_in_state': False,
-        },
+        kwargs={},
     )
 
 

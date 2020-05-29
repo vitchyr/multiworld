@@ -176,7 +176,6 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
             self.observation_space.low[:15],
             self.observation_space.high[:15],
         )
-        self._goal = np.zeros_like(self.goal_space.sample())
         self.observation_space = Dict([
             ('observation', self.observation_space),
             ('desired_goal', self.goal_space),
@@ -191,6 +190,9 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
         self.presampled_qpos = np.load(
             get_asset_full_path(presampled_positions)
         )
+        self._goal = None
+        idx = random.randint(0, len(self.presampled_qpos)-1)
+        self.goal = self.presampled_qpos[idx]
 
     def reset(self):
         idx = random.randint(0, len(self.presampled_qpos)-1)
