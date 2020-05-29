@@ -17,6 +17,9 @@ def register_pygame_envs():
     REGISTERED = True
     LOGGER.info("Registering multiworld pygame gym environments")
     register_pnp_envs()
+    register_reaching_envs()
+
+def register_reaching_envs():
     register(
         id='Point2DLargeEnv-v1',
         entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
@@ -130,6 +133,7 @@ def register_pygame_envs():
             'bg_color': 'white',
         },
     )
+    # Black background
     register(
         id='Point2D-Easy-UWall-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
@@ -208,6 +212,87 @@ def register_pygame_envs():
             'get_image_base_render_size': (48, 48),
         },
     )
+    # White background
+    register(
+        id='Point2D-Easy-UWall-WhiteBackground-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'show_goal': False,
+            'get_image_base_render_size': (48, 48),
+        },
+    )
+    register(
+        id='Point2D-Easy-UWall-Hard-Init-WhiteBackground-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 840,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'show_goal': False,
+            'fixed_init_position': (0, -2),
+            'randomize_position_on_reset': False,
+            'fixed_goal': (0, 3),
+            'get_image_base_render_size': (480, 480),
+            'pointmass_color': '#00ffff',
+        },
+    )
+    register(
+        id='Point2D-FlatWall-WhiteBackground-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': '---',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'show_goal': False,
+            'get_image_base_render_size': (48, 48),
+        },
+    )
+    register(
+        id='Point2D-FlatWall-Hard-Init-WhiteBackground-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': '---',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'show_goal': False,
+            'fixed_init_position': (0, -2),
+            'randomize_position_on_reset': False,
+            'fixed_goal': (0, 3),
+            'get_image_base_render_size': (48, 48),
+        },
+    )
+    # Image envs
     register(
         id='Point2D-ImageFixedGoal-v0',
         entry_point=point2d_image_fixed_goal_v0,
@@ -224,7 +309,6 @@ def register_pygame_envs():
             'author': 'vitchyr'
         },
     )
-
 
 def register_pnp_envs():
     shared_settings = dict(
