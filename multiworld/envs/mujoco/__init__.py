@@ -677,6 +677,11 @@ def register_classic_mujoco_envs():
             'include_contact_forces_in_state': False
         },
     )
+    register(
+        id='AntFullPositionGoal-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntFullPositionGoalEnv',
+        kwargs={},
+    )
 
 
 def create_image_48_sawyer_reach_xy_env_v1():
