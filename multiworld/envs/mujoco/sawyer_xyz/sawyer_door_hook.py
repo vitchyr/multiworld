@@ -287,3 +287,36 @@ class SawyerDoorHookEnv(
         base_state, goal = state
         super().set_env_state(base_state)
         self._state_goal = goal
+
+    def goal_conditioned_diagnostics(self, paths, goals):
+        statistics = OrderedDict()
+        hand_distances = []
+        angle_differences = []
+        for path, goal in zip(paths, goals):
+            difference = path['observations'] - goal
+            hand_distance = np.linalg.norm(difference[..., 0:3], axis=1)
+            angle_difference = np.linalg.norm(difference[..., 3:4], axis=1)
+            hand_distances.append(hand_distance)
+            angle_differences.append(angle_difference)
+        for stat_name, stat_list in [
+            ('distance/hand', hand_distances),
+            ('distance/door_angle', angle_differences),
+        ]:
+            statistics.update(create_stats_ordered_dict(
+                stat_name,
+                stat_list,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/final'.format(stat_name),
+                [s[-1:] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/initial'.format(stat_name),
+                [s[:1] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+        return statistics

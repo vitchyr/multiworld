@@ -484,6 +484,39 @@ class SawyerPickAndPlaceEnvYZ(SawyerPickAndPlaceEnv):
         obj_pos[0] = self.x_axis
         self._set_obj_xyz(obj_pos)
 
+    def goal_conditioned_diagnostics(self, paths, goals):
+        statistics = OrderedDict()
+        hand_distances = []
+        object_distances = []
+        for path, goal in zip(paths, goals):
+            difference = path['observations'][:, 1:] - goal
+            hand_distance = np.linalg.norm(difference[..., 1:3], axis=1)
+            object_distance = np.linalg.norm(difference[..., 4:6], axis=1)
+            hand_distances.append(hand_distance)
+            object_distances.append(object_distance)
+        for stat_name, stat_list in [
+            ('distance/hand', hand_distances),
+            ('distance/object', object_distances),
+        ]:
+            statistics.update(create_stats_ordered_dict(
+                stat_name,
+                stat_list,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/final'.format(stat_name),
+                [s[-1:] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/initial'.format(stat_name),
+                [s[:1] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+        return statistics
+
 
 def corrected_state_goals(pickup_env, pickup_env_goals):
     pickup_env._state_goal = np.zeros(6)

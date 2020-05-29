@@ -507,6 +507,39 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         return diagnostics
 
+    def goal_conditioned_diagnostics(self, paths, goals):
+        statistics = OrderedDict()
+        hand_distances = []
+        puck_distances = []
+        for path, goal in zip(paths, goals):
+            difference = path['observations'] - goal
+            hand_distance = np.linalg.norm(difference[..., 0:2], axis=1)
+            puck_distance = np.linalg.norm(difference[..., 2:4], axis=1)
+            hand_distances.append(hand_distance)
+            puck_distances.append(puck_distance)
+        for stat_name, stat_list in [
+            ('distance/hand', hand_distances),
+            ('distance/puck', puck_distances),
+        ]:
+            statistics.update(create_stats_ordered_dict(
+                stat_name,
+                stat_list,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/final'.format(stat_name),
+                [s[-1:] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/initial'.format(stat_name),
+                [s[:1] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+        return statistics
+
 
 class SawyerPushAndReachXYEasyEnv(SawyerPushAndReachXYEnv):
     """
