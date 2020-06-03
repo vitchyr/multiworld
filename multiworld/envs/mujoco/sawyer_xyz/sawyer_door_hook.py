@@ -252,8 +252,11 @@ class SawyerDoorHookEnv(
         }
 
     def set_to_goal(self, goal):
-        raise NotImplementedError("Hard to do because what if the hand is in "
-                                  "the door? Use presampled goals.")
+        state_goal = goal['state_desired_goal']
+        self.set_to_goal_pos(state_goal[:3])
+        self.set_to_goal_angle(state_goal[3:])
+        # raise NotImplementedError("Hard to do because what if the hand is in "
+        #                           "the door? Use presampled goals.")
 
     def get_diagnostics(self, paths, prefix=''):
         statistics = OrderedDict()
