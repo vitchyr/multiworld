@@ -108,7 +108,7 @@ class AntXYGoalEnv(AntEnv, GoalEnv, Serializable):
         ])
         self.camera_init = create_camera_init(
             lookat=(0, 0, 0),
-            distance=15,
+            distance=20,
             elevation=-45,
             # trackbodyid=self.sim.model.body_name2id('torso'),
         )
@@ -166,6 +166,7 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
     def __init__(
             self,
             presampled_positions='classic_mujoco/ant_goal_qpos_5x5_xy.npy',
+            presampled_velocities='classic_mujoco/ant_goal_qvel_5x5_xy.npy',
     ):
         self.quick_init(locals())
         super().__init__(
@@ -183,12 +184,15 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
         ])
         self.camera_init = create_camera_init(
             lookat=(0, 0, 0),
-            distance=15,
+            distance=20,
             elevation=-45,
             # trackbodyid=self.sim.model.body_name2id('torso'),
         )
         self.presampled_qpos = np.load(
             get_asset_full_path(presampled_positions)
+        )
+        self.presampled_qvel = np.load(
+            get_asset_full_path(presampled_velocities)
         )
         self._goal = None
         idx = random.randint(0, len(self.presampled_qpos)-1)
@@ -216,7 +220,7 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
         return results
 
     def _get_achieved_goal(self):
-        return self.sim.data.qpos.flat[:15]
+        return self.sim.data.qpos.flat[:15].copy()
 
     def _get_env_obs(self):
         if self.include_contact_forces_in_state:
@@ -232,7 +236,6 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
             ])
 
     def compute_reward(self, achieved_goal, desired_goal, info):
-        import ipdb; ipdb.set_trace()
         return - np.linalg.norm(achieved_goal - desired_goal)
 
     @property
