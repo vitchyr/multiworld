@@ -682,6 +682,33 @@ def register_classic_mujoco_envs():
         entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntFullPositionGoalEnv',
         kwargs={},
     )
+    register(
+        id='HopperFullPositionGoal-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.hopper:HopperFullPositionGoalEnv',
+        kwargs={},
+    )
+    register(
+        id='HopperFullPositionGoal-Forward-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.hopper:HopperFullPositionGoalEnv',
+        kwargs={
+            'presampled_positions': 'classic_mujoco/hopper_goal_qpos_0to5_x.npy',
+            'presampled_velocities': 'classic_mujoco/hopper_goal_qvel_0to5_x.npy',
+            'camera_distance': 5,
+            'camera_lookat': (2.5, 0, 0.5),
+            'camera_elevation': -10,
+        },
+    )
+    register(
+        id='HopperFullPositionGoal-Forward-v1',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.hopper:HopperFullPositionGoalEnv',
+        kwargs={
+            'presampled_positions': 'classic_mujoco/hopper_goal_qpos_0to5_x_30stepsin.npy',
+            'presampled_velocities': 'classic_mujoco/hopper_goal_qvel_0to5_x_30stepsin.npy',
+            'camera_distance': 5,
+            'camera_lookat': (2.5, 0, 0.5),
+            'camera_elevation': -10,
+        },
+    )
 
 
 def create_image_48_sawyer_reach_xy_env_v1():

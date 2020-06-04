@@ -37,16 +37,16 @@
             <joint armature="0" axis="1 0 0" damping="0" limited="false" name="goal_rootx" pos="0 0 0" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 0 1" damping="0" limited="false" name="goal_rootz" pos="0 0 0" ref="1.25" stiffness="0" type="slide"/>
             <joint armature="0" axis="0 1 0" damping="0" limited="false" name="goal_rooty" pos="0 0 1.25" stiffness="0" type="hinge"/>
-            <geom friction="0.9" fromto="0 0 1.45 0 0 1.05" name="goal_torso_geom" size="0.05" type="capsule" rgba="0.8 0.8 0.3 0.35"/>
+            <geom friction="0.9" fromto="0 0 1.45 0 0 1.05" name="goal_torso_geom" size="0.05" type="capsule" rgba="0.7 1.0 0.3 0.65" conaffinity="0" contype="0"/>
             <body name="goal_thigh" pos="0 0 1.05">
                 <joint axis="0 -1 0" name="goal_thigh_joint" pos="0 0 1.05" range="-150 0" type="hinge"/>
-                <geom friction="0.9" fromto="0 0 1.05 0 0 0.6" name="goal_thigh_geom" size="0.05" type="capsule" rgba="0.8 0.8 0.3 0.35"/>
+                <geom friction="0.9" fromto="0 0 1.05 0 0 0.6" name="goal_thigh_geom" size="0.05" type="capsule" rgba="0.7 1.0 0.3 0.65" conaffinity="0" contype="0"/>
                 <body name="goal_leg" pos="0 0 0.35">
                     <joint axis="0 -1 0" name="goal_leg_joint" pos="0 0 0.6" range="-150 0" type="hinge"/>
-                    <geom friction="0.9" fromto="0 0 0.6 0 0 0.1" name="goal_leg_geom" size="0.04" type="capsule" rgba="0.8 0.8 0.3 0.35"/>
+                    <geom friction="0.9" fromto="0 0 0.6 0 0 0.1" name="goal_leg_geom" size="0.04" type="capsule" rgba="0.7 1.0 0.3 0.65" conaffinity="0" contype="0"/>
                     <body name="goal_foot" pos="0.13/2 0 0.1">
                         <joint axis="0 -1 0" name="goal_foot_joint" pos="0 0 0.1" range="-45 45" type="hinge"/>
-                        <geom friction="2.0" fromto="-0.13 0 0.1 0.26 0 0.1" name="goal_foot_geom" size="0.06" type="capsule" rgba="0.8 0.8 0.3 0.35"/>
+                        <geom friction="2.0" fromto="-0.13 0 0.1 0.26 0 0.1" name="goal_foot_geom" size="0.06" type="capsule" rgba="0.7 1.0 0.3 0.65" conaffinity="0" contype="0"/>
                     </body>
                 </body>
             </body>

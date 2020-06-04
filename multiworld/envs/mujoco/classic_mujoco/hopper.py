@@ -166,6 +166,9 @@ class HopperFullPositionGoalEnv(HopperEnv, GoalEnv, Serializable):
             xml_path='classic_mujoco/hopper_full_state_goal.xml',
             presampled_positions='classic_mujoco/hopper_goal_qpos_-10to10_x_upright.npy',
             presampled_velocities='classic_mujoco/hopper_goal_qvel_-10to10_x_upright.npy',
+            camera_lookat=(0, 0, 0),
+            camera_distance=20,
+            camera_elevation=-5,
     ):
         self.quick_init(locals())
         super().__init__(xml_file=get_asset_full_path(xml_path))
@@ -179,9 +182,9 @@ class HopperFullPositionGoalEnv(HopperEnv, GoalEnv, Serializable):
             ('achieved_goal', self.goal_space),
         ])
         self.camera_init = create_camera_init(
-            lookat=(0, 0, 0),
-            distance=20,
-            elevation=-20,
+            lookat=camera_lookat,
+            distance=camera_distance,
+            elevation=camera_elevation,
         )
         # self._goal = np.zeros_like(self.goal_space.low)
         # self._goal = self._get_flat_state_obs()[:6]
@@ -204,8 +207,8 @@ class HopperFullPositionGoalEnv(HopperEnv, GoalEnv, Serializable):
         )
 
     def _get_flat_state_obs(self):
-        position = self.sim.data.qpos.flat.copy()
-        velocity = np.clip(self.sim.data.qvel.flat.copy(), -10, 10)
+        position = self.sim.data.qpos.flat.copy()[:6]
+        velocity = np.clip(self.sim.data.qvel.flat.copy()[:6], -10, 10)
 
         observation = np.concatenate((position, velocity)).ravel()
         return observation
