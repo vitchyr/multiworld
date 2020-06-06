@@ -6,19 +6,16 @@ from PIL import Image
 import argparse
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_save_directory", type=str)
-parser.add_argument("--num_trajectories", type=int, default=1000)
+parser.add_argument("--name", type=str)
+parser.add_argument("--num_trajectories", type=int, default=100)
 parser.add_argument("--num_timesteps", type=int, default=50)
 parser.add_argument("--video_save_frequency", type=int,
-                    default=1000, help="Set to zero for no video saving")
+                    default=0, help="Set to zero for no video saving")
 parser.add_argument("--gui", dest="gui", action="store_true", default=False)
 
 args = parser.parse_args()
-timestamp = roboverse.utils.timestamp()
-data_save_path = os.path.join(__file__, "../..", 'data', 'SawyerGrasp',
-                              args.data_save_directory + "_" + timestamp)
-data_save_path = os.path.abspath(data_save_path)
-video_save_path = os.path.join(data_save_path, "videos")
+data_save_path = "/home/ashvin/data/sasha/demos/" + args.name + ".npy"
+video_save_path = "/home/ashvin/data/sasha/demos/videos"
 
 env = roboverse.make('SawyerGraspOne-v0', gui=args.gui)
 object_name = 'lego'
@@ -30,23 +27,37 @@ assert(len(obs_dim) == 1)
 obs_dim = obs_dim[0]
 act_dim = env.action_space.shape[0]
 
-if not os.path.exists(data_save_path):
-    os.makedirs(data_save_path)
+
+# if not os.path.exists(data_save_path):
+#     os.makedirs(data_save_path)
 if not os.path.exists(video_save_path) and args.video_save_frequency > 0:
     os.makedirs(video_save_path)
 
 
-pool = roboverse.utils.DemoPool()
+imlength = env.obs_img_dim * env.obs_img_dim * 3
 
-for j in tqdm(range(args.num_trajectories)):
+dataset = {
+    'image_observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
+    'observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
+    'next_observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
+    #'observations': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.uint8),
+    'actions': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
+    'rewards': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
+    'terminals': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
+    }
+
+for i in tqdm(range(args.num_trajectories)):
     env.reset()
     target_pos = env.get_object_midpoint(object_name)
-    target_pos += np.random.uniform(low=-0.01, high=0.01, size=(3,))
+    #target_pos += np.random.uniform(low=-0.01, high=0.01, size=(3,))
     # the object is initialized above the table, so let's compensate for it
-    target_pos[2] += -0.05
+    #target_pos[2] += -0.025
     images = []
+    #dataset['env'][j, :] = np.uint8(env.render_obs().transpose()).flatten()
+    for j in range(args.num_timesteps):
+        img = np.uint8(env.render_obs())
+        dataset['image_observations'][i, j, :] = img.transpose().flatten()
 
-    for i in range(args.num_timesteps):
         ee_pos = env.get_end_effector_pos()
 
         if i < 25:
@@ -69,25 +80,23 @@ for j in tqdm(range(args.num_trajectories)):
             grip = 1.
 
         action = np.append(action, [grip])
+        noisy_action = np.random.normal(action, 0.1)
+        dataset['actions'][i, j, :] = noisy_action
 
-        if args.video_save_frequency > 0 and j % args.video_save_frequency == 0:
-            img = env.render()
-            images.append(Image.fromarray(np.uint8(img)))
 
         observation = env.get_observation()
-        next_state, reward, done, info = env.step(action)
-        pool.add_sample(observation, action, next_state, reward, done)
+        next_observation, reward, done, info = env.step(action)
+        
 
     object_pos = env.get_object_midpoint(object_name)
-    if object_pos[2] > -0.1:
+    if object_pos[2] > -0.3:
         num_grasps += 1
-        print('Num grasps: {}'.format(num_grasps))
+    
 
     if args.video_save_frequency > 0 and j % args.video_save_frequency == 0:
         images[0].save('{}/{}.gif'.format(video_save_path, j),
                        format='GIF', append_images=images[1:],
                        save_all=True, duration=100, loop=0)
 
-params = env.get_params()
-pool.save(params, data_save_path,
-          '{}_pool_{}.pkl'.format(timestamp, pool.size))
+print('Success Rate: {}'.format(num_grasps / args.num_trajectories))
+np.save(data_save_path, dataset)

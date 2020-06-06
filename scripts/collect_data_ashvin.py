@@ -7,7 +7,7 @@ import pdb
 import gym
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--env', type=str, default='SawyerLift2d-v0')
+parser.add_argument('--env', type=str, default='SawyerRigGrasp-v0')
 parser.add_argument('--savepath', type=str, default='mult4-scale1-rep10-step1/')
 parser.add_argument('--gui', type=rv.utils.str2bool, default=None)
 parser.add_argument('--render', type=rv.utils.str2bool, default=None)
@@ -33,8 +33,10 @@ if 'SawyerLift' in args.env:
 # else:
 # 	raise RuntimeError('Unrecognized environment: {}'.format(args.env))
 
-# env = rv.make(args.env, gui=args.gui)
-# policy = rv.policies.GraspingPolicy(env, env.get_body('sawyer'), env.get_body('cube'))
+env = rv.make(args.env, gui=args.gui)
+env.reset()
+
+policy = rv.policies.GraspingPolicy(env, env.get_body('sawyer'), env.get_body(0))
 
 pool = rv.utils.DemoPool()
 print('Observation space: {} | Action space: {}'.format(env.observation_space, env.action_space))

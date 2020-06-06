@@ -49,7 +49,7 @@ class GraspingPolicy:
         delta_pos += noise  
 
         action = np.concatenate((delta_pos, np.array([self._gripper])))
-        # pdb.set_trace()
+        #pdb.set_trace()
         # return delta_pos, self._gripper
         return action
 

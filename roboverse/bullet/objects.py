@@ -19,7 +19,6 @@ def loader(*filepath, **defaults):
           assert 'quat' not in defaults
           defaults['quat'] = deg_to_quat(defaults['deg'])
           del defaults['deg']
-
         return load_urdf(filepath, **defaults)
     return fn
 
