@@ -22,6 +22,9 @@ class Object(object):
         Color('purple'),
         Color('orange'),
         Color('yellow'),
+        Color('black'),
+        Color('cyan'),
+        Color('brown'),
     ]
 
     def __init__(self, position, radius, color, max_pos, min_pos):
@@ -275,7 +278,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             info['distance_to_target_obj_{}'.format(i)] = obj_distance
             # info['success_obj_{}'.format(i)] = success
 
-            info['distance_cursor_to_obj_{}'.format(i)] = self.cursor.distance(obj.position)
+            # info['distance_cursor_to_obj_{}'.format(i)] = self.cursor.distance(obj.position)
 
         return info
 
