@@ -13,6 +13,8 @@ from multiworld.envs.env_util import (
 )
 from multiworld.envs.pygame.pygame_viewer import PygameViewer
 
+import matplotlib.pyplot as plt
+
 
 class Object(object):
     IDX_TO_COLOR = [
@@ -586,6 +588,137 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         #         exclude_max_min=True,
         #     ))
         return statistics
+
+
+    def get_image_v(
+            self,
+            agent,
+            qf,
+            get_state_func,
+            get_goal_func,
+            get_mask_func,
+            obj_ids,
+            imsize=None
+    ):
+        nx, ny = (50, 50)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        curr_state = get_state_func()
+        curr_goal = get_goal_func()
+        curr_mask = get_mask_func()
+
+        if (curr_state is None) or (curr_goal is None) or (curr_mask is None):
+            return [None] * len(obj_ids)
+
+        sweep_goal = np.tile(curr_goal.reshape((1, -1)), (nx * ny, 1))
+        sweep_mask = np.tile(curr_mask.reshape((1, -1)), (nx * ny, 1))
+
+        list_of_v_vals = []
+
+        ### sweep the state ###
+        for obj_id in obj_ids:
+            if obj_id is None:  ### infer the obj id from the mask
+                indices = np.argwhere(curr_mask == 1)[-1]
+                obj_id = indices[0] // 2
+
+            start_idx = obj_id * 2
+            end_idx = start_idx + 2
+            sweep_state = np.tile(curr_state.reshape((1, -1)), (nx * ny, 1))
+            sweep_state[:, start_idx:end_idx] = np.stack((xv, yv), axis=2).reshape((-1, 2))
+
+            sweep_obs = np.hstack((sweep_state, sweep_goal, sweep_mask))
+            sweep_actions = agent.get_actions(sweep_obs)
+
+            from railrl.torch.core import torch_ify, np_ify
+            v_vals = qf(
+                torch_ify(sweep_obs),
+                torch_ify(sweep_actions),
+            )
+            v_vals = np_ify(v_vals)
+            v_vals = v_vals.reshape((nx, ny)) / 100
+            list_of_v_vals.append(v_vals)
+
+        list_of_images = []
+        for (i, v_vals) in enumerate(list_of_v_vals):
+            # vmin, vmax = None, None
+            # vmin = np.percentile(list_of_v_vals, 90)
+            # vmax = np.percentile(list_of_v_vals, 98)
+            vmin = np.min(list_of_v_vals) + (np.max(list_of_v_vals) - np.min(list_of_v_vals)) * 0.70
+            vmax = np.max(list_of_v_vals)
+            # vmin, vmax = -50, 0
+            image = self.get_image_plt(v_vals, vmin=vmin, vmax=vmax, imsize=imsize, draw_state=True)
+            list_of_images.append(image)
+
+        return list_of_images
+
+    def get_image_plt(self,
+                      vals,
+                      vmin=None, vmax=None,
+                      extent=[-4, 4, -4, 4],
+                      draw_state=True, draw_goal=True,
+                      imsize=None):
+        fig, ax = plt.subplots()
+        ax.set_ylim(extent[2:4])
+        ax.set_xlim(extent[0:2])
+        ax.set_ylim(ax.get_ylim()[::-1])
+        DPI = fig.get_dpi()
+        if imsize is None:
+            fig.set_size_inches(self.render_size / float(DPI), self.render_size / float(DPI))
+        else:
+            fig.set_size_inches(imsize / float(DPI), imsize / float(DPI))
+
+        if draw_state:
+            positions = self._get_positions()
+            for i in range(self.num_objects + 1):
+                ball = plt.Circle(
+                    positions[i*2:i*2+2],
+                    self.ball_radius * 0.40,
+                    color=Object.IDX_TO_COLOR[i].normalize(),
+                    fill=True,
+                )
+                ax.add_artist(ball)
+        if draw_goal:
+            target_positions = self._get_target_positions()
+            for i in range(1, self.num_objects + 1):
+                ball = plt.Circle(
+                    target_positions[i*2:i*2+2],
+                    self.ball_radius * 0.60,
+                    color=Object.IDX_TO_COLOR[i].normalize(),
+                    fill=False,
+                )
+                ax.add_artist(ball)
+
+        ax.get_xaxis().set_visible(False)
+        ax.get_yaxis().set_visible(False)
+        fig.subplots_adjust(bottom=0)
+        fig.subplots_adjust(top=1)
+        fig.subplots_adjust(right=1)
+        fig.subplots_adjust(left=0)
+        ax.axis('off')
+
+        ax.imshow(
+            vals,
+            extent=extent,
+            cmap=plt.get_cmap(
+                # 'plasma'
+                'Greys'
+            ),
+            interpolation='nearest',
+            vmax=vmax,
+            vmin=vmin,
+            origin='bottom',  # <-- Important! By default top left is (0, 0)
+        )
+
+        return self.plt_to_numpy(fig)
+
+    def plt_to_numpy(self, fig):
+        fig.canvas.draw()
+        data = np.fromstring(fig.canvas.tostring_rgb(), dtype=np.uint8, sep='')
+        data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+        plt.close()
+        return data
 
 class PickAndPlace1DEnv(PickAndPlaceEnv):
     def __init__(self, *args, **kwargs):
