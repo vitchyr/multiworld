@@ -7,7 +7,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", type=str)
-parser.add_argument("--num_trajectories", type=int, default=100)
+parser.add_argument("--num_trajectories", type=int, default=2000)
 parser.add_argument("--num_timesteps", type=int, default=50)
 parser.add_argument("--video_save_frequency", type=int,
                     default=0, help="Set to zero for no video saving")
@@ -17,7 +17,7 @@ args = parser.parse_args()
 data_save_path = "/home/ashvin/data/sasha/demos/" + args.name + ".npy"
 video_save_path = "/home/ashvin/data/sasha/demos/videos"
 
-env = roboverse.make('SawyerGraspOne-v0', gui=args.gui)
+env = roboverse.make('SawyerRigGrasp-v0', gui=args.gui)
 object_name = 'lego'
 num_grasps = 0
 image_data = []
@@ -37,41 +37,50 @@ if not os.path.exists(video_save_path) and args.video_save_frequency > 0:
 imlength = env.obs_img_dim * env.obs_img_dim * 3
 
 dataset = {
-    'image_observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
-    'observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
-    'next_observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
-    #'observations': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.uint8),
+    #'image_observations': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.float),
+    # 'observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
+    # 'next_observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
+    'observations': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.uint8),
     'actions': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
-    'rewards': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
-    'terminals': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
+    'env': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.uint8),
+    # 'rewards': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
+    # 'terminals': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
+    # 'agent_infos': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
+    # 'env_infos': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
     }
 
 for i in tqdm(range(args.num_trajectories)):
+    if i % 2 == 0:
+        noise = 1
+    else:
+        noise = 0.1
+
     env.reset()
     target_pos = env.get_object_midpoint(object_name)
     #target_pos += np.random.uniform(low=-0.01, high=0.01, size=(3,))
     # the object is initialized above the table, so let's compensate for it
     #target_pos[2] += -0.025
     images = []
-    #dataset['env'][j, :] = np.uint8(env.render_obs().transpose()).flatten()
+
+    dataset['env'][i, :] = np.uint8(env.render_obs().transpose()).flatten()
     for j in range(args.num_timesteps):
         img = np.uint8(env.render_obs())
-        dataset['image_observations'][i, j, :] = img.transpose().flatten()
+        dataset['observations'][i, j, :] = img.transpose().flatten()
 
         ee_pos = env.get_end_effector_pos()
 
-        if i < 25:
+        if j < 25:
             action = target_pos - ee_pos
             action[2] = 0.
             action *= 3.0
             grip = 0.
-        elif i < 35:
+        elif j < 35:
             action = target_pos - ee_pos
             action[2] -= 0.03
             action *= 3.0
             action[2] *= 2.0
             grip = 0.
-        elif i < 42:
+        elif j < 42:
             action = np.zeros((3,))
             grip = 0.5
         else:
@@ -80,21 +89,22 @@ for i in tqdm(range(args.num_trajectories)):
             grip = 1.
 
         action = np.append(action, [grip])
-        noisy_action = np.random.normal(action, 0.1)
+        noisy_action = np.random.normal(action, noise)
         dataset['actions'][i, j, :] = noisy_action
+        #dataset['next_observations'][i, j, :]
 
 
         observation = env.get_observation()
-        next_observation, reward, done, info = env.step(action)
-        
+        next_observation, reward, done, info = env.step(noisy_action)
+
 
     object_pos = env.get_object_midpoint(object_name)
-    if object_pos[2] > -0.3:
+    if object_pos[2] > -0.35:
         num_grasps += 1
     
 
-    if args.video_save_frequency > 0 and j % args.video_save_frequency == 0:
-        images[0].save('{}/{}.gif'.format(video_save_path, j),
+    if args.video_save_frequency > 0 and i % args.video_save_frequency == 0:
+        images[0].save('{}/{}.gif'.format(video_save_path, i),
                        format='GIF', append_images=images[1:],
                        save_all=True, duration=100, loop=0)
 

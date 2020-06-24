@@ -1,10 +1,28 @@
 import roboverse.bullet as bullet
 import numpy as np
 from gym.spaces import Box, Dict
+import pickle
+import railrl.torch.pytorch_util as ptu
 from roboverse.envs.sawyer_base import SawyerBaseEnv
 import gym
 
-class SawyerRigGraspV0Env(SawyerBaseEnv):
+
+def load_vae(vae_file):
+    if vae_file[0] == "/":
+        local_path = vae_file
+    else:
+        local_path = sync_down(vae_file)
+    vae = pickle.load(open(local_path, "rb"))
+    # vae = torch.load(local_path, map_location='cpu')
+    print("loaded", local_path)
+    vae.to("cuda")
+    return vae
+
+
+model = load_vae("/home/ashvin/data/sasha/pixelcnn/vqvae.pkl")
+
+
+class SawyerRigVaeEnv(SawyerBaseEnv):
 
     def __init__(self,
                  goal_pos=(0.75, 0.2, -0.1),
@@ -40,6 +58,9 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         self.image_shape = (obs_img_dim, obs_img_dim)
         self.image_length = np.prod(self.image_shape) * 3  # image has 3 channels
 
+        self.model = load_vae("/home/ashvin/data/sasha/pixelcnn/vqvae.pkl")
+        #self.model = load_vae("/home/ashvin/data/sasha/pybullet-testing/vqvae/run10/id0/itr_100.pkl")
+
         self._object_position_low = (.65, -0.1, -.36)
         self._object_position_high = (.75, 0.1, -.36)
         self._fixed_object_position = (.75, 0.2, -.36)
@@ -68,7 +89,8 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
 
 
         if self._observation_mode == 'state':
-            observation_dim = 11
+            #observation_dim = 11
+            observation_dim = self.model.representation_size
             obs_bound = 100
             obs_high = np.ones(observation_dim) * obs_bound
             self.observation_space = gym.spaces.Box(-obs_high, obs_high)
@@ -127,6 +149,7 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
     def step(self, *action):
         delta_pos, gripper = self._format_action(*action)
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
+
         pos += delta_pos * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
 
@@ -210,15 +233,22 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         image = np.float32(self.render_obs())
         return image
 
+    def compute_reward(action, next_obs):
+        img = ptu.from_numpy(next_obs / 255.0)
+        logprob = ptu.get_numpy(model.logprob(img.reshape(1, -1)))
+        #img = np.uint8(self.render_obs()).transpose() / 255.0
+        return logprob
+
     def get_reward(self, info):
+        # img = ptu.from_numpy(np.uint8(self.render_obs()).transpose() / 255.0)
+        # logprob = ptu.get_numpy(self.model.logprob(img.reshape(1, -1)))
+        # return logprob
+
+
         h = info['object_height']
         reward = (h + 0.36) / 0.16 - 1
         return reward
-        # lifted = info['object_height'] > -0.35
 
-        # if lifted:
-        #     return info['object_height'] + 0.36
-        # return - 1
 
     def reset(self):
 
@@ -226,6 +256,7 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
         self._load_meshes()
         self._format_state_query()
+
 
         self._prev_pos = np.array(self._pos_init)
         bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
@@ -239,49 +270,6 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         return self.get_observation()
 
     def get_observation(self):
-        left_tip_pos = bullet.get_link_state(
-            self._sawyer, 'right_gripper_l_finger_joint', keys='pos')
-        right_tip_pos = bullet.get_link_state(
-            self._sawyer, 'right_gripper_r_finger_joint', keys='pos')
-        left_tip_pos = np.asarray(left_tip_pos)
-        right_tip_pos = np.asarray(right_tip_pos)
-
-        gripper_tips_distance = [np.linalg.norm(
-            left_tip_pos - right_tip_pos)]
-        end_effector_pos = self.get_end_effector_pos()
-
-        if self._observation_mode == 'state':
-            object_info = bullet.get_body_info(self._objects['lego'],
-                                               quat_to_deg=False)
-            object_pos = object_info['pos']
-            object_theta = object_info['theta']
-            observation = np.concatenate(
-                (end_effector_pos, gripper_tips_distance,
-                 object_pos, object_theta))
-        elif self._observation_mode == 'pixels':
-            image_observation = self.render_obs()
-            image_observation = np.float32(image_observation.flatten())/255.0
-            observation = {
-                'state': np.concatenate(
-                    (end_effector_pos, gripper_tips_distance)),
-                'image': image_observation
-            }
-        elif self._observation_mode == 'pixels_debug':
-            # This mode passes in all the true state information + images
-            image_observation = self.render_obs()
-            image_observation = np.float32(image_observation.flatten())/255.0
-            object_info = bullet.get_body_info(self._objects['lego'],
-                                               quat_to_deg=False)
-            object_pos = object_info['pos']
-            object_theta = object_info['theta']
-            state = np.concatenate(
-                (end_effector_pos,gripper_tips_distance,
-                 object_pos, object_theta))
-            observation = {
-                'state': state,
-                'image': image_observation,
-            }
-        else:
-            raise NotImplementedError
-
-        return observation
+        img = ptu.from_numpy(np.uint8(self.render_obs()).transpose() / 255.0)
+        encoded_obs = ptu.get_numpy(self.model.encode(img, cont=True)).flatten()
+        return encoded_obs

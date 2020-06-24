@@ -4,6 +4,19 @@ from gym.spaces import Box, Dict
 from roboverse.envs.sawyer_base import SawyerBaseEnv
 import gym
 
+
+def load_vae(vae_file):
+    if vae_file[0] == "/":
+        local_path = vae_file
+    else:
+        local_path = sync_down(vae_file)
+    vae = pickle.load(open(local_path, "rb"))
+    # vae = torch.load(local_path, map_location='cpu')
+    print("loaded", local_path)
+    vae.to("cpu")
+    return vae
+
+
 class SawyerRigGraspV0Env(SawyerBaseEnv):
 
     def __init__(self,
@@ -39,6 +52,8 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         self._invisible_robot = invisible_robot
         self.image_shape = (obs_img_dim, obs_img_dim)
         self.image_length = np.prod(self.image_shape) * 3  # image has 3 channels
+
+        self.model = load_vae("/home/ashvin/data/sasha/pixelcnn/vqvae.pkl")
 
         self._object_position_low = (.65, -0.1, -.36)
         self._object_position_high = (.75, 0.1, -.36)
@@ -226,6 +241,7 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
         self._load_meshes()
         self._format_state_query()
+
 
         self._prev_pos = np.array(self._pos_init)
         bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
