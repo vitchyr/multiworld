@@ -592,7 +592,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
     def get_image_v(
             self,
-            agent,
+            policy,
             qf,
             get_state_func,
             get_goal_func,
@@ -629,7 +629,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             sweep_state[:, start_idx:end_idx] = np.stack((xv, yv), axis=2).reshape((-1, 2))
 
             sweep_obs = np.hstack((sweep_state, sweep_goal, sweep_mask))
-            sweep_actions = agent.get_actions(sweep_obs)
+            sweep_actions = policy.get_actions(sweep_obs)
 
             from railrl.torch.core import torch_ify, np_ify
             v_vals = qf(
@@ -648,17 +648,93 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             vmin = np.min(list_of_v_vals) + (np.max(list_of_v_vals) - np.min(list_of_v_vals)) * 0.70
             vmax = np.max(list_of_v_vals)
             # vmin, vmax = -50, 0
-            image = self.get_image_plt(v_vals, vmin=vmin, vmax=vmax, imsize=imsize, draw_state=True)
+
+            fig, ax = self.draw_plt_objects(draw_state=True, draw_goal=True, imsize=imsize)
+            ax.imshow(
+                v_vals,
+                extent=[-4, 4, -4, 4],
+                cmap=plt.get_cmap(
+                    # 'plasma'
+                    'Greys'
+                ),
+                interpolation='nearest',
+                vmax=vmax,
+                vmin=vmin,
+                origin='bottom',  # <-- Important! By default top left is (0, 0)
+            )
+            image = self.plt_to_numpy(fig)
             list_of_images.append(image)
 
         return list_of_images
 
-    def get_image_plt(self,
-                      vals,
-                      vmin=None, vmax=None,
-                      extent=[-4, 4, -4, 4],
-                      draw_state=True, draw_goal=True,
-                      imsize=None):
+    def get_image_pi(
+            self,
+            policy,
+            get_state_func,
+            get_goal_func,
+            get_mask_func,
+            obj_ids,
+            imsize=None
+    ):
+        nx, ny = (15, 15)
+        x = np.linspace(-4, 4, nx)
+        y = np.linspace(-4, 4, ny)
+        xv, yv = np.meshgrid(x, y)
+
+        curr_state = get_state_func()
+        curr_goal = get_goal_func()
+        curr_mask = get_mask_func()
+
+        if (curr_state is None) or (curr_goal is None) or (curr_mask is None):
+            return [None] * len(obj_ids)
+
+        sweep_goal = np.tile(curr_goal.reshape((1, -1)), (nx * ny, 1))
+        sweep_mask = np.tile(curr_mask.reshape((1, -1)), (nx * ny, 1))
+
+        list_of_actions = []
+
+        for obj_id in obj_ids:
+            if obj_id is None:  ### infer the obj id from the mask
+                indices = np.argwhere(curr_mask == 1)[-1]
+                obj_id = indices[0] // 2
+
+            ### sweep the state ###
+            start_idx = obj_id * 2
+            end_idx = start_idx + 2
+            sweep_state = np.tile(curr_state.reshape((1, -1)), (nx * ny, 1))
+            sweep_state[:, start_idx:end_idx] = np.stack((xv, yv), axis=2).reshape((-1, 2))
+
+            sweep_state[:, 0:2] = sweep_state[:, start_idx:end_idx]
+
+            sweep_obs = np.hstack((sweep_state, sweep_goal, sweep_mask))
+            sweep_actions = policy.get_actions(sweep_obs).reshape((nx, ny, -1))
+
+            list_of_actions.append(sweep_actions)
+
+        list_of_images = []
+        for (i, actions) in enumerate(list_of_actions):
+            fig, ax = self.draw_plt_objects(
+                draw_state=True,
+                draw_goal=True,
+                imsize=imsize,
+            )
+
+            dx, dy = actions[:, :, 0], actions[:, :, 1]
+            dx = np.clip(dx, a_min=-1, a_max=1)
+            dy = np.clip(dy, a_min=-1, a_max=1)
+            ax.quiver(
+                xv, yv,
+                dx, -1 * dy,
+                scale=2.5e1,
+                headwidth=5,
+            )
+
+            image = self.plt_to_numpy(fig)
+            list_of_images.append(image)
+
+        return list_of_images
+
+    def draw_plt_objects(self, extent=[-4, 4, -4, 4], draw_state=True, draw_goal=True, imsize=None):
         fig, ax = plt.subplots()
         ax.set_ylim(extent[2:4])
         ax.set_xlim(extent[0:2])
@@ -698,20 +774,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         fig.subplots_adjust(left=0)
         ax.axis('off')
 
-        ax.imshow(
-            vals,
-            extent=extent,
-            cmap=plt.get_cmap(
-                # 'plasma'
-                'Greys'
-            ),
-            interpolation='nearest',
-            vmax=vmax,
-            vmin=vmin,
-            origin='bottom',  # <-- Important! By default top left is (0, 0)
-        )
-
-        return self.plt_to_numpy(fig)
+        return fig, ax
 
     def plt_to_numpy(self, fig):
         fig.canvas.draw()
