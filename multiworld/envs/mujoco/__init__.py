@@ -12,14 +12,73 @@ def register_mujoco_envs():
         return
     REGISTERED = True
     LOGGER.info("Registering multiworld mujoco gym environments")
+    register_classic_mujoco_envs()
+    register_sawyer_envs()
+
+
+def register_sawyer_envs():
+    register_canonical_sawyer_envs()
+    register_development_sawyer_envs()
+
+
+def register_canonical_sawyer_envs():
+    register(
+        id='SawyerPush-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        kwargs=dict(
+            force_puck_in_goal_space=False,
+            mocap_low=(-0.1, 0.55, 0.0),
+            mocap_high=(0.1, 0.65, 0.5),
+            hand_goal_low=(-0.1, 0.55),
+            hand_goal_high=(0.1, 0.65),
+            puck_goal_low=(-0.15, 0.5),
+            puck_goal_high=(0.15, 0.7),
+
+            hide_goal=True,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+    )
+    register(
+        id='SawyerDoorOpen-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_door_hook:SawyerDoorHookEnv',
+        kwargs = dict(
+            goal_low=(-0.1, 0.45, 0.1, 0),
+            goal_high=(0.05, 0.65, .25, .83),
+            hand_low=(-0.1, 0.45, 0.1),
+            hand_high=(0.05, 0.65, .25),
+            max_angle=.83,
+            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
+            reward_type='angle_diff_and_hand_distance',
+            reset_free=False,
+        )
+    )
+
+    register(
+        id='SawyerPickup-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_pick_and_place:SawyerPickAndPlaceEnvYZ',
+        kwargs=dict(
+            hand_low=(-0.1, 0.55, 0.05),
+            hand_high=(0.0, 0.65, 0.13),
+            action_scale=0.02,
+            hide_goal_markers=True,
+            num_goals_presampled=1000,
+            p_obj_in_hand=.75,
+        )
+    )
+
+
+def register_development_sawyer_envs():
     from multiworld.envs.mujoco.cameras import (
         sawyer_init_camera_zoomed_in
     )
-    register_classic_mujoco_envs()
     """
     Reaching tasks
     """
-
     register(
         id='SawyerReachXYEnv-v1',
         entry_point='multiworld.envs.mujoco.sawyer_xyz.sawyer_reach:SawyerReachXYEnv',
@@ -298,26 +357,6 @@ def register_mujoco_envs():
     """
     Door Hook Env
     """
-
-    register(
-        id='SawyerDoorHookEnv-v0',
-        entry_point='multiworld.envs.mujoco.sawyer_xyz'
-                    '.sawyer_door_hook:SawyerDoorHookEnv',
-        tags={
-            'git-commit-hash': '15b48d5',
-            'author': 'murtaza',
-        },
-        kwargs = dict(
-            goal_low=(-0.1, 0.45, 0.1, 0),
-            goal_high=(0.05, 0.65, .25, .83),
-            hand_low=(-0.1, 0.45, 0.1),
-            hand_high=(0.05, 0.65, .25),
-            max_angle=.83,
-            xml_path='sawyer_xyz/sawyer_door_pull_hook.xml',
-            reward_type='angle_diff_and_hand_distance',
-            reset_free=False,
-        )
-    )
 
     register(
         id='SawyerDoorHookResetFreeEnv-v0',
