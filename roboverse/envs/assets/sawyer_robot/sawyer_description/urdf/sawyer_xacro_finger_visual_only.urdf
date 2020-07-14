@@ -396,7 +396,7 @@
       <geometry>
         <mesh filename="package://intera_tools_description/meshes/electric_gripper/electric_gripper_base.DAE"/>
       </geometry>
-      <material name="silver"/>
+      <material name="darkgray"/>
     </visual>
     <collision>
       <origin rpy="-1.57 3.14 0" xyz="0.004 0.0 0.025"/>
@@ -459,7 +459,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/standard_narrow.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <!-- <xacro:property name="finger_box_height" value="0.01" scope="local"/> -->
       <!-- <xacro:property name="finger_box_width" value="0.0135" scope="local"/> -->
@@ -503,7 +503,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/standard_narrow.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <!-- <xacro:property name="finger_box_height" value="0.01" scope="local"/> -->
       <!-- <xacro:property name="finger_box_width" value="0.0135" scope="local"/> -->
@@ -570,7 +570,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/basic_soft_tip.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <collision>
         <!-- yaw = ${pi*(g_reflect+1)/2} = pi-->
@@ -602,7 +602,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/basic_soft_tip.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0.0045 -0.015"/>

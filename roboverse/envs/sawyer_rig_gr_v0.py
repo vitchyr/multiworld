@@ -135,8 +135,8 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
         picked_up = height > -0.36
 
         info = {
-            'object_gripper_distance': object_gripper_distance,
-            'gripper_goal_distance': gripper_goal_distance,
+            # 'object_gripper_distance': object_gripper_distance,
+            # 'gripper_goal_distance': gripper_goal_distance,
             'object_goal_distance': object_goal_distance,
             'object_goal_success': object_goal_success,
             'object_height': height,

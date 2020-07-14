@@ -25,9 +25,10 @@ def connect():
 
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 0)
     p.configureDebugVisualizer(p.COV_ENABLE_RENDERING, 1)
-    p.resetDebugVisualizerCamera(0.8, 90, -20, [0.75, -.2, 0])
+
+    p.resetDebugVisualizerCamera(cameraDistance=0.3, cameraYaw=90, cameraPitch=-15, cameraTargetPosition=[.7, 0, -0.3])
+    #p.resetDebugVisualizerCamera(0.8, 90, -20, [0.75, -.2, 0])
     p.setAdditionalSearchPath(pdata.getDataPath())
-    # p.setAdditionalSearchPath('roboverse/envs/assets/')
 
 def connect_headless(gui=False):
     if gui:
@@ -37,7 +38,8 @@ def connect_headless(gui=False):
     else:
         p.connect(p.DIRECT)
 
-    p.resetDebugVisualizerCamera(0.8, 90, -20, [0.75, -.2, 0])
+    p.resetDebugVisualizerCamera(cameraDistance=0.3, cameraYaw=90, cameraPitch=-15, cameraTargetPosition=[.7, 0, -0.3])
+    #p.resetDebugVisualizerCamera(0.8, 90, -20, [0.75, -.2, 0])
     p.setAdditionalSearchPath(pdata.getDataPath())
 
 
@@ -64,6 +66,8 @@ def reset():
     p.resetSimulation()
 
 def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
+    #rgba = list(np.random.choice(range(256), size=3) / 255.0) + [1]
+
     body = p.loadURDF(filepath, globalScaling=scale)
     p.resetBasePositionAndOrientation(body, pos, quat)
     if rgba is not None:
@@ -74,6 +78,8 @@ def load_obj(filepathcollision, filepathvisual, pos=[0, 0, 0], quat=[0, 0, 0, 1]
     collisionid= p.createCollisionShape(p.GEOM_MESH, fileName=filepathcollision, meshScale=scale * np.array([1, 1, 1]))
     visualid = p.createVisualShape(p.GEOM_MESH, fileName=filepathvisual, meshScale=scale * np.array([1, 1, 1]))
     body = p.createMultiBody(0.05, collisionid, visualid)
+    if rgba is not None:
+        p.changeVisualShape(body, -1, rgbaColor=rgba)
     p.resetBasePositionAndOrientation(body, pos, quat)
     return body
 

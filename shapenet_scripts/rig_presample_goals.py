@@ -12,7 +12,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", type=str)
 parser.add_argument("--num_trajectories", type=int, default=100)
-parser.add_argument("--num_timesteps", type=int, default=75)
+parser.add_argument("--num_timesteps", type=int, default=50)
 parser.add_argument("--video_save_frequency", type=int,
                     default=0, help="Set to zero for no video saving")
 parser.add_argument("--gui", dest="gui", action="store_true", default=False)
@@ -21,7 +21,7 @@ args = parser.parse_args()
 data_save_path = "/home/ashvin/data/sasha/demos/" + args.name + ".pkl"
 video_save_path = "/home/ashvin/data/sasha/demos/videos"
 
-env = roboverse.make('SawyerRigGR-v0', gui=args.gui)
+env = roboverse.make('SawyerRigMultiobj-v0', gui=args.gui)
 
 def load_vae(vae_file):
     if vae_file[0] == "/":
@@ -33,13 +33,13 @@ def load_vae(vae_file):
     vae.to("cpu")
     return vae
 
-vae_path = "/home/ashvin/data/sasha/pybullet-testing/vqvae/run10/id0/vae.pkl"
+vae_path = "/home/ashvin/data/sasha/cvqvae/vqvae/run11/id0/itr_400.pkl"
 
 model = load_vae(vae_path)
 
 #env = VQVAEWrappedEnv(env, load_vae(vae_path))
 
-object_name = 'lego'
+object_name = 'obj'
 num_grasps = 0
 success = 0
 returns = 0
@@ -54,7 +54,7 @@ imlength = env.obs_img_dim * env.obs_img_dim * 3
 
 dataset = {
         'latent_desired_goal': np.zeros((args.num_trajectories * args.num_timesteps,
-            model.representation_size), dtype=np.float),
+            1323), dtype=np.float),
         'state_desired_goal': np.zeros((args.num_trajectories * args.num_timesteps,
             11), dtype=np.float),
         'image_desired_goal': np.zeros((args.num_trajectories * args.num_timesteps, imlength), dtype=np.float),
@@ -101,7 +101,9 @@ for i in tqdm(range(args.num_trajectories)):
         obs, reward, done, info = env.step(action)
 
         img = ptu.from_numpy(np.uint8(env.render_obs()).transpose() / 255.0)
+
         latent_obs = ptu.get_numpy(model.encode(img, cont=True)).flatten()
+        img = ptu.get_numpy(img)
 
         dataset['latent_desired_goal'][i * args.num_timesteps + j] = latent_obs
         dataset['state_desired_goal'][i * args.num_timesteps + j] = obs['state_achieved_goal']

@@ -13,12 +13,12 @@ class SawyerBaseEnv(gym.Env, Serializable):
                  gui=False,
                  action_scale=.2,
                  action_repeat=10,
-                 timestep=1./120,
+                 timestep=1./240,
                  solver_iterations=150,
                  gripper_bounds=[-1,1],
                  pos_init=[0.6, 0.0, -0.2], #[0.5, 0, 0]
-                 pos_high=[0.8,0.2,-0.2], #[1,.4,.25]
                  pos_low=[0.6,-0.2,-.36], #[.4,-.6,-.36]
+                 pos_high=[0.8,0.2,-0.2], #[1,.4,.25]
                  max_force=1000.,
                  visualize=True,
                  ):

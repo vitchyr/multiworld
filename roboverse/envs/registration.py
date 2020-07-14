@@ -95,6 +95,13 @@ SEQUENTIAL_ENVIRONMENT_SPECS = (
                    }
     },
     {
+        'id': 'SawyerRigMultiobj-v0',
+        'entry_point': ('roboverse.envs.sawyer_rig_multiobj_v0:SawyerRigMultiobjV0'),
+        'kwargs': {'max_force': 100,
+                   'action_scale': 0.05,
+                   }
+    },
+    {
         'id': 'SawyerRigVae-v0',
         'entry_point': ('roboverse.envs.sawyer_rig_vae:SawyerRigVaeEnv'),
         'kwargs': {'max_force': 100,

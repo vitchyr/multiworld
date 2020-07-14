@@ -1,10 +1,12 @@
 import roboverse.bullet as bullet
 import numpy as np
 from gym.spaces import Box, Dict
+from collections import OrderedDict
 from roboverse.envs.sawyer_base import SawyerBaseEnv
+from multiworld.envs.env_util import create_stats_ordered_dict
 import gym
 
-class SawyerRigGraspV0Env(SawyerBaseEnv):
+class SawyerRigMultiobj(SawyerBaseEnv):
 
     def __init__(self,
                  goal_pos=(0.75, 0.2, -0.1),
@@ -30,7 +32,7 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         :param transpose_image: first dimension is channel when true
         :param invisible_robot: the robot arm is invisible when set to True
         """
-        self._goal_pos = np.asarray(goal_pos)
+        self.goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
         self._reward_min = reward_min
         self._randomize = randomize
@@ -61,41 +63,21 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         act_high = np.ones(act_dim) * act_bound
         self.action_space = gym.spaces.Box(-act_high, act_high)
         
-        # observation_dim = 11
-        # obs_bound = 100
-        # obs_high = np.ones(observation_dim) * obs_bound
-        # state_space = gym.spaces.Box(-obs_high, obs_high)
+        observation_dim = 11
+        obs_bound = 100
+        obs_high = np.ones(observation_dim) * obs_bound
+        state_space = gym.spaces.Box(-obs_high, obs_high)
+
+        self.observation_space = Dict([
+            ('observation', state_space),
+            ('state_observation', state_space),
+            ('desired_goal', state_space),
+            ('state_desired_goal', state_space),
+            ('achieved_goal', state_space),
+            ('state_achieved_goal', state_space),
+        ])
 
 
-        if self._observation_mode == 'state':
-            observation_dim = 11
-            obs_bound = 100
-            obs_high = np.ones(observation_dim) * obs_bound
-            self.observation_space = gym.spaces.Box(-obs_high, obs_high)
-        elif self._observation_mode == 'pixels' or self._observation_mode == 'pixels_debug':
-            img_space = gym.spaces.Box(0, 1, (self.image_length,), dtype=np.float32)
-            if self._observation_mode == 'pixels':
-                observation_dim = 7
-            elif self._observation_mode == 'pixels_debug':
-                observation_dim = 11
-            obs_bound = 100
-            obs_high = np.ones(observation_dim) * obs_bound
-            state_space = gym.spaces.Box(-obs_high, obs_high)
-            spaces = {'image': img_space, 'state': state_space}
-            self.observation_space = gym.spaces.Dict(spaces)
-        else:
-            raise NotImplementedError
-
-        # self.observation_space = Dict([
-        #     ('observation', state_space),
-        #     ('state_observation', state_space),
-        #     ('desired_goal', state_space),
-        #     ('state_desired_goal', state_space),
-        #     ('achieved_goal', state_space),
-        #     ('state_achieved_goal', state_space),
-        # ])
-
-        # import ipdb; ipdb.set_trace()
 
     def _load_meshes(self):
         if self._invisible_robot:
@@ -136,42 +118,41 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         observation = self.get_observation()
         info = self.get_info()
         reward = self.get_reward(info)
-        done = self.get_termination(observation)
+        done = False
         self._prev_pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         return observation, reward, done, info
 
     def get_info(self):
         object_pos = np.asarray(self.get_object_midpoint('lego'))
         height = object_pos[2]
-        object_goal_distance = np.linalg.norm(object_pos - self._goal_pos)
+        object_goal_distance = np.linalg.norm(object_pos - self.goal_pos)
         end_effector_pos = self.get_end_effector_pos()
         object_gripper_distance = np.linalg.norm(
             object_pos - end_effector_pos)
         gripper_goal_distance = np.linalg.norm(
-            self._goal_pos - end_effector_pos)
+            self.goal_pos - end_effector_pos)
         object_goal_success = int(object_goal_distance < self._success_threshold)
         picked_up = height > -0.36
 
         info = {
-            'object_height': height,
-            # 'object_goal_distance': object_goal_distance,
-            'object_gripper_distance': object_gripper_distance,
-            'success': picked_up,
+            # 'object_gripper_distance': object_gripper_distance,
             # 'gripper_goal_distance': gripper_goal_distance,
+            # 'object_goal_distance': object_goal_distance,
             # 'object_goal_success': object_goal_success,
+            'object_height': height,
+            'picked_up': picked_up,
         }
 
         return info
 
-
-    def get_contextual_diagnostics(self, paths, contexts):
+    def get_diagnostics(self, paths):
         diagnostics = OrderedDict()
         state_key = "state_observation"
         goal_key = "state_desired_goal"
         values = []
         for i in range(len(paths)):
-            state = paths[i]["observations"][-1][state_key]
-            goal = contexts[i][goal_key]
+            state = paths[i]["observations"][-1][state_key][4:7]
+            goal = paths[i]["observations"][-1][goal_key][4:7]
             distance = np.linalg.norm(state - goal)
             values.append(distance)
         diagnostics_key = goal_key + "/final/distance"
@@ -183,8 +164,38 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         values = []
         for i in range(len(paths)):
             for j in range(len(paths[i]["observations"])):
-                state = paths[i]["observations"][j][state_key]
-                goal = contexts[i][goal_key]
+                state = paths[i]["observations"][j][state_key][4:7]
+                goal = paths[i]["observations"][j][goal_key][4:7]
+                distance = np.linalg.norm(state - goal)
+                values.append(distance)
+        diagnostics_key = goal_key + "/distance"
+        diagnostics.update(create_stats_ordered_dict(
+            diagnostics_key,
+            values,
+        ))
+        return diagnostics
+
+    def get_contextual_diagnostics(self, paths, contexts):
+        diagnostics = OrderedDict()
+        state_key = "state_observation"
+        goal_key = "state_desired_goal"
+        values = []
+        for i in range(len(paths)):
+            state = paths[i]["observations"][-1][state_key][4:7]
+            goal = contexts[i][goal_key][4:7]
+            distance = np.linalg.norm(state - goal)
+            values.append(distance)
+        diagnostics_key = goal_key + "/final/distance"
+        diagnostics.update(create_stats_ordered_dict(
+            diagnostics_key,
+            values,
+        ))
+
+        values = []
+        for i in range(len(paths)):
+            for j in range(len(paths[i]["observations"])):
+                state = paths[i]["observations"][j][state_key][4:7]
+                goal = contexts[i][goal_key][4:7]
                 distance = np.linalg.norm(state - goal)
                 values.append(distance)
         diagnostics_key = goal_key + "/distance"
@@ -202,6 +213,9 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
             img = np.transpose(img, (2, 0, 1))
         return img
 
+    def set_goal(self, goal):
+        self.goal_pos = goal['state_desired_goal'][4:7]
+
     def _get_obs(self):
         import ipdb; ipdb.set_trace()
         return None
@@ -211,27 +225,30 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
         return image
 
     def get_reward(self, info):
-        h = info['object_height']
-        reward = (h + 0.36) / 0.16 - 1
-        return reward
+        return info['object_goal_success'] - 1
 
     def reset(self):
-
         bullet.reset()
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
         self._load_meshes()
         self._format_state_query()
 
         self._prev_pos = np.array(self._pos_init)
+        self.goal_pos = np.random.uniform(low=self._pos_low, high=self._pos_high)
+
         bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
         # self._reset_hook(self)
         for _ in range(3):
             self.step([0.,0.,0.,-1])
         return self.get_observation()
 
+    def compute_reward(self, obs, actions, next_obs, contexts):
+        obj_state = next_obs['state_observation'][:, 4:7]
+        obj_goal = contexts['state_desired_goal'][:, 4:7]
+        object_goal_distance = np.linalg.norm(obj_state - obj_goal, axis=1)
+        object_goal_success = object_goal_distance < self._success_threshold
+        return object_goal_success - 1
 
-    def _get_obs(self):
-        return self.get_observation()
 
     def get_observation(self):
         left_tip_pos = bullet.get_link_state(
@@ -245,38 +262,26 @@ class SawyerRigGraspV0Env(SawyerBaseEnv):
             left_tip_pos - right_tip_pos)]
         end_effector_pos = self.get_end_effector_pos()
 
-        if self._observation_mode == 'state':
-            object_info = bullet.get_body_info(self._objects['lego'],
-                                               quat_to_deg=False)
-            object_pos = object_info['pos']
-            object_theta = object_info['theta']
-            observation = np.concatenate(
-                (end_effector_pos, gripper_tips_distance,
-                 object_pos, object_theta))
-        elif self._observation_mode == 'pixels':
-            image_observation = self.render_obs()
-            image_observation = np.float32(image_observation.flatten())/255.0
-            observation = {
-                'state': np.concatenate(
-                    (end_effector_pos, gripper_tips_distance)),
-                'image': image_observation
-            }
-        elif self._observation_mode == 'pixels_debug':
-            # This mode passes in all the true state information + images
-            image_observation = self.render_obs()
-            image_observation = np.float32(image_observation.flatten())/255.0
-            object_info = bullet.get_body_info(self._objects['lego'],
-                                               quat_to_deg=False)
-            object_pos = object_info['pos']
-            object_theta = object_info['theta']
-            state = np.concatenate(
-                (end_effector_pos,gripper_tips_distance,
-                 object_pos, object_theta))
-            observation = {
-                'state': state,
-                'image': image_observation,
-            }
-        else:
-            raise NotImplementedError
+        object_info = bullet.get_body_info(self._objects['lego'],
+                                           quat_to_deg=False)
+        object_pos = object_info['pos']
+        object_theta = object_info['theta']
+        
+        observation = np.concatenate(
+            (end_effector_pos, gripper_tips_distance,
+             object_pos, object_theta))
 
-        return observation
+        goal_pos = np.concatenate(
+            (self.goal_pos, gripper_tips_distance,
+             self.goal_pos, object_theta))
+
+        obs_dict = dict(
+            observation=observation,
+            state_observation=observation,
+            desired_goal=goal_pos,
+            state_desired_goal=goal_pos,
+            achieved_goal=observation,
+            state_achieved_goal=observation,
+            )
+
+        return obs_dict

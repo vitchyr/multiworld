@@ -1,5 +1,6 @@
 from roboverse.envs.sawyer_reach import SawyerReachEnv
 import roboverse.bullet
+import roboverse as rv
 import sys
 import numpy as np 
 import pygame
@@ -46,8 +47,8 @@ pressed_keys = {
     'i': False
 }
 
-
-env = SawyerReachEnv(renders=True, control_xyz_position_only=False)
+env = rv.make('SawyerRigMultiobj-v0', gui=True)
+#env = SawyerReachEnv(renders=True, control_xyz_position_only=False)
 env.reset()
 pygame.init()
 screen = pygame.display.set_mode((100, 100))

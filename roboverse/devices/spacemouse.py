@@ -56,7 +56,7 @@ def convert(b1, b2):
 class SpaceMouse:
     """A minimalistic driver class for SpaceMouse with HID library."""
 
-    def __init__(self, vendor_id=9583, product_id=50735):
+    def __init__(self, vendor_id=9583, product_id=50741, DoF=6):
         """Initialize a SpaceMouse handler.
         Args:
             vendor_id: HID device vendor id
@@ -74,22 +74,19 @@ class SpaceMouse:
                               "Only Mac OS X is officially supported. Install the additional "
                               "requirements with `pip install -r requirements-ik.txt`") from exc
 
-        product_id =  50741
-
         print("Opening SpaceMouse device")
         self.device = hid.device()
-        # pdb.set_trace()
         self.device.open(vendor_id, product_id)  # SpaceMouse
 
         print("Manufacturer: %s" % self.device.get_manufacturer_string())
         print("Product: %s" % self.device.get_product_string())
 
         self._display_controls()
-
+        self.DoF = DoF
         self.single_click_and_hold = False
 
-        # self._control = [0., 0., 0., 0., 0., 0.]
-        self._control = [0., 0., 0.]
+        self._control = [0. for i in range(DoF)]
+
         self._reset_state = 0
         self.rotation = np.array([[-1., 0., 0.], [0., 1., 0.], [0., 0., -1.]])
         self._enabled = False
@@ -160,7 +157,7 @@ class SpaceMouse:
 
         while True:
             d = self.device.read(13)
-            # print(len(d), d)
+            #print(len(d), d)
             if d is not None and self._enabled:
 
                 if d[0] == 1:  ## readings from 6-DoF sensor
@@ -168,18 +165,17 @@ class SpaceMouse:
                     self.x = convert(d[3], d[4])
                     self.z = convert(d[5], d[6]) * -1.0
 
-                    # self.roll = convert(d[7], d[8])
-                    # self.pitch = convert(d[9], d[10])
-                    # self.yaw = convert(d[11], d[12])
-
-                    self._control = [
-                        self.x,
-                        self.y,
-                        self.z,
-                        # self.roll,
-                        # self.pitch,
-                        # self.yaw,
-                    ]
+                if d[0] == 2:  ## readings from 6-DoF sensor
+                    self.roll = convert(d[1], d[2])
+                    self.pitch = convert(d[3], d[4])
+                    self.yaw = convert(d[5], d[6])
+                    
+                    if self.DoF == 3:
+                        self._control = [self.x,self.y,self.z]
+                    elif self.DoF == 4:
+                        self._control = [self.x,self.y,self.z, self.yaw]
+                    else:
+                        self._control = [self.x,self.y,self.z,self.roll,self.pitch,self.yaw]
 
                 elif d[0] == 3:  ## readings from the side buttons
 
@@ -202,6 +198,7 @@ class SpaceMouse:
                         self._enabled = False
                         self._reset_internal_state()
 
+
     @property
     def control(self):
         """Returns 6-DoF control."""
@@ -216,9 +213,11 @@ class SpaceMouse:
 
     def get_action(self):
         ## [0, 1] --> [-1, 1]
-        dpos = self.control
+        dpos = self.control[:3]
+        ddeg = - self.control[3:] * 5
+
         gripper = np.array([self.control_gripper * 2 - 1])
-        action = np.concatenate([dpos, gripper])
+        action = np.concatenate([dpos, ddeg, gripper])
         return action
 
 

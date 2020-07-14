@@ -7,8 +7,8 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", type=str)
-parser.add_argument("--num_trajectories", type=int, default=2000)
-parser.add_argument("--num_timesteps", type=int, default=50)
+parser.add_argument("--num_trajectories", type=int, default=10)
+parser.add_argument("--num_timesteps", type=int, default=75)
 parser.add_argument("--video_save_frequency", type=int,
                     default=0, help="Set to zero for no video saving")
 parser.add_argument("--gui", dest="gui", action="store_true", default=False)
@@ -17,8 +17,8 @@ args = parser.parse_args()
 data_save_path = "/home/ashvin/data/sasha/demos/" + args.name + ".npy"
 video_save_path = "/home/ashvin/data/sasha/demos/videos"
 
-env = roboverse.make('SawyerRigGrasp-v0', gui=args.gui)
-object_name = 'lego'
+env = roboverse.make('SawyerRigMultiobj-v0', gui=args.gui)
+object_name = 'obj'
 num_grasps = 0
 image_data = []
 
@@ -26,34 +26,23 @@ obs_dim = env.observation_space.shape
 assert(len(obs_dim) == 1)
 obs_dim = obs_dim[0]
 act_dim = env.action_space.shape[0]
+imlength = env.obs_img_dim * env.obs_img_dim * 3
 
-
-# if not os.path.exists(data_save_path):
-#     os.makedirs(data_save_path)
 if not os.path.exists(video_save_path) and args.video_save_frequency > 0:
     os.makedirs(video_save_path)
 
-
-imlength = env.obs_img_dim * env.obs_img_dim * 3
-
 dataset = {
-    #'image_observations': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.float),
-    # 'observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
-    # 'next_observations': np.zeros((args.num_trajectories, args.num_timesteps, obs_dim), dtype=np.float),
     'observations': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.uint8),
     'actions': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
     'env': np.zeros((args.num_trajectories, args.num_timesteps, imlength), dtype=np.uint8),
-    # 'rewards': np.zeros((args.num_trajectories, args.num_timesteps, act_dim), dtype=np.float),
-    # 'terminals': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
-    # 'agent_infos': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
-    # 'env_infos': np.zeros((args.num_trajectories, args.num_timesteps), dtype=np.uint8),
     }
 
 for i in tqdm(range(args.num_trajectories)):
-    if i % 2 == 0:
-        noise = 1
-    else:
-        noise = 0.1
+    # if i % 2 == 0:
+    #     noise = 1
+    # else:
+    #     noise = 0.1
+    noise = 0.1
 
     env.reset()
     target_pos = env.get_object_midpoint(object_name)
@@ -86,16 +75,15 @@ for i in tqdm(range(args.num_trajectories)):
         else:
             action = np.zeros((3,))
             action[2] = 1.0
+            action = np.random.normal(action, 0.25)
             grip = 1.
 
         action = np.append(action, [grip])
-        noisy_action = np.random.normal(action, noise)
-        dataset['actions'][i, j, :] = noisy_action
-        #dataset['next_observations'][i, j, :]
-
+        action = np.random.normal(action, noise)
+        dataset['actions'][i, j, :] = action
 
         observation = env.get_observation()
-        next_observation, reward, done, info = env.step(noisy_action)
+        next_observation, reward, done, info = env.step(action)
 
 
     object_pos = env.get_object_midpoint(object_name)
