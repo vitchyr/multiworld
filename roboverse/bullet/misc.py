@@ -72,6 +72,7 @@ def load_urdf(filepath, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):
     p.resetBasePositionAndOrientation(body, pos, quat)
     if rgba is not None:
         p.changeVisualShape(body, -1, rgbaColor=rgba)
+
     return body
 
 def load_obj(filepathcollision, filepathvisual, pos=[0, 0, 0], quat=[0, 0, 0, 1], scale=1, rgba=None):

@@ -123,6 +123,7 @@ class SpaceMouse:
         Resets internal state of controller, except for the reset signal.
         """
         self.rotation = np.array([[-1., 0., 0.], [0., 1., 0.], [0., 0., -1.]])
+        self.single_click_and_hold = False
 
     def start_control(self):
         """

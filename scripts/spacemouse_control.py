@@ -9,15 +9,18 @@ import time
 plt.ion()
 
 # Variables to define!
-DoF = 4
+DoF = 4 # 3, 4, 6
 num_timesteps = 50
-object_subset = 'test'
+object_subset = 'train' #train, test
+task = 'goal_reaching' #pickup, goal_reaching
+extend_dataset_path = 'train'# False or name
 # Variables to define!
 
 # Set Up Enviorment
 spacemouse = rv.devices.SpaceMouse(DoF=DoF)
-state_env = rv.make('SawyerRigMultiobj-v0', gui=True, DoF=DoF, object_subset=object_subset, visualize=False)
+state_env = rv.make('SawyerRigMultiobj-v0', gui=True, DoF=DoF, object_subset=object_subset, task=task, visualize=False)
 imsize = state_env.obs_img_dim
+imlength = imsize * imsize * 3
 
 demo_save_path = "/Users/sasha/Desktop/spacemouse/demo_data/{0}_{1}.pkl".format(object_subset, time.time())
 recon_save_path = "/Users/sasha/Desktop/spacemouse/recon_data/{0}_{1}.npy".format(object_subset, time.time())
@@ -56,6 +59,63 @@ def get_empty_recon_dict():
 def get_recon_image(env):
 	return np.uint8(env.render_obs().transpose()).reshape(1, -1)
 
+def combine_datasets(name_1, name_2, new_name='comb'):
+	new_recon_path = '/Users/sasha/Desktop/spacemouse/recon_data/' + new_name + '.npy'
+	new_demo_path = '/Users/sasha/Desktop/spacemouse/demo_data/' + new_name + '.pkl'
+
+	recon_path_1 = '/Users/sasha/Desktop/spacemouse/recon_data/' + name_1 + '.npy'
+	demo_path_1 = '/Users/sasha/Desktop/spacemouse/demo_data/' + name_1 + '.pkl'
+
+	recon_path_2 = '/Users/sasha/Desktop/spacemouse/recon_data/' + name_2 + '.npy'
+	demo_path_2 = '/Users/sasha/Desktop/spacemouse/demo_data/' + name_2 + '.pkl'
+	
+	recon_dataset_1 = np.load(open(recon_path_1, "rb"), allow_pickle=True).item()
+	demo_dataset_1 = pkl.load(open(demo_path_1, "rb"))
+
+	recon_dataset_2 = np.load(open(recon_path_2, "rb"), allow_pickle=True).item()
+	demo_dataset_2 = pkl.load(open(demo_path_2, "rb"))
+	
+	recon_dataset_1['observations'] = recon_dataset_1['observations'].reshape(-1, num_timesteps, imlength)
+	recon_dataset_1['env'] = recon_dataset_1['env'].reshape(-1, imlength)
+
+	comb_recon_dataset = {'observations': np.concatenate([recon_dataset_1['observations'], recon_dataset_2['observations']], axis=0),
+						'env': np.concatenate([recon_dataset_1['env'], recon_dataset_2['env']], axis=0)}
+
+	comb_demo_dataset = demo_dataset_1 + demo_dataset_2
+
+	# Save Recon Data
+	file = open(new_recon_path, 'wb')
+	np.save(file, comb_recon_dataset)
+	file.close()
+	
+	# Save Demo Data
+	file = open(new_demo_path, 'wb')
+	pkl.dump(comb_demo_dataset, file)
+	file.close()
+
+	
+
+# def get_dataset_objects():
+
+# 	if extend_dataset_path is False:
+# 		return get_empty_recon_dict(), []
+	
+# 	recon_path = '/Users/sasha/Desktop/spacemouse/recon_data/' + extend_dataset_path + '.npy'
+# 	demo_path = '/Users/sasha/Desktop/spacemouse/demo_data/' + extend_dataset_path + '.pkl'
+	
+# 	recon_dataset = np.load(open(recon_path, "rb"), allow_pickle=True).item()
+# 	demo_dataset = pkl.load(open(demo_path, "rb"))
+	
+# 	recon_dataset['observations'] = recon_dataset['observations'].reshape(-1, num_timesteps, imlength)
+# 	recon_dataset['env'] = recon_dataset['env'].reshape(-1, imlength)
+
+# 	recon_dataset['observations'] = [recon_dataset['observations'][i].reshape(1, num_timesteps, imlength)
+# 			for i in range(recon_dataset['observations'].shape[0])]
+# 	recon_dataset['env'] = [recon_dataset['env'][i].reshape(1, imlength)
+# 			for i in range(recon_dataset['env'].shape[0])]
+
+# 	return recon_dataset, demo_dataset
+
 def recompute_rewards(trajectory):
 	final_state = trajectory['next_observations'][-1]['state_observation']
 	for j in range(num_timesteps):
@@ -68,7 +128,7 @@ def recompute_rewards(trajectory):
 					trajectory['next_observations'][j])
 
 
-def save_datasets(recon_dataset, demo_dataset):
+def save_datasets():
 	curr_recon_dataset = {'observations': np.concatenate(recon_dataset['observations'], axis=0),
 						'env': np.concatenate(recon_dataset['env'], axis=0)}
 
@@ -89,7 +149,7 @@ def render():
 	plt.show()
 	plt.pause(0.01)
 
-def get_and_process_response():
+def get_and_process_response(trajectory, traj_images):
 	response = input(
 			'Enter: Add trajectory to both datasets \
 			\n D: Add trajectory to demo dataset \
@@ -110,17 +170,17 @@ def get_and_process_response():
 		# Save To Reconstruction Dataset
 		recon_dataset['env'].append(env_image)
 		traj_images = np.concatenate(traj_images, axis=0)
+		traj_images = traj_images.reshape(1, num_timesteps, imlength)
 		recon_dataset['observations'].append(traj_images)
-		print("CHECK IF THIS IS (num_traj, traj_len, imsize)")
-		import pdb; pdb.set_trace()
-	
-	save_datasets(recon_dataset, demo_dataset)
+
+	save_datasets()
 	return end
 
 
 def rollout_trajectory():
 	trajectory = get_empty_traj_dict()
 
+	#spacemouse.start_control()
 	env.reset()
 	env_image, traj_images = get_recon_image(env), []
 	for j in tqdm(range(num_timesteps)):
@@ -140,9 +200,13 @@ def rollout_trajectory():
 recon_dataset = get_empty_recon_dict()
 demo_dataset = []
 
+#combine_datasets('train_old', 'train_new')
+
+
+
 while True:
 	print("Trajectory Number:", num_trajectories)
 	trajectory, env_image, traj_images = rollout_trajectory()
-	end = get_and_process_response()
+	end = get_and_process_response(trajectory, traj_images)
 	num_trajectories += 1
 	if end: break

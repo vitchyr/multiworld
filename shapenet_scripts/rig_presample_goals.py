@@ -33,7 +33,7 @@ def load_vae(vae_file):
     vae.to("cpu")
     return vae
 
-vae_path = "/home/ashvin/data/sasha/cvqvae/vqvae/run11/id0/itr_400.pkl"
+vae_path = "/home/ashvin/data/sasha/cvqvae/vqvae/run12/id0/itr_200.pkl"
 
 model = load_vae(vae_path)
 

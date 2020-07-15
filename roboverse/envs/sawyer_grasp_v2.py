@@ -123,7 +123,6 @@ class SawyerGraspV2Env(SawyerBaseEnv):
             xyz_min=self._pos_low, xyz_max=self._pos_high,
             visualize=False, rgba=[0,1,0,.1])
 
-
         self._end_effector = bullet.get_index_by_attribute(
             self._sawyer, 'link_name', 'gripper_site')
 
