@@ -335,20 +335,6 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         achieved_goals = obs['state_achieved_goal']
         desired_goals = obs['state_desired_goal']
 
-        assert 'mask' not in obs
-        # if 'mask' in obs:
-        #     mask = obs['mask']
-        #     batch_size, state_dim = achieved_goals.shape
-        #     if mask.shape[-1] == state_dim:
-        #         # vector mask
-        #         prod = (achieved_goals - desired_goals) * mask
-        #     else:
-        #         # matrix mask
-        #         mask = mask.reshape((batch_size, state_dim, state_dim))
-        #         diff = (achieved_goals - desired_goals).reshape((batch_size, state_dim, 1))
-        #         prod = (mask@diff).reshape((batch_size, state_dim))
-        #     return -np.linalg.norm(prod, axis=-1)
-
         if self.object_reward_only:
             achieved_goals = achieved_goals[:, 2:]
             desired_goals = desired_goals[:, 2:]
@@ -556,37 +542,37 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
 
     def goal_conditioned_diagnostics(self, paths, goals):
         statistics = OrderedDict()
-        # stat_to_lists = defaultdict(list)
-        # for path, goal in zip(paths, goals):
-        #     difference = path['observations'] - goal
-        #     for i in range(len(self._all_objects)):
-        #         distance = np.linalg.norm(
-        #             difference[:, 2*i:2*i+2], axis=-1
-        #         )
-        #         distance_key = 'distance_to_target_obj_{}'.format(i)
-        #         stat_to_lists[distance_key].append(distance)
-        #         success_key = 'success_obj_{}'.format(i)
-        #         stat_to_lists[success_key].append(
-        #             distance < self.success_threshold
-        #         )
-        # for stat_name, stat_list in stat_to_lists.items():
-        #     statistics.update(create_stats_ordered_dict(
-        #         stat_name,
-        #         stat_list,
-        #         always_show_all_stats=True,
-        #     ))
-        #     statistics.update(create_stats_ordered_dict(
-        #         '{}/final'.format(stat_name),
-        #         [s[-1:] for s in stat_list],
-        #         always_show_all_stats=True,
-        #         exclude_max_min=True,
-        #     ))
-        #     statistics.update(create_stats_ordered_dict(
-        #         '{}/initial'.format(stat_name),
-        #         [s[:1] for s in stat_list],
-        #         always_show_all_stats=True,
-        #         exclude_max_min=True,
-        #     ))
+        stat_to_lists = defaultdict(list)
+        for path, goal in zip(paths, goals):
+            difference = path['observations'] - goal
+            for i in range(len(self._all_objects)):
+                distance = np.linalg.norm(
+                    difference[:, 2*i:2*i+2], axis=-1
+                )
+                distance_key = 'distance_to_target_obj_{}'.format(i)
+                stat_to_lists[distance_key].append(distance)
+                success_key = 'success_obj_{}'.format(i)
+                stat_to_lists[success_key].append(
+                    distance < self.success_threshold
+                )
+        for stat_name, stat_list in stat_to_lists.items():
+            statistics.update(create_stats_ordered_dict(
+                stat_name,
+                stat_list,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/final'.format(stat_name),
+                [s[-1:] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                '{}/initial'.format(stat_name),
+                [s[:1] for s in stat_list],
+                always_show_all_stats=True,
+                exclude_max_min=True,
+            ))
         return statistics
 
 

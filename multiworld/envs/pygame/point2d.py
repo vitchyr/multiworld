@@ -73,6 +73,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.pointmass_color = pointmass_color
         self.bg_color = bg_color
         self._wall_color = wall_color
+        self.render_drawer = None
 
         self.max_target_distance = self.boundary_dist - self.target_radius
 
@@ -386,25 +387,12 @@ class Point2DEnv(MultitaskEnv, Serializable):
         )
 
         for wall in self.walls:
-            drawer.draw_segment(
-                wall.endpoint1,
-                wall.endpoint2,
-                Color(self._wall_color),
-            )
-            drawer.draw_segment(
-                wall.endpoint2,
-                wall.endpoint3,
-                Color(self._wall_color),
-            )
-            drawer.draw_segment(
-                wall.endpoint3,
+            drawer.draw_rect(
                 wall.endpoint4,
+                wall.endpoint1[0] - wall.endpoint4[0],
+                - wall.endpoint1[1] + wall.endpoint2[1],
                 Color(self._wall_color),
-            )
-            drawer.draw_segment(
-                wall.endpoint4,
-                wall.endpoint1,
-                Color(self._wall_color),
+                thickness=0,
             )
         drawer.render()
 
@@ -604,6 +592,16 @@ class Point2DWallEnv(Point2DEnv):
                     -self.inner_wall_max_dist,
                     self.inner_wall_max_dist,
                 )
+            ]
+        if wall_shape == "---":
+            self.walls = [
+                HorizontalWall(
+                    self.ball_radius,
+                    0,
+                    -self.inner_wall_max_dist*2,
+                    self.inner_wall_max_dist*2,
+                    self.wall_thickness
+                ),
             ]
         if wall_shape == "big-u":
             self.walls = [
