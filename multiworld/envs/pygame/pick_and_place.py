@@ -272,16 +272,13 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         is_success = distance_to_target < self.success_threshold
         info = {
             'distance_to_target_cursor': distance_to_target,
-            # 'success_cursor': is_success,
+            'success_cursor': is_success,
         }
         for i, obj in enumerate(self.objects):
             obj_distance = obj.distance_to_target()
             success = obj_distance < self.success_threshold
             info['distance_to_target_obj_{}'.format(i)] = obj_distance
-            # info['success_obj_{}'.format(i)] = success
-
-            # info['distance_cursor_to_obj_{}'.format(i)] = self.cursor.distance(obj.position)
-
+            info['success_obj_{}'.format(i)] = success
         return info
 
     def reset(self):
@@ -351,32 +348,6 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             return -np.abs(achieved_goals - desired_goals)
         else:
             raise NotImplementedError()
-
-    # def get_diagnostics(self, paths, prefix=''):
-    #     statistics = OrderedDict()
-    #     for stat_name in [
-    #         'distance_to_target_obj_{}'.format(i)
-    #         for i in range(len(self.objects))
-    #     ] + [
-    #         'success_obj_{}'.format(i)
-    #         for i in range(len(self.objects))
-    #     ] + [
-    #         'distance_to_target_cursor',
-    #         'success_cursor',
-    #     ]:
-    #         stat_name = stat_name
-    #         stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-    #         statistics.update(create_stats_ordered_dict(
-    #             '%s%s' % (prefix, stat_name),
-    #             stat,
-    #             always_show_all_stats=True,
-    #             ))
-    #         statistics.update(create_stats_ordered_dict(
-    #             'Final %s%s' % (prefix, stat_name),
-    #             [s[-1] for s in stat],
-    #             always_show_all_stats=True,
-    #             ))
-    #     return statistics
 
     def get_goal(self):
         return {
@@ -557,18 +528,19 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 )
         for stat_name, stat_list in stat_to_lists.items():
             statistics.update(create_stats_ordered_dict(
-                stat_name,
+                'env_infos/{}'.format(stat_name),
                 stat_list,
                 always_show_all_stats=True,
+                exclude_max_min=True,
             ))
             statistics.update(create_stats_ordered_dict(
-                '{}/final'.format(stat_name),
+                'env_infos/final/{}'.format(stat_name),
                 [s[-1:] for s in stat_list],
                 always_show_all_stats=True,
                 exclude_max_min=True,
             ))
             statistics.update(create_stats_ordered_dict(
-                '{}/initial'.format(stat_name),
+                'env_infos/initial/{}'.format(stat_name),
                 [s[:1] for s in stat_list],
                 always_show_all_stats=True,
                 exclude_max_min=True,
