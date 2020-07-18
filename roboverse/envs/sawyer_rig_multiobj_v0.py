@@ -4,7 +4,7 @@ import pybullet as p
 from gym.spaces import Box, Dict
 from collections import OrderedDict
 from roboverse.envs.sawyer_base import SawyerBaseEnv
-from multiworld.envs.env_util import create_stats_ordered_dict
+#from multiworld.envs.env_util import create_stats_ordered_dict
 from roboverse.bullet.misc import load_obj, deg_to_quat, draw_bbox
 import os.path as osp
 import importlib.util
@@ -12,8 +12,8 @@ import random
 import pickle
 import gym
 
-SHAPENET_ASSET_PATH = "/home/ashvin/ros_ws/src/ashvindev/bullet-objects/ShapeNetCore/"
-#SHAPENET_ASSET_PATH = "/Users/sasha/Desktop/gauss/ashvindev/bullet-objects/ShapeNetCore/"
+#SHAPENET_ASSET_PATH = "/home/ashvin/ros_ws/src/ashvindev/bullet-objects/ShapeNetCore/"
+SHAPENET_ASSET_PATH = "/Users/sasha/Desktop/gauss/ashvindev/bullet-objects/ShapeNetCore/"
 test_set = ['mug', 'square_deep_bowl', 'bathtub', 'crooked_lid_trash_can', 'beer_bottle', 
     'l_automatic_faucet', 'toilet_bowl', 'narrow_top_vase']
 
@@ -52,7 +52,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
                  reward_min=-2.5,
                  randomize=True,
                  observation_mode='state',
-                 obs_img_dim=84,
+                 obs_img_dim=48,
                  success_threshold=0.05,
                  transpose_image=False,
                  invisible_robot=False,
@@ -87,10 +87,12 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         self.image_shape = (obs_img_dim, obs_img_dim)
         self.image_length = np.prod(self.image_shape) * 3  # image has 3 channels
         self.object_subset = object_subset
+        self.ddeg_constant = 5
         self.task = task
         self.DoF = DoF
 
         self.object_dict, self.scaling = self.get_object_info()
+        self.curr_object = None
 
         self._object_position_low = (.65, -0.05, -.3)
         self._object_position_high = (.75, 0.05, -.3)
@@ -149,7 +151,6 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         if self._invisible_robot:
             self._sawyer = bullet.objects.sawyer_invisible()
         else:
-            #self._sawyer = bullet.objects.sawyer()
             self._sawyer = bullet.objects.sawyer_finger_visual_only()
         self._table = bullet.objects.table()
         self._objects = {}
@@ -166,7 +167,8 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         else:
             object_position = self._fixed_object_position
         object_name, object_id = random.choice(list(self.object_dict.items()))
-        #print("Current Object: " + object_name)
+        print("Current Object: " + object_name)
+        self.curr_object = object_name
 
         self._objects = {
             'obj': load_shapenet_object(
@@ -200,6 +202,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
                 delta_pos, delta_yaw, gripper = action[0], action[1], action[2]
             else:
                 raise RuntimeError('Unrecognized action: {}'.format(action))
+            delta_yaw *= self.ddeg_constant
             delta_angle = [0, 0, delta_yaw]
             return np.array(delta_pos), np.array(delta_angle), gripper
         else:
@@ -209,6 +212,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
                 delta_pos, delta_angle, gripper = action[0], action[1], action[2]
             else:
                 raise RuntimeError('Unrecognized action: {}'.format(action))
+            delta_angle *= self.ddeg_constant
             return np.array(delta_pos), np.array(delta_angle), gripper
 
 

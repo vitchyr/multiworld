@@ -215,7 +215,7 @@ class SpaceMouse:
     def get_action(self):
         ## [0, 1] --> [-1, 1]
         dpos = self.control[:3]
-        ddeg = - self.control[3:] * 5
+        ddeg = - self.control[3:]
 
         gripper = np.array([self.control_gripper * 2 - 1])
         action = np.concatenate([dpos, ddeg, gripper])
