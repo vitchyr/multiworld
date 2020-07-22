@@ -4,7 +4,7 @@ import pybullet as p
 from gym.spaces import Box, Dict
 from collections import OrderedDict
 from roboverse.envs.sawyer_base import SawyerBaseEnv
-#from multiworld.envs.env_util import create_stats_ordered_dict
+from multiworld.envs.env_util import create_stats_ordered_dict
 from roboverse.bullet.misc import load_obj, deg_to_quat, draw_bbox
 import os.path as osp
 import importlib.util
@@ -12,8 +12,8 @@ import random
 import pickle
 import gym
 
-#SHAPENET_ASSET_PATH = "/home/ashvin/ros_ws/src/ashvindev/bullet-objects/ShapeNetCore/"
-SHAPENET_ASSET_PATH = "/Users/sasha/Desktop/gauss/ashvindev/bullet-objects/ShapeNetCore/"
+SHAPENET_ASSET_PATH = "/home/ashvin/ros_ws/src/ashvindev/bullet-objects/ShapeNetCore/"
+#SHAPENET_ASSET_PATH = "/Users/sasha/Desktop/gauss/ashvindev/bullet-objects/ShapeNetCore/"
 test_set = ['mug', 'square_deep_bowl', 'bathtub', 'crooked_lid_trash_can', 'beer_bottle', 
     'l_automatic_faucet', 'toilet_bowl', 'narrow_top_vase']
 
@@ -33,7 +33,7 @@ def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5)
     
     # With p=0.5, randomize color
     if np.random.uniform() < 0.5:
-        rgba = list(np.random.choice(range(257), size=3) / 256.0) + [1]
+        rgba = list(np.random.choice(range(256), size=3) / 255.0) + [1]
     else:
         rgba = None
    
@@ -58,7 +58,8 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
                  invisible_robot=False,
                  object_subset='train',
                  task='pickup',
-                 DoF=4,
+                 pickup_eps=-0.36,#-0.3,
+                 DoF=3,
                  *args,
                  **kwargs
                  ):
@@ -80,7 +81,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         self._reward_type = reward_type
         self._reward_min = reward_min
         self._randomize = randomize
-        self.pickup_eps = -0.3
+        self.pickup_eps = pickup_eps
         self._observation_mode = observation_mode
         self._transpose_image = transpose_image
         self._invisible_robot = invisible_robot
@@ -167,14 +168,16 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         else:
             object_position = self._fixed_object_position
         object_name, object_id = random.choice(list(self.object_dict.items()))
-        print("Current Object: " + object_name)
+        #print("Current Object: " + object_name)
         self.curr_object = object_name
 
         self._objects = {
-            'obj': load_shapenet_object(
-                object_id,
-                self.scaling,
-                object_position)
+            'obj': bullet.objects.lego(pos=object_position)
+
+            # 'obj': load_shapenet_object(
+            #     object_id,
+            #     self.scaling,
+            #     object_position)
         }
 
         # Allow the objects to land softly in low g
@@ -327,6 +330,16 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         ))
         return diagnostics
 
+    def resize_img(self, obs):
+        from torchvision.transforms import Resize
+        from PIL import Image
+        resize = Resize((48, 48), interpolation=Image.NEAREST)
+
+        obs = obs.reshape(84, 84, 3)
+        obs = Image.fromarray(obs, mode='RGB')
+        obs = np.array(resize(obs)).reshape(48, 48, 3)
+        return obs
+
     def render_obs(self):
         img, depth, segmentation = bullet.render(
             self.obs_img_dim, self.obs_img_dim, self._view_matrix_obs,
@@ -334,6 +347,17 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         if self._transpose_image:
             img = np.transpose(img, (2, 0, 1))
         return img
+
+    # def render_obs(self):
+    #     img, depth, segmentation = bullet.render(
+    #         84, 84, self._view_matrix_obs,
+    #         self._projection_matrix_obs, shadow=0, gaussian_width=0)
+    #     if self._transpose_image:
+    #         img = np.transpose(img, (2, 0, 1))
+
+    #     img = self.resize_img(img)
+        
+    #     return img
 
     def set_goal(self, goal):
         self.goal_pos = goal['state_desired_goal'][4:7]

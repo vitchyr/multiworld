@@ -18,6 +18,7 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
                  success_threshold=0.05,
                  transpose_image=False,
                  invisible_robot=False,
+                 task='pickup',
                  *args,
                  **kwargs
                  ):
@@ -32,6 +33,8 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
         :param transpose_image: first dimension is channel when true
         :param invisible_robot: the robot arm is invisible when set to True
         """
+        assert task in ['goal_reaching', 'pickup']
+        print("Task Type: " + task)
         self.goal_pos = np.asarray(goal_pos)
         self._reward_type = reward_type
         self._reward_min = reward_min
@@ -41,6 +44,8 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
         self._invisible_robot = invisible_robot
         self.image_shape = (obs_img_dim, obs_img_dim)
         self.image_length = np.prod(self.image_shape) * 3  # image has 3 channels
+        self.pickup_eps = -0.36
+        self.task = task
 
         self._object_position_low = (.65, -0.1, -.36)
         self._object_position_high = (.75, 0.1, -.36)
@@ -132,7 +137,7 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
         gripper_goal_distance = np.linalg.norm(
             self.goal_pos - end_effector_pos)
         object_goal_success = int(object_goal_distance < self._success_threshold)
-        picked_up = height > -0.36
+        picked_up = height > self.pickup_eps
 
         info = {
             # 'object_gripper_distance': object_gripper_distance,
@@ -216,16 +221,15 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
     def set_goal(self, goal):
         self.goal_pos = goal['state_desired_goal'][4:7]
 
-    def _get_obs(self):
-        import ipdb; ipdb.set_trace()
-        return None
-
     def get_image(self, width, height):
         image = np.float32(self.render_obs())
         return image
 
     def get_reward(self, info):
-        return info['object_goal_success'] - 1
+        if self.task == 'goal_reaching':
+            return info['object_goal_success'] - 1
+        elif self.task == 'pickup':
+            return info['picked_up'] - 1
 
     def reset(self):
         bullet.reset()
@@ -242,13 +246,23 @@ class SawyerRigGRV0Env(SawyerBaseEnv):
             self.step([0.,0.,0.,-1])
         return self.get_observation()
 
-    def compute_reward(self, obs, actions, next_obs, contexts):
-        obj_state = next_obs['state_observation'][:, 4:7]
-        obj_goal = contexts['state_desired_goal'][:, 4:7]
+    def compute_reward_pu(self, obs, actions, next_obs, contexts):
+        height = self.format_obs(next_obs['state_observation'])[:, 4:7][:, 2]
+        reward = (height > self.pickup_eps) - 1
+        return reward
+    
+    def compute_reward_gr(self, obs, actions, next_obs, contexts):
+        obj_state = self.format_obs(next_obs['state_observation'])[:, 4:7]
+        obj_goal = self.format_obs(contexts['state_desired_goal'])[:, 4:7]
         object_goal_distance = np.linalg.norm(obj_state - obj_goal, axis=1)
         object_goal_success = object_goal_distance < self._success_threshold
         return object_goal_success - 1
 
+    def compute_reward(self, obs, actions, next_obs, contexts):
+        if self.task == 'goal_reaching':
+            return self.compute_reward_gr(obs, actions, next_obs, contexts)
+        elif self.task == 'pickup':
+            return self.compute_reward_pu(obs, actions, next_obs, contexts)
 
     def get_observation(self):
         left_tip_pos = bullet.get_link_state(

@@ -9,10 +9,10 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--name", type=str)
-parser.add_argument("--num_trajectories", type=int, default=10)
-parser.add_argument("--num_timesteps", type=int, default=75)
+parser.add_argument("--num_trajectories", type=int, default=1000)
+parser.add_argument("--num_timesteps", type=int, default=50)
 parser.add_argument("--video_save_frequency", type=int,
-                    default=2, help="Set to zero for no video saving")
+                    default=0, help="Set to zero for no video saving")
 parser.add_argument("--gui", dest="gui", action="store_true", default=False)
 
 args = parser.parse_args()
@@ -81,10 +81,10 @@ for i in tqdm(range(args.num_trajectories)):
             action = np.zeros((3,))
             action[2] = 1.0
             grip = 1.
-        else:
-            action = env.goal_pos - ee_pos
-            action *= 3.0
-            grip = 1.
+        # else:
+        #     action = env.goal_pos - ee_pos
+        #     action *= 3.0
+        #     grip = 1.
 
 
         action = np.append(action, [grip])
@@ -100,7 +100,8 @@ for i in tqdm(range(args.num_trajectories)):
 
         returns += reward
     
-    success += info['object_goal_success']
+    success += info['picked_up']
+    #success += info['object_goal_success']
 
     if args.video_save_frequency > 0 and i % args.video_save_frequency == 0:
         images[0].save('{}/{}.gif'.format(video_save_path, i),

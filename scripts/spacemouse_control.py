@@ -184,6 +184,7 @@ def rollout_trajectory():
 	env.reset()
 	env_image, traj_images = get_recon_image(env), []
 	for j in range(num_timesteps):
+
 		traj_images.append(get_recon_image(env))		
 		
 		action = spacemouse.get_action()
