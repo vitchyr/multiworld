@@ -4,45 +4,16 @@ import pybullet as p
 from gym.spaces import Box, Dict
 from collections import OrderedDict
 from roboverse.envs.sawyer_base import SawyerBaseEnv
-from multiworld.envs.env_util import create_stats_ordered_dict
 from roboverse.bullet.misc import load_obj, deg_to_quat, draw_bbox
+from bullet_objects import loader, metadata
 import os.path as osp
 import importlib.util
 import random
 import pickle
 import gym
 
-SHAPENET_ASSET_PATH = "/home/ashvin/ros_ws/src/ashvindev/bullet-objects/ShapeNetCore/"
-#SHAPENET_ASSET_PATH = "/Users/sasha/Desktop/gauss/ashvindev/bullet-objects/ShapeNetCore/"
 test_set = ['mug', 'square_deep_bowl', 'bathtub', 'crooked_lid_trash_can', 'beer_bottle', 
     'l_automatic_faucet', 'toilet_bowl', 'narrow_top_vase']
-
-def import_shapenet_metadata():
-    metadata_spec = importlib.util.spec_from_file_location(
-        "metadata", osp.join(SHAPENET_ASSET_PATH, "metadata.py"))
-    shapenet_metadata = importlib.util.module_from_spec(metadata_spec)
-    metadata_spec.loader.exec_module(shapenet_metadata)
-    return shapenet_metadata.obj_path_map, shapenet_metadata.path_scaling_map
-
-def load_shapenet_object(object_path, scaling, object_position, scale_local=0.5):
-    path = object_path.split('/')
-    dir_name, object_name, = path[-2], path[-1]
-
-    # Randomize initial theta
-    quat = deg_to_quat(np.random.randint(0, 360, size=3))
-    
-    # With p=0.5, randomize color
-    if np.random.uniform() < 0.5:
-        rgba = list(np.random.choice(range(256), size=3) / 255.0) + [1]
-    else:
-        rgba = None
-   
-    obj = load_obj(
-        SHAPENET_ASSET_PATH + '/ShapeNetCore_vhacd/{0}/{1}/model.obj'.format(dir_name, object_name),
-        SHAPENET_ASSET_PATH + '/ShapeNetCore.v2/{0}/{1}/models/model_normalized.obj'.format(dir_name, object_name),
-        object_position, quat, rgba=rgba, scale=scale_local*scaling['{0}/{1}'.format(dir_name, object_name)])
-
-    return obj
 
 class SawyerRigMultiobjV0(SawyerBaseEnv):
 
@@ -109,7 +80,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         super().__init__(*args, **kwargs)
 
     def get_object_info(self):
-        complete_object_dict, scaling = import_shapenet_metadata()
+        complete_object_dict, scaling = metadata.obj_path_map, metadata.path_scaling_map
         complete = self.object_subset is None
         train = self.object_subset == 'train'
         test = self.object_subset == 'test'
@@ -174,10 +145,10 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         self._objects = {
             'obj': bullet.objects.lego(pos=object_position)
 
-            # 'obj': load_shapenet_object(
-            #     object_id,
-            #     self.scaling,
-            #     object_position)
+            # 'obj': loader.load_shapenet_object(
+            #      object_id,
+            #      self.scaling,
+            #      object_position)
         }
 
         # Allow the objects to land softly in low g
@@ -205,8 +176,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
                 delta_pos, delta_yaw, gripper = action[0], action[1], action[2]
             else:
                 raise RuntimeError('Unrecognized action: {}'.format(action))
-            delta_yaw *= self.ddeg_constant
-            delta_angle = [0, 0, delta_yaw]
+            delta_angle = [0, 0, delta_yaw * self.ddeg_constant]
             return np.array(delta_pos), np.array(delta_angle), gripper
         else:
             if len(action) == 1:
@@ -265,6 +235,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         return info
 
     def get_diagnostics(self, paths):
+        from multiworld.envs.env_util import create_stats_ordered_dict
         diagnostics = OrderedDict()
         state_key = "state_observation"
         goal_key = "state_desired_goal"
@@ -295,6 +266,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         return diagnostics
 
     def get_contextual_diagnostics(self, paths, contexts):
+        from multiworld.envs.env_util import create_stats_ordered_dict
         diagnostics = OrderedDict()
         state_key = "state_observation"
         goal_key = "state_desired_goal"
@@ -330,15 +302,15 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         ))
         return diagnostics
 
-    def resize_img(self, obs):
-        from torchvision.transforms import Resize
-        from PIL import Image
-        resize = Resize((48, 48), interpolation=Image.NEAREST)
+    # def resize_img(self, obs):
+    #     from torchvision.transforms import Resize
+    #     from PIL import Image
+    #     resize = Resize((48, 48), interpolation=Image.NEAREST)
 
-        obs = obs.reshape(84, 84, 3)
-        obs = Image.fromarray(obs, mode='RGB')
-        obs = np.array(resize(obs)).reshape(48, 48, 3)
-        return obs
+    #     obs = obs.reshape(84, 84, 3)
+    #     obs = Image.fromarray(obs, mode='RGB')
+    #     obs = np.array(resize(obs)).reshape(48, 48, 3)
+    #     return obs
 
     def render_obs(self):
         img, depth, segmentation = bullet.render(
