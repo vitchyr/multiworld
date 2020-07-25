@@ -24,13 +24,19 @@ class Object(object):
         Color('yellow'),
     ]
 
-    def __init__(self, position, radius, color, max_pos, min_pos):
+    def __init__(
+            self, position, radius, color, max_pos, min_pos,
+            visual_radius=None
+    ):
+        if visual_radius is None:
+            visual_radius = radius
         self.position = position
         self._color = color
         self._max_pos = max_pos
         self._min_pos = min_pos
         self._radius = radius
         self.target_position = position
+        self._visual_radius = visual_radius
 
     def distance_to_target(self):
         return np.linalg.norm(self.position - self.target_position)
@@ -38,13 +44,13 @@ class Object(object):
     def draw(self, drawer, draw_target_position=True):
         drawer.draw_solid_circle(
             self.position,
-            self._radius,
+            self._visual_radius,
             self._color,
         )
         if draw_target_position:
             drawer.draw_circle(
                 self.target_position,
-                self._radius,
+                self._visual_radius,
                 self._color,
             )
 
@@ -100,6 +106,9 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             object_radius=0.50,
             min_grab_distance=0.5,
             walls=None,
+            # visualization
+            cursor_visual_radius=None,
+            object_visual_radius=None,
             # Rewards
             action_l2norm_penalty=0,
             reward_type="dense",
@@ -139,12 +148,18 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             raise ValueError('Invalid init position strategy: {}'.format(
                 init_position_strategy
             ))
+        if cursor_visual_radius is None:
+            cursor_visual_radius = ball_radius
+        if object_visual_radius is None:
+            object_visual_radius = object_radius
 
         self.quick_init(locals())
         self.render_dt_msec = render_dt_msec
         self.action_l2norm_penalty = action_l2norm_penalty
         self.render_onscreen = render_onscreen
         self.render_size = render_size
+        self.cursor_visual_radius = cursor_visual_radius
+        self.object_visual_radius = object_visual_radius
         self.reward_type = reward_type
         self.action_scale = action_scale
         self.success_threshold = success_threshold
@@ -160,7 +175,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             Object(
                 position=np.zeros((2,)),
                 color=Object.IDX_TO_COLOR[i],
-                radius=ball_radius if i == 0 else object_radius,
+                radius=cursor_visual_radius if i == 0 else object_visual_radius,
                 min_pos=-self.boundary_dist,
                 max_pos=self.boundary_dist,
             )
