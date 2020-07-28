@@ -516,6 +516,8 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         stat_to_lists = defaultdict(list)
         for path, goal in zip(paths, goals):
             difference = path['observations'] - goal
+            num_obj_success = np.zeros(difference.shape[0])
+            num_obj_1_2_success = np.zeros(difference.shape[0])
             for i in range(len(self._all_objects)):
                 distance = np.linalg.norm(
                     difference[:, 2*i:2*i+2], axis=-1
@@ -523,9 +525,13 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 distance_key = 'distance_to_target_obj_{}'.format(i)
                 stat_to_lists[distance_key].append(distance)
                 success_key = 'success_obj_{}'.format(i)
-                stat_to_lists[success_key].append(
-                    distance < self.success_threshold
-                )
+                obj_success = (distance < self.success_threshold)
+                stat_to_lists[success_key].append(obj_success)
+                num_obj_success += obj_success
+                if i in [1, 2]:
+                    num_obj_1_2_success += obj_success
+            stat_to_lists['num_obj_success'].append(num_obj_success)
+            stat_to_lists['num_obj_1_2_success'].append(num_obj_1_2_success)
         for stat_name, stat_list in stat_to_lists.items():
             statistics.update(create_stats_ordered_dict(
                 'env_infos/{}'.format(stat_name),
