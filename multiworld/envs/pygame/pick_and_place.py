@@ -23,9 +23,9 @@ class Object(object):
         Color('red'),
         Color('purple'),
         Color('orange'),
+        Color('cyan'),
         Color('yellow'),
         Color('black'),
-        Color('cyan'),
         Color('brown'),
     ]
 
