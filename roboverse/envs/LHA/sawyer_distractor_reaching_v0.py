@@ -4,7 +4,7 @@ import pybullet as p
 from gym.spaces import Box, Dict
 from collections import OrderedDict
 from roboverse.envs.sawyer_base import SawyerBaseEnv
-from roboverse.bullet.misc import load_obj, deg_to_quat, quat_to_deg
+from roboverse.bullet.misc import load_obj, deg_to_quat, draw_bbox
 from bullet_objects import loader, metadata
 import os.path as osp
 import importlib.util
@@ -17,20 +17,18 @@ easy_objects = [bullet.objects.lego, bullet.objects.duck, bullet.objects.cube,
 test_set = ['mug', 'square_deep_bowl', 'bathtub', 'crooked_lid_trash_can', 'beer_bottle', 
     'l_automatic_faucet', 'toilet_bowl', 'narrow_top_vase']
 
-class SawyerRigMultiobjV0(SawyerBaseEnv):
+class SawyerDistractorReachingV0(SawyerBaseEnv):
 
     def __init__(self,
                  goal_pos=(0.75, 0.2, -0.1),
-                 reward_type='shaped',
-                 reward_min=-2.5,
-                 randomize=True,
-                 observation_mode='state',
                  obs_img_dim=48,
                  success_threshold=0.05,
                  transpose_image=False,
                  invisible_robot=False,
-                 object_subset='',
-                 task='pickup',
+                 object_subset='easy',
+                 task='gr_hand',
+                 pickup_eps=-0.35,
+                 num_objects=2,
                  DoF=4,
                  *args,
                  **kwargs
@@ -47,20 +45,19 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         :param invisible_robot: the robot arm is invisible when set to True
         """
         assert DoF in [3, 4, 6]
-        assert task in ['goal_reaching', 'pickup']
+        assert task in ['goal_reaching', 'pickup', 'gr_hand']
         assert object_subset in ['test', 'train', 'easy', '']
+        assert num_objects <= 5
         print("Task Type: " + task)
         self.goal_pos = np.asarray(goal_pos)
-        self._reward_type = reward_type
-        self._reward_min = reward_min
-        self._randomize = randomize
-        self.pickup_eps = -0.35 if (object_subset == 'easy') else -0.3
-        self._observation_mode = observation_mode
+        self.pickup_eps = pickup_eps
+        self._observation_mode = 'state'
         self._transpose_image = transpose_image
         self._invisible_robot = invisible_robot
         self.image_shape = (obs_img_dim, obs_img_dim)
         self.image_length = np.prod(self.image_shape) * 3  # image has 3 channels
         self.object_subset = object_subset
+        self.num_objects = num_objects
         self._ddeg_scale = 5
         self.task = task
         self.DoF = DoF
@@ -68,13 +65,13 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         self.object_dict, self.scaling = self.get_object_info()
         self.curr_object = None
 
-        self._object_position_low = (.65, -0.1, -.3)
-        self._object_position_high = (.75, 0.1, -.3)
-        # self._object_position_low = (.65, -0.05, -.3)
-        # self._object_position_high = (.75, 0.05, -.3)
-        self._fixed_object_position = (.75, 0.2, -.36)
-        self.start_obj_ind = 4 if (self.DoF == 3) else 8
-        self.default_theta = bullet.deg_to_quat([180, 0, 0])
+        self._object_position_low = (.65, -0.05, -.3)
+        self._object_position_high = (.75, 0.05, -.3)
+
+        if task == 'gr_hand':
+            self.start_rew_ind = 0
+        else:
+            self.start_rew_ind = 4 if (self.DoF == 3) else 8
         self._success_threshold = success_threshold
         self.obs_img_dim = obs_img_dim #+.15
         self._view_matrix_obs = bullet.get_view_matrix(
@@ -88,8 +85,8 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
     def get_object_info(self):
         complete_object_dict, scaling = metadata.obj_path_map, metadata.path_scaling_map
         complete = self.object_subset is None
-        train = (self.object_subset == 'train') or (self.object_subset == '')
-        test = (self.object_subset == 'test') or (self.object_subset == '')
+        train = self.object_subset == 'train'
+        test = self.object_subset == 'test'
 
         object_dict = {}
         for k in complete_object_dict.keys():
@@ -109,7 +106,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         act_high = np.ones(act_dim) * act_bound
         self.action_space = gym.spaces.Box(-act_high, act_high)
 
-        observation_dim = 11
+        observation_dim = 4 + 7 * self.num_objects
         if self.DoF > 3:
             # Add wrist theta
             observation_dim += 4
@@ -127,7 +124,9 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
             ('state_achieved_goal', state_space),
         ])
 
-    def _load_table(self):
+
+
+    def _load_meshes(self):
         if self._invisible_robot:
             self._sawyer = bullet.objects.sawyer_invisible()
         else:
@@ -140,32 +139,42 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
             visualize=False, rgba=[0,1,0,.1])
         self._end_effector = bullet.get_index_by_attribute(
             self._sawyer, 'link_name', 'gripper_site')
+        
+        self._objects = {}
+        for i in range(num_objects):
+            self.add_object_i(i)
 
+    def _set_positions(self, pos):
+        bullet.reset()
+        bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
 
-    def _load_meshes(self):
-        object_position = np.random.uniform(
-            low=self._object_position_low, high=self._object_position_high)
+        for i in range(self.num_objects):
+            start_ind = (i + 1) * 3
+            object_pos = pos[start_ind:start_ind + 3]
+            self.add_object_i(i, object_pos)
 
-        if self.object_subset == 'easy':
-            rgba = list(np.random.choice(range(256), size=3) / 255.0) + [1]
-            quat = deg_to_quat([0, 0, np.random.randint(0, 180)])
-            obj = random.choice(easy_objects)
-            self._objects = {
-                'obj': obj(pos=object_position, quat=quat, rgba=rgba)
-            }
-        else:
-            object_name, object_id = random.choice(list(self.object_dict.items()))
-            self.curr_object = object_name
-            #print("Current Object: " + object_name)
+        self._format_state_query()
+        hand_pos, gripper = pos[:3], pos[3]
+        self._prev_pos = np.array(hand_pos)
+        self.theta = bullet.deg_to_quat([180, 0, 0])
 
-            self._objects = {
-                'obj': loader.load_shapenet_object(
-                 object_id,
-                 self.scaling,
-                 object_position)
-            }
+        low, high = self._pos_low[:], self._pos_high[:]
+        bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, self.theta)
 
-        # Allow the objects to land softly in low g
+        action = np.array([0 for i in range(self.DoF)] + [gripper])
+        for _ in range(10):
+            self.step(action)
+
+    def add_object_i(self, i, object_position=None, quat=[0, 0, 0, 1]):
+        # Generate object random position
+        if object_position is None:
+            object_position = np.random.uniform(
+                low=self._object_position_low, high=self._object_position_high)
+        
+        # Spawn object above table
+        self._objects[i] = easy_objects[i](pos=object_position, quat=quat)
+
+        # Allow the objects to land softly in low gravity
         p.setGravity(0, 0, -1)
         for _ in range(100):
             bullet.step()
@@ -204,57 +213,35 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
 
 
     def step(self, *action):
-        # Get positional information
         pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
-        curr_angle = bullet.get_link_state(self._sawyer, self._end_effector, 'theta')
-        default_angle = quat_to_deg(self.default_theta)
-    
-        # Keep necesary degrees of theta fixed
-        if self.DoF == 3:
-            angle = default_angle
-        elif self.DoF == 4:
-            angle = np.append(default_angle[:2], [curr_angle[2]])
-        else:
-            angle = curr_angle
-
-        # If angle is part of action, use it
+        angle = bullet.get_link_state(self._sawyer, self._end_effector, 'theta')
+       
         if self.DoF == 3:
             delta_pos, gripper = self._format_action(*action)
         else:
             delta_pos, delta_angle, gripper = self._format_action(*action)
-            angle += delta_angle * self._ddeg_scale
 
-
-        # Update position and theta
         pos += delta_pos * self._action_scale
         pos = np.clip(pos, self._pos_low, self._pos_high)
+
+        angle += delta_angle * self._ddeg_scale
         theta = deg_to_quat(angle)
+
         self._simulate(pos, theta, gripper)
 
-        # Get tuple information
         observation = self.get_observation()
         info = self.get_info()
         reward = self.get_reward(info)
         done = False
+        self._prev_pos = bullet.get_link_state(self._sawyer, self._end_effector, 'pos')
         return observation, reward, done, info
 
     def get_info(self):
-        object_pos = np.asarray(self.get_object_midpoint('obj'))
-        height = object_pos[2]
-        object_goal_distance = np.linalg.norm(object_pos - self.goal_pos)
-        end_effector_pos = self.get_end_effector_pos()
-        object_gripper_distance = np.linalg.norm(
-            object_pos - end_effector_pos)
         gripper_goal_distance = np.linalg.norm(
             self.goal_pos - end_effector_pos)
-        object_goal_success = int(object_goal_distance < self._success_threshold)
-        picked_up = height > self.pickup_eps
 
         info = {
-            'object_goal_distance': object_goal_distance,
-            'object_goal_success': object_goal_success,
-            'object_height': height,
-            'picked_up': picked_up,
+            'gripper_goal_distance': gripper_goal_distance,
         }
 
         return info
@@ -266,14 +253,14 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         goal_key = "state_desired_goal"
         values = []
         for i in range(len(paths)):
-            state = paths[i]["observations"][-1][state_key][self.start_obj_ind:self.start_obj_ind + 3]
+            state = paths[i]["observations"][-1][state_key][self.start_rew_ind:self.start_rew_ind + 3]
             height = state[2]
-            goal = contexts[i][goal_key][self.start_obj_ind:self.start_obj_ind + 3]
+            goal = contexts[i][goal_key][self.start_rew_ind:self.start_rew_ind + 3]
             distance = np.linalg.norm(state - goal)
-            values.append(height)
-            #values.append(distance)
-        #diagnostics_key = goal_key + "/final/distance"
-        diagnostics_key = goal_key + "/final/height"
+            values.append(distance)
+            #values.append(height)
+        diagnostics_key = goal_key + "/final/distance"
+        #diagnostics_key = goal_key + "/final/height"
         diagnostics.update(create_stats_ordered_dict(
             diagnostics_key,
             values,
@@ -282,14 +269,14 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         values = []
         for i in range(len(paths)):
             for j in range(len(paths[i]["observations"])):
-                state = paths[i]["observations"][j][state_key][self.start_obj_ind:self.start_obj_ind + 3]
+                state = paths[i]["observations"][j][state_key][self.start_rew_ind:self.start_rew_ind + 3]
                 height = state[2]
-                goal = contexts[i][goal_key][self.start_obj_ind:self.start_obj_ind + 3]
+                goal = contexts[i][goal_key][self.start_rew_ind:self.start_rew_ind + 3]
                 distance = np.linalg.norm(state - goal)
-                values.append(height)
-                #values.append(distance)
-        #diagnostics_key = goal_key + "/distance"
-        diagnostics_key = goal_key + "/height"
+                values.append(distance)
+                #values.append(height)
+        diagnostics_key = goal_key + "/distance"
+        #diagnostics_key = goal_key + "/height"
         diagnostics.update(create_stats_ordered_dict(
             diagnostics_key,
             values,
@@ -305,7 +292,7 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         return img
 
     def set_goal(self, goal):
-        self.goal_pos = goal['state_desired_goal'][self.start_obj_ind:self.start_obj_ind + 3]
+        self.goal_pos = goal['state_desired_goal'][self.start_rew_ind:self.start_rew_ind + 3]
 
     def get_image(self, width, height):
         image = np.float32(self.render_obs())
@@ -314,24 +301,26 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
     def get_reward(self, info):
         if self.task == 'goal_reaching':
             return info['object_goal_success'] - 1
+        elif self.task == 'gr_hand':
+            return info['gripper_goal_success'] - 1
         elif self.task == 'pickup':
             return info['picked_up'] - 1
 
     def reset(self):
-        # Load Enviorment
         bullet.reset()
         bullet.setup_headless(self._timestep, solver_iterations=self._solver_iterations)
-        self._load_table()
         self._load_meshes()
         self._format_state_query()
 
-        # Sample and load starting positions
-        init_pos = np.array(self._pos_init)
-        low, high = self._pos_low[:], self._pos_high[:]
-        self.goal_pos = np.random.uniform(low=low, high=high)
-        bullet.position_control(self._sawyer, self._end_effector, init_pos, self.default_theta)
+        self._prev_pos = np.array(self._pos_init)
+        theta = bullet.deg_to_quat([180, 0, 0])
 
-        # Move to starting positions
+        low, high = self._pos_low[:], self._pos_high[:]
+
+        self.goal_pos = np.random.uniform(low=low, high=high)
+
+        bullet.position_control(self._sawyer, self._end_effector, self._prev_pos, theta)
+
         action = np.array([0 for i in range(self.DoF)] + [-1])
         for _ in range(3):
             self.step(action)
@@ -343,32 +332,30 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         return obs
 
     def compute_reward_pu(self, obs, actions, next_obs, contexts):
-        obj_state = self.format_obs(next_obs['state_observation'])[:, self.start_obj_ind:self.start_obj_ind + 3]
+        obj_state = self.format_obs(next_obs['state_observation'])[:, self.start_rew_ind:self.start_rew_ind + 3]
         height = obj_state[:, 2]
         reward = (height > self.pickup_eps) - 1
         return reward
     
     def compute_reward_gr(self, obs, actions, next_obs, contexts):
-        obj_state = self.format_obs(next_obs['state_observation'])[:, self.start_obj_ind:self.start_obj_ind + 3]
-        obj_goal = self.format_obs(contexts['state_desired_goal'])[:, self.start_obj_ind:self.start_obj_ind + 3]
+        obj_state = self.format_obs(next_obs['state_observation'])[:, self.start_rew_ind:self.start_rew_ind + 3]
+        obj_goal = self.format_obs(contexts['state_desired_goal'])[:, self.start_rew_ind:self.start_rew_ind + 3]
         object_goal_distance = np.linalg.norm(obj_state - obj_goal, axis=1)
         object_goal_success = object_goal_distance < self._success_threshold
         return object_goal_success - 1
 
     def compute_reward(self, obs, actions, next_obs, contexts):
-        if self.task == 'goal_reaching':
+        if self.task == 'goal_reaching' or self.task == 'gr_hand':
             return self.compute_reward_gr(obs, actions, next_obs, contexts)
         elif self.task == 'pickup':
             return self.compute_reward_pu(obs, actions, next_obs, contexts)
 
-    def get_object_deg(self):
+    def get_object_info(self, i):
         object_info = bullet.get_body_info(self._objects['obj'],
-                                           quat_to_deg=True)
-        return object_info['theta']
-
-    def get_hand_deg(self):
-        return bullet.get_link_state(self._sawyer, self._end_effector,
-            'theta', quat_to_deg=True)
+                                           quat_to_deg=False)
+        object_pos = object_info['pos']
+        object_theta = object_info['theta']
+        return np.concatenate((object_pos, object_theta))
 
     def get_observation(self):
         left_tip_pos = bullet.get_link_state(
@@ -389,20 +376,18 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
         object_pos = object_info['pos']
         object_theta = object_info['theta']
 
+        # Note: Fill in pseudo values for rest of goal pos to make it same shape as observation
         if self.DoF > 3:
-            observation = np.concatenate((
-                end_effector_pos, hand_theta, gripper_tips_distance,
-                object_pos, object_theta))
-            goal_pos = np.concatenate((
-                self.goal_pos, hand_theta, gripper_tips_distance,
-                self.goal_pos, object_theta))
+            observation = np.concatenate((end_effector_pos, hand_theta, gripper_tips_distance))
+            goal_pos = np.concatenate((self.goal_pos, hand_theta, gripper_tips_distance))
         else:
-            observation = np.concatenate((
-                end_effector_pos, gripper_tips_distance,
-                object_pos, object_theta))
-            goal_pos = np.concatenate((
-                end_effector_pos, gripper_tips_distance,
-                self.goal_pos, object_theta))
+            observation = np.concatenate((end_effector_pos, gripper_tips_distance))
+            goal_pos = np.concatenate((self.goal_pos, gripper_tips_distance))
+
+        for i in range(self.num_objects):
+            obj_info = self.get_object_info(i)
+            observation = np.append(observation, obj_info)
+            goal_pos = np.append(goal_pos, obj_info)
 
         obs_dict = dict(
             observation=observation,

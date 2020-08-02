@@ -18,8 +18,8 @@ args = parser.parse_args()
 data_save_path = "/home/ashvin/data/sasha/demos/" + args.name + ".pkl"
 video_save_path = "/home/ashvin/data/sasha/demos/videos"
 
-env = roboverse.make('SawyerRigGrasp-v0', gui=args.gui)
-object_name = 'lego'
+env = roboverse.make('SawyerRigMultiobj-v0', gui=args.gui)
+object_name = 'obj'
 num_grasps = 0
 image_data = []
 
@@ -37,20 +37,6 @@ imlength = env.obs_img_dim * env.obs_img_dim * 3
 dataset = []
 
 for i in tqdm(range(args.num_trajectories)):
-    # if i % 2 == 0:
-    #     noise = 1
-    # else:
-    #     noise = 0.1
-    # trajectory = {
-    #     'image_observations': np.zeros((args.num_timesteps, imlength), dtype=np.uint8),
-    #     'observations': np.zeros((args.num_timesteps, obs_dim), dtype=np.float),
-    #     'next_observations': np.zeros((args.num_timesteps, obs_dim), dtype=np.float),
-    #     'actions': np.zeros((args.num_timesteps, act_dim), dtype=np.float),
-    #     'rewards': np.zeros((args.num_timesteps), dtype=np.float),
-    #     'terminals': np.zeros((args.num_timesteps), dtype=np.uint8),
-    #     'agent_infos': np.zeros((args.num_timesteps), dtype=np.uint8),
-    #     'env_infos': np.zeros((args.num_timesteps), dtype=np.uint8),
-    # }
 
     trajectory = {
         'observations': np.zeros((args.num_timesteps, imlength), dtype=np.uint8),
@@ -70,31 +56,31 @@ for i in tqdm(range(args.num_trajectories)):
         images.append(Image.fromarray(img))
         trajectory['observations'][j, :] = img.transpose().flatten()
 
-        ee_pos = env.get_end_effector_pos()
-        target_pos = env.get_object_midpoint(object_name)
+		ee_pos = np.append(env.get_end_effector_pos(), quat_to_deg(env.theta)[2] / 180)
+		target_pos = np.append(env.get_object_midpoint('obj'), env.get_object_deg()[2] / 180)
+		target_pos[1] += 0.0065
+		
+		if j < 20:
+			action = target_pos - ee_pos
+			action[2] = 0.
+			action *= 3.0
+			grip = 0.
+		elif j < 35:
+			action = target_pos - ee_pos
+			action *= 3.0
+			action[2] *= 2.0
+			grip = 0.
+		elif j < 42:
+			action = np.zeros((4,))
+			grip = 0.5
+		else:
+			action = np.zeros((4,))
+			action[2] = 1.0
+			action = np.random.normal(action, 0.25)
+			grip = 1.
 
-        if j < 25:
-            action = target_pos - ee_pos
-            action[2] = 0.
-            action *= 3.0
-            grip = 0.
-        elif j < 35:
-            action = target_pos - ee_pos
-            action[2] -= 0.03
-            action *= 3.0
-            action[2] *= 2.0
-            grip = 0.
-        elif j < 42:
-            action = np.zeros((3,))
-            grip = 0.5
-        else:
-            action = np.zeros((3,))
-            action[2] = 1.0
-            action = np.random.normal(action, 0.25)
-            grip = 1.
-
-        action = np.append(action, [grip])
-        action = np.random.normal(action, 0.1)
+		action = np.append(action, [grip])
+		action = np.random.normal(action, 0.005)
 
         next_observation, reward, done, info = env.step(action)
 
@@ -116,4 +102,3 @@ print('Success Rate: {}'.format(num_grasps / args.num_trajectories))
 file = open(data_save_path, 'wb')
 pkl.dump(dataset, file)
 file.close()
-

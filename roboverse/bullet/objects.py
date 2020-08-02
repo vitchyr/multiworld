@@ -32,6 +32,7 @@ obj_dir = "bullet-objects"
 sawyer = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro.urdf')
 sawyer_invisible = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro_invisible.urdf')
 sawyer_finger_visual_only = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/sawyer_xacro_finger_visual_only.urdf')
+sawyer_hand_visual_only = loader(ASSET_PATH, 'sawyer_robot/sawyer_description/urdf/simple_sawyer_xacro_finger_visual_only.urdf')
 widowx_200 = loader(
   ASSET_PATH,
   'interbotix_descriptions/urdf/wx200.urdf',
@@ -51,14 +52,15 @@ table = loader(PDATA_PATH, 'table/table.urdf',
 
 duck = loader(PDATA_PATH, 'duck_vhacd.urdf',
               pos=[.75, -.4, -.3],
-              deg=[0,0,0],
+              quat=[0, 0, 1, 0],
+              #deg=[0,0,0],
               scale=0.8)
 
 lego = loader(PDATA_PATH, 'lego/lego.urdf',
               pos=[.75, .2, -.3],
               quat=[0, 0, 1, 0],
               rgba=[1, 0, 0, 1],
-              scale=1.2)
+              scale=1.1) #1.2
 
 
 ## custom objects
@@ -69,16 +71,18 @@ bowl = loader(ASSET_PATH, os.path.join(obj_dir, "bowl", "bowl.urdf"),
 
 lid = loader(ASSET_PATH, os.path.join(obj_dir, "bowl", "lid.urdf"),
               pos=[.75, 0, -.3],
-              scale=0.25)
+              scale=0.1) #0.25
 
 cube = loader(ASSET_PATH, os.path.join(obj_dir, "cube", "cube.urdf"),
               pos=[.75, -.4, -.3],
-              scale=0.05)
+              quat=[0, 0, 0, 1],
+              scale=0.03) #0.05
 
 spam = loader(ASSET_PATH, os.path.join(obj_dir, "spam", "spam.urdf"),
               pos=[.75, -.4, -.3],
-              deg=[90,0,-90],
-              scale=0.025)
+              #deg=[90,0,0], #90,0,-90
+              quat=[0, 0, 0, 1],
+              scale=0.015) #0.0175 #0.25
 ## tray
 
 tray = loader('', os.path.join("tray", "tray.urdf"),

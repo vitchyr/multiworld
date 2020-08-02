@@ -5,20 +5,21 @@ import pickle as pkl
 from tqdm import tqdm
 from roboverse.utils.renderer import EnvRenderer, InsertImageEnv
 from IPython.display import clear_output
+from roboverse.bullet.misc import load_obj, quat_to_deg, draw_bbox
 import time
 plt.ion()
 
 # Variables to define!
-DoF = 4 # 3, 4, 6
+DoF = 3 # (3, 4, 6)
 num_timesteps = 50
-object_subset = 'train' #train, test
-task = 'goal_reaching' #pickup, goal_reaching
-extend_dataset_path = 'train'# False or name
+object_subset = 'easy' # (train, test, easy)
+task = 'gr_hand' # (pickup, goal_reaching)
 # Variables to define!
 
 # Set Up Enviorment
 spacemouse = rv.devices.SpaceMouse(DoF=DoF)
-state_env = rv.make('SawyerRigMultiobj-v0', gui=True, DoF=DoF, object_subset=object_subset, task=task, visualize=False)
+state_env = rv.make('SawyerDistractorReaching-v0', gui=True, DoF=DoF, object_subset=object_subset, task=task, visualize=False)
+#state_env = rv.make('SawyerRigMultiobj-v0', gui=True, DoF=DoF, object_subset=object_subset, task=task, visualize=False)
 imsize = state_env.obs_img_dim
 imlength = imsize * imsize * 3
 
@@ -176,18 +177,49 @@ def get_and_process_response(trajectory, traj_images):
 	save_datasets()
 	return end
 
-
 def rollout_trajectory():
 	trajectory = get_empty_traj_dict()
 
-	#spacemouse.start_control()
 	env.reset()
 	env_image, traj_images = get_recon_image(env), []
-	for j in range(num_timesteps):
-
+	for j in tqdm(range(num_timesteps)):
+		#render()
 		traj_images.append(get_recon_image(env))		
-		
 		action = spacemouse.get_action()
+
+		# ee_pos = np.append(env.get_end_effector_pos(), quat_to_deg(env.theta)[2] / 180)
+		# target_pos = np.append(env.get_object_midpoint('obj'), env.get_object_deg()[2] / 180)
+		# # hand_deg, obj_deg = env.get_hand_deg(), env.get_object_deg()
+		# # ee_pos = np.append(env.get_end_effector_pos(), hand_deg[2] / 180)
+		# # target_pos = np.append(env.get_object_midpoint('obj'), obj_deg[2] / 180)
+		# target_pos[1] += 0.0065
+		# target_pos[2] -= 0.01
+
+		# if j < 20:
+		# 	action = target_pos - ee_pos
+		# 	action[2] = 0.
+		# 	action *= 3.0
+		# 	grip = -1.
+		# elif j < 35:
+		# 	action = target_pos - ee_pos
+		# 	action *= 3.0
+		# 	action[2] *= 2.0
+		# 	grip = -1.
+		# elif j < 42:
+		# 	#action = target_pos - ee_pos
+		# 	action = np.zeros((4,))
+		# 	grip = 0.8
+		# else:
+		# 	action = np.zeros((4,))
+		# 	action[2] = 1.0
+		# 	action = np.random.normal(action, 0.25)
+		# 	grip = 1.
+
+		# action = np.append(action, [grip])
+		# action = np.random.normal(action, 0.01)
+		# action = np.clip(action, a_min=-1, a_max=1)
+
+
 		observation = env.get_observation()
 		next_observation, reward, done, info = env.step(action)
 
@@ -202,8 +234,6 @@ recon_dataset = get_empty_recon_dict()
 demo_dataset = []
 
 #combine_datasets('train_old', 'train_new')
-
-
 
 while True:
 	print("Trajectory Number:", num_trajectories)

@@ -7,6 +7,9 @@
   <material name="black">
     <color rgba="0 0 0 1"/>
   </material>
+  <material name="clear">
+    <color rgba="0.0 0.0 0.0 0."/>
+  </material>
   <material name="darkgray">
     <color rgba="0.2 0.2 0.2 1"/>
   </material>
@@ -49,12 +52,13 @@
   </link>
   <link name="pedestal">
     <visual>
-      <origin rpy="1.5708 0 -1.5708" xyz="0.26 0.345 -0.91488"/>
+      <origin rpy="0 0 0" xyz="0 0 -0.3"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_pv/pedestal.DAE"/>
+        <cylinder length="0.62" radius="0.18"/>
       </geometry>
-      <material name="darkgray"/>
+      <material name="clear"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0 0 -0.3"/>
       <geometry>
@@ -116,13 +120,15 @@
       <mass value="2.0687"/>
       <inertia ixx="0.0067599" ixy="-4.2024e-05" ixz="-6.1904e-07" iyy="0.0067877" iyz="1.5888e-05" izz="0.0074031"/>
     </inertial>
+
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.12"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_pv/base.DAE"/>
+        <cylinder length="0.24" radius="0.08"/>
       </geometry>
-      <material name="sawyer_red"/>
+      <material name="clear"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0.12"/>
       <geometry>
@@ -136,14 +142,15 @@
       <mass value="5.3213"/>
       <inertia ixx="0.053314" ixy="0.0047093" ixz="0.011734" iyy="0.057902" iyz="0.0080179" izz="0.023659"/>
     </inertial>
+
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0.081 0 0.237"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_mp3/l0.DAE"/>
-        <!-- <mesh filename="/Users/janner/Desktop/l0.obj"/> -->
+        <sphere radius="0.07"/>
       </geometry>
-      <material name="sawyer_red"/>
+      <material name="clear"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0.081 0 0.237"/>
       <geometry>
@@ -204,13 +211,15 @@
       <mass value="4.505"/>
       <inertia ixx="0.022398" ixy="-0.00023986" ixz="-0.00029362" iyy="0.014613" iyz="-0.0060875" izz="0.017295"/>
     </inertial>
+
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.1225"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_mp3/l1.DAE"/>
+        <sphere radius="0.07"/>
       </geometry>
       <material name="sawyer_red"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0.1225"/>
       <geometry>
@@ -231,13 +240,15 @@
       <mass value="1.7251"/>
       <inertia ixx="0.025176" ixy="4.3031e-06" ixz="1.4564e-05" iyy="0.024982" iyz="-0.0033928" izz="0.0033798"/>
     </inertial>
+
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.14"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_pv/l2.DAE"/>
+        <cylinder length="0.35" radius="0.06"/>
       </geometry>
       <material name="sawyer_red"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0.14"/>
       <geometry>
@@ -258,13 +269,15 @@
       <mass value="2.4743"/>
       <inertia ixx="0.0099549" ixy="-1.7675e-05" ixz="0.00027521" iyy="0.0064248" iyz="0.0030853" izz="0.0067746"/>
     </inertial>
+
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 -0.01 -0.12"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_pv/l3.DAE"/>
+        <sphere radius="0.06"/>
       </geometry>
       <material name="sawyer_red"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0 -0.01 -0.12"/>
       <geometry>
@@ -285,13 +298,15 @@
       <mass value="1.0433"/>
       <inertia ixx="0.012913" ixy="2.573e-05" ixz="0.00017705" iyy="0.012939" iyz="0.0011152" izz="0.0012405"/>
     </inertial>
+
     <visual>
-      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <origin rpy="0 0 0" xyz="0 0 0.14"/>
       <geometry>
-        <mesh filename="package://sawyer_description/meshes/sawyer_pv/l4.DAE"/>
+        <cylinder length="0.36" radius="0.045"/>
       </geometry>
       <material name="sawyer_red"/>
     </visual>
+
     <collision>
       <origin rpy="0 0 0" xyz="0 0 0.14"/>
       <geometry>
@@ -439,7 +454,7 @@
       <geometry>
         <mesh filename="package://intera_tools_description/meshes/electric_gripper/electric_gripper_base.DAE"/>
       </geometry>
-      <material name="silver"/>
+      <material name="darkgray"/>
     </visual>
     <collision>
       <origin rpy="-1.57 3.14 0" xyz="0.004 0.0 0.025"/>
@@ -502,7 +517,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/standard_narrow.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <!-- <xacro:property name="finger_box_height" value="0.01" scope="local"/> -->
       <!-- <xacro:property name="finger_box_width" value="0.0135" scope="local"/> -->
@@ -546,7 +561,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/standard_narrow.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <!-- <xacro:property name="finger_box_height" value="0.01" scope="local"/> -->
       <!-- <xacro:property name="finger_box_width" value="0.0135" scope="local"/> -->
@@ -613,7 +628,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/basic_soft_tip.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <collision>
         <!-- yaw = ${pi*(g_reflect+1)/2} = pi-->
@@ -645,7 +660,7 @@
         <geometry>
           <mesh filename="package://intera_tools_description/meshes/electric_gripper/fingers/basic_soft_tip.DAE" />
         </geometry>
-        <material name="silver"/>
+        <material name="black"/>
       </visual>
       <collision>
         <origin rpy="0 0 0" xyz="0 0.0045 -0.015"/>

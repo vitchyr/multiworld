@@ -33,8 +33,7 @@ def load_vae(vae_file):
     vae.to("cpu")
     return vae
 
-vae_path = "/home/ashvin/data/sasha/pybullet-testing/vqvae/run10/id0/itr_200.pkl"
-#vae_path = "/home/ashvin/data/sasha/cvqvae/vqvae/run10/id0/vae.pkl"
+vae_path = "/home/ashvin/data/sasha/cvqvae/vqvae/run21/id0/vae.pkl"
 
 model = load_vae(vae_path)
 #env = VQVAEWrappedEnv(env, load_vae(vae_path))
@@ -56,7 +55,7 @@ dataset = {
         'latent_desired_goal': np.zeros((args.num_trajectories * args.num_timesteps,
             model.representation_size), dtype=np.float),
         'state_desired_goal': np.zeros((args.num_trajectories * args.num_timesteps,
-            11), dtype=np.float),
+            15), dtype=np.float),
         'image_desired_goal': np.zeros((args.num_trajectories * args.num_timesteps, imlength), dtype=np.float),
         }
 
@@ -102,9 +101,9 @@ for i in tqdm(range(args.num_trajectories)):
 
         img = np.uint8(env.render_obs()).transpose() / 255.0
 
-        # # temp
-        # img = np.zeros_like(img)
-        # # temp\
+        # temp
+        img = np.zeros_like(img)
+        # temp\
 
         img = ptu.from_numpy(img)
 
