@@ -70,8 +70,6 @@ class SawyerRigMultiobjV0(SawyerBaseEnv):
 
         self._object_position_low = (.65, -0.1, -.3)
         self._object_position_high = (.75, 0.1, -.3)
-        # self._object_position_low = (.65, -0.05, -.3)
-        # self._object_position_high = (.75, 0.05, -.3)
         self._fixed_object_position = (.75, 0.2, -.36)
         self.start_obj_ind = 4 if (self.DoF == 3) else 8
         self.default_theta = bullet.deg_to_quat([180, 0, 0])
