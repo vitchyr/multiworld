@@ -279,6 +279,11 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             success = obj_distance < self.success_threshold
             info['distance_to_target_obj_{}'.format(i)] = obj_distance
             info['success_obj_{}'.format(i)] = success
+        for i, obj in enumerate(self.objects):
+            obj_distance = np.linalg.norm(self.cursor.position - obj.position)
+            success = obj_distance < self.success_threshold
+            info['cursor_distance_obj_{}'.format(i)] = obj_distance
+            info['cursor_success_obj_{}'.format(i)] = success
         return info
 
     def reset(self):
