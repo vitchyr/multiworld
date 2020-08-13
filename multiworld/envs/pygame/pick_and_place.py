@@ -107,7 +107,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             min_grab_distance=0.5,
             walls=None,
             # visualization
-            cursor_visual_radius=None,
+            ball_visual_radius=None,
             object_visual_radius=None,
             # Rewards
             action_l2norm_penalty=0,
@@ -148,8 +148,8 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             raise ValueError('Invalid init position strategy: {}'.format(
                 init_position_strategy
             ))
-        if cursor_visual_radius is None:
-            cursor_visual_radius = ball_radius
+        if ball_visual_radius is None:
+            ball_visual_radius = ball_radius
         if object_visual_radius is None:
             object_visual_radius = object_radius
 
@@ -158,7 +158,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
         self.action_l2norm_penalty = action_l2norm_penalty
         self.render_onscreen = render_onscreen
         self.render_size = render_size
-        self.cursor_visual_radius = cursor_visual_radius
+        self.ball_visual_radius = ball_visual_radius
         self.object_visual_radius = object_visual_radius
         self.reward_type = reward_type
         self.action_scale = action_scale
@@ -175,7 +175,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             Object(
                 position=np.zeros((2,)),
                 color=Object.IDX_TO_COLOR[i],
-                radius=cursor_visual_radius if i == 0 else object_visual_radius,
+                radius=ball_visual_radius if i == 0 else object_visual_radius,
                 min_pos=-self.boundary_dist,
                 max_pos=self.boundary_dist,
             )
