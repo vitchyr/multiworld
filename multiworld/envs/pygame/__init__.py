@@ -476,6 +476,63 @@ def register_pnp_envs():
             entry_point=PickAndPlaceEnv,
             kwargs=new_kwargs,
         )
+    big_ball_settings = dict(
+        # Environment dynamics
+        action_scale=1.0,
+        boundary_dist=4,
+        ball_radius=1.5,
+        object_radius=1.,
+        ball_visual_radius=1.5,
+        object_visual_radius=1.,
+        min_grab_distance=1.,
+        walls=None,
+        # Rewards
+        action_l2norm_penalty=0,
+        reward_type="dense",
+        success_threshold=0.60,
+        # Reset settings
+        fixed_goal=None,
+        # Visualization settings
+        images_are_rgb=True,
+        render_dt_msec=0,
+        render_onscreen=False,
+        render_size=84,
+        show_goal=False,
+        goal_samplers=None,
+        goal_sampling_mode='random',
+        num_presampled_goals=10000,
+        object_reward_only=False,
+        init_position_strategy='random',
+    )
+    for env_id, extra_settings in [
+        (
+                'FourObject-PickAndPlace-BigBall-RandomInit-2D-v1',
+                dict(num_objects=4,),
+        ),
+        (
+                'ThreeObject-PickAndPlace-BigBall-RandomInit-2D-v1',
+                dict(num_objects=3,),
+        ),
+        (
+                'TwoObject-PickAndPlace-BigBall-RandomInit-2D-v1',
+                dict(num_objects=2,),
+        ),
+        (
+                'OneObject-PickAndPlace-BigBall-RandomInit-2D-v1',
+                dict(num_objects=1,),
+        ),
+        (
+                'ZeroObject-PickAndPlace-BigBall-RandomInit-2D-v1',
+                dict(num_objects=0,),
+        ),
+    ]:
+        new_kwargs = big_ball_settings.copy()
+        new_kwargs.update(extra_settings)
+        register(
+            id=env_id,
+            entry_point=PickAndPlaceEnv,
+            kwargs=new_kwargs,
+        )
 
 
 def point2d_image_fixed_goal_v0(**kwargs):
