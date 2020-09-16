@@ -530,6 +530,25 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
                 num_obj_success += obj_success
                 if i in [1, 2]:
                     num_obj_1_2_success += obj_success
+
+                ### logging information for the two bump task ###
+                if i == 1: # i==1
+                    distance_bump1 = np.linalg.norm(
+                        path['observations'][:, 2 * i:2 * i + 2] - [-3.5, -3.5], axis=-1
+                    )
+                    stat_to_lists['distance_to_bump1'].append(distance_bump1)
+                    stat_to_lists['success_bump1'].append(distance_bump1 < self.success_threshold)
+
+                    distance_bump2 = np.linalg.norm(
+                        path['observations'][:, 2 * i:2 * i + 2] - [3.5, 3.5], axis=-1
+                    )
+                    stat_to_lists['distance_to_bump2'].append(distance_bump2)
+                    stat_to_lists['success_bump2'].append(distance_bump2 < self.success_threshold)
+
+                    distance_bumps_min = np.minimum(distance_bump1, distance_bump2)
+                    stat_to_lists['distance_to_bumps_min'].append(distance_bumps_min)
+                    stat_to_lists['success_bumps_min'].append(distance_bumps_min < self.success_threshold)
+
             stat_to_lists['num_obj_success'].append(num_obj_success)
             stat_to_lists['num_obj_1_2_success'].append(num_obj_1_2_success)
         for stat_name, stat_list in stat_to_lists.items():
