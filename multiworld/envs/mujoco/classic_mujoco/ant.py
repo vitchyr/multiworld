@@ -232,7 +232,6 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
             ])
 
     def compute_reward(self, achieved_goal, desired_goal, info):
-        import ipdb; ipdb.set_trace()
         return - np.linalg.norm(achieved_goal - desired_goal)
 
     @property
