@@ -140,7 +140,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             raise ValueError("Invalid action scale: {}".format(
                 action_scale
             ))
-        if init_position_strategy not in {'random', 'on_random_object', 'fixed'}:
+        if init_position_strategy not in {'random', 'on_random_object', 'fixed', 'blocking_mode'}:
             raise ValueError('Invalid init position strategy: {}'.format(
                 init_position_strategy
             ))
@@ -280,7 +280,7 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             info['distance_to_target_obj_{}'.format(i)] = obj_distance
             info['success_obj_{}'.format(i)] = success
 
-            if i == 1:  # i==1
+            if i == 0:  # i==1
                 distance_bump1 = np.linalg.norm(obj.position - [-3.5, -3.5])
                 info['distance_to_bump1'] = distance_bump1
                 info['success_bump1'] = (distance_bump1 < self.success_threshold)
@@ -312,6 +312,19 @@ class PickAndPlaceEnv(MultitaskEnv, Serializable):
             start_i = 2 + 2 * random.randint(0, len(self._all_objects) - 2)
             end_i = start_i + 2
             init_pos[:2] = init_pos[start_i:end_i].copy()
+        elif self.init_position_strategy == 'blocking_mode':
+            init_pos = (
+                self.observation_space.spaces['state_observation'].sample()
+            )
+            if np.random.uniform() >= 0.5:
+                mode = [3.5, 3.5]
+            else:
+                mode = [-3.5, -3.5]
+            for i in range(2, len(self._all_objects)):
+                init_pos[2*i: 2*i+2] = mode + np.random.normal(0, 0.75, 2)
+            low = self.observation_space.spaces['state_observation'].low
+            high = self.observation_space.spaces['state_observation'].high
+            init_pos = np.clip(init_pos, low, high)
         else:
             raise ValueError(self.init_position_strategy)
         self._set_positions(init_pos)
