@@ -3,6 +3,7 @@ Exact same as gym env, except that the gear ratio is 30 rather than 150.
 """
 import numpy as np
 import random
+import mujoco_py
 
 from gym.spaces import Dict, Box
 from gym import GoalEnv
@@ -42,7 +43,14 @@ class AntEnv(MujocoEnv, Serializable):
 
     def step(self, a):
         torso_xyz_before = self.get_body_com("torso")
-        self.do_simulation(a, self.frame_skip)
+        done = False
+        try:
+            self.do_simulation(a, self.frame_skip)
+        except mujoco_py.builder.MujocoException as e:
+            print("step error for ant")
+            print(a, self._get_obs())
+            print(e)
+            done = True
         torso_xyz_after = self.get_body_com("torso")
         torso_velocity = torso_xyz_after - torso_xyz_before
         forward_reward = torso_velocity[0] / self.dt
@@ -57,7 +65,6 @@ class AntEnv(MujocoEnv, Serializable):
                 and 0.2 <= state[2] <= 1.0
         )
         # done = not notdone
-        done = False
         ob = self._get_obs()
         return ob, reward, done, dict(
             reward_forward=forward_reward,
