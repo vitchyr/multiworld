@@ -223,6 +223,68 @@ def register_reaching_envs():
             'bg_color': 'white',
         },
     )
+    register(
+        id='Point2D-Easy-UWall-v3',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Easy-UWall-Hard-Init-v3',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (0, -2),
+        },
+    )
+    register(
+        id='Point2D-Easy-UWall-Hard-Init-Hard-Goal-v3',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'easy-u',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (0, -2),
+            'fixed_goal': (0, 3),
+        },
+    )
     # Black background
     register(
         id='Point2D-Easy-UWall-v2',
