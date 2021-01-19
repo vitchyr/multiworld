@@ -153,7 +153,6 @@ class Point2DEnv(MultitaskEnv, Serializable):
         done = False
         return ob, reward, done, info
 
-
     def reset(self):
         self._target_position = self.sample_goal()['state_desired_goal']
         if self.randomize_position_on_reset:
@@ -432,6 +431,14 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 always_show_all_stats=True,
                 ))
         return statistics
+
+    @property
+    def goal(self):
+        return self._target_position
+
+    @goal.setter
+    def goal(self, value):
+        self._target_position = value
 
     """Static visualization/utility methods"""
 
