@@ -683,6 +683,25 @@ class Point2DWallEnv(Point2DEnv):
                     self.wall_thickness
                 ),
             ]
+        if wall_shape == "L":
+            self.walls = [
+                VerticalWall(
+                    min_dist=self.ball_radius,
+                    x_pos=-self.inner_wall_max_dist*2,
+                    bottom_y=-self.boundary_dist,
+                    top_y=self.boundary_dist * 0.5,
+                    thickness=self.wall_thickness,
+                ),
+                # Bottom wall
+                HorizontalWall(
+                    min_dist=self.ball_radius,
+                    # y_pos=self.inner_wall_max_dist,
+                    y_pos=self.boundary_dist * 0.5,
+                    left_x=-self.inner_wall_max_dist*2,
+                    right_x=self.inner_wall_max_dist*2,
+                    thickness=self.wall_thickness,
+                ),
+            ]
         if wall_shape == "none":
             self.walls = []
 
@@ -693,10 +712,17 @@ if __name__ == "__main__":
 
     # e = gym.make('Point2D-Box-Wall-v1')
     # e = gym.make('Point2D-Big-UWall-v1')
-    e = gym.make('Point2D-Easy-UWall-v1')
+    from multiworld.envs.pygame import register_L_mazes
+    register_L_mazes()
+    # e = gym.make('Point2D-L-Wall-v0')
+    e = gym.make('Point2D-L-Wall-HardInit-EasyMediumGoal-v0')
+    e = gym.make('Point2D-L-Wall-HardInit-MediumGoal-v0')
+    e = gym.make('Point2D-L-Wall-HardInit-MediumHardGoal-v0')
+    e = gym.make('Point2D-L-Wall-HardInit-ExtraHardGoal-v0')
+    e = gym.make('Point2D-L-Wall-HardInit-HardGoal-v0')
     for i in range(1000):
         e.reset()
         for j in range(5):
             e.step(np.random.rand(2))
             e.render()
-            im = e.get_image()
+            # im = e.get_image()

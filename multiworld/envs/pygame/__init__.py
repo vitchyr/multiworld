@@ -504,6 +504,126 @@ def register_reaching_envs():
             'author': 'vitchyr'
         },
     )
+    register_L_mazes()
+
+
+def register_L_mazes():
+    register(
+        id='Point2D-L-Wall-HardInit-EasyMediumGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'L',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'show_goal': True,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (-3.5, -3.5),
+            'fixed_goal': (0, 3.5),
+        },
+    )
+    register(
+        id='Point2D-L-Wall-HardInit-MediumGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'L',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'show_goal': True,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (-3.5, -3.5),
+            'fixed_goal': (3.5, 3.5),
+        },
+    )
+    register(
+        id='Point2D-L-Wall-HardInit-MediumHardGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'L',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'show_goal': True,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (-3.5, -3.5),
+            'fixed_goal': (3.5, 1.5),
+        },
+    )
+    register(
+        id='Point2D-L-Wall-HardInit-HardGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'L',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'show_goal': True,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (-3.5, -3.5),
+            'fixed_goal': (3.5, 0),
+        },
+    )
+    register(
+        id='Point2D-L-Wall-HardInit-ExtraHardGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        tags={
+            'git-commit-hash': '73c8823',
+            'author': 'vitchyr'
+        },
+        kwargs={
+            'action_scale': 0.25,
+            'wall_shape': 'L',
+            'wall_thickness': 0.50,
+            'render_size': 84,
+            'images_are_rgb': True,
+            'render_onscreen': False,
+            'render_target': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+            'show_goal': True,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': (-3.5, -3.5),
+            'fixed_goal': (3.5, -3.5),
+        },
+    )
+
 
 def register_pnp_envs():
     shared_settings = dict(
