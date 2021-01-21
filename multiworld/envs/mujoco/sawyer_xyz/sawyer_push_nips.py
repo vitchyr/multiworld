@@ -591,3 +591,17 @@ class SawyerPushAndReachXYHarderEnv(SawyerPushAndReachXYEnv):
 
     def sample_puck_xy(self):
         return np.array([0, 0.6])
+
+
+if __name__ == '__main__':
+    import gym
+    from multiworld.envs.mujoco import (
+        register_development_sawyer_envs,
+    )
+    register_development_sawyer_envs()
+    env = gym.make('SawyerPush-FixedInit-FixedGoal-x0p15-y0p7-v0')
+    for _ in range(1000):
+        env.reset()
+        for _ in range(10):
+            env.step(env.action_space.sample())
+            env.render(mode='human')

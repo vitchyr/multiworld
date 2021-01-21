@@ -349,6 +349,53 @@ def register_development_sawyer_envs():
             clamp_puck_on_step=False,
         )
     )
+    """Pushing tasks with fixed init/goal positions"""
+    register(
+        id='SawyerPush-FixedInit-FixedGoal-x0p15-y0p7-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        kwargs=dict(
+            force_puck_in_goal_space=False,
+            mocap_low=(-0.1, 0.55, 0.0),
+            mocap_high=(0.1, 0.65, 0.5),
+            hand_goal_low=(-0.1, 0.55),
+            hand_goal_high=(0.1, 0.65),
+            puck_goal_low=(-0.15, 0.5),
+            puck_goal_high=(0.15, 0.7),
+
+            fixed_puck_goal=(0.15, 0.7),
+            fixed_hand_goal=(-0.05, 0.6),
+            randomize_goals=False,
+
+            hide_goal=False,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+    )
+    register(
+        id='SawyerPush-FixedInit-FixedGoal-x0p05-y0p7-v0',
+        entry_point='multiworld.envs.mujoco.sawyer_xyz'
+                    '.sawyer_push_nips:SawyerPushAndReachXYEasyEnv',
+        kwargs=dict(
+            force_puck_in_goal_space=False,
+            mocap_low=(-0.1, 0.55, 0.0),
+            mocap_high=(0.1, 0.65, 0.5),
+            hand_goal_low=(-0.1, 0.55),
+            hand_goal_high=(0.1, 0.65),
+            puck_goal_low=(-0.15, 0.5),
+            puck_goal_high=(0.15, 0.7),
+
+            fixed_puck_goal=(0.05, 0.7),
+            fixed_hand_goal=(-0.05, 0.6),
+            randomize_goals=False,
+
+            hide_goal=False,
+            reward_info=dict(
+                type="state_distance",
+            ),
+        )
+    )
 
     """
     NIPS submission pusher environment
