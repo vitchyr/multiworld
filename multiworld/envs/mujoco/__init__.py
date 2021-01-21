@@ -14,6 +14,39 @@ def register_mujoco_envs():
     LOGGER.info("Registering multiworld mujoco gym environments")
     register_classic_mujoco_envs()
     register_sawyer_envs()
+    register_extra_fetch_envs()
+
+
+def register_extra_fetch_envs():
+    register(
+        id='FetchPush-FixedInit-RandomGoal-v1',
+        entry_point='multiworld.envs.mujoco.fetch.fetch_push_wrapper:FetchPushCustomGoalSamplingEnv',
+        kwargs={
+            'reward_type': 'sparse',
+            'fixed_obj_relative_xy': (0., 0.1),
+        },
+        max_episode_steps=50,
+    )
+    register(
+        id='FetchPush-FixedInit-FixedGoal-x0p15-y0p15-v1',
+        entry_point='multiworld.envs.mujoco.fetch.fetch_push_wrapper:FetchPushCustomGoalSamplingEnv',
+        kwargs={
+            'reward_type': 'sparse',
+            'fixed_goal_relative_xy': (.15, 0.15),
+            'fixed_obj_relative_xy': (0., 0.1),
+        },
+        max_episode_steps=50,
+    )
+    register(
+        id='FetchPush-FixedInit-FixedGoal-x0p15-y0-v1',
+        entry_point='multiworld.envs.mujoco.fetch.fetch_push_wrapper:FetchPushCustomGoalSamplingEnv',
+        kwargs={
+            'reward_type': 'sparse',
+            'fixed_goal_relative_xy': (0.15, .0),
+            'fixed_obj_relative_xy': (0., 0.1),
+        },
+        max_episode_steps=50,
+    )
 
 
 def register_sawyer_envs():
