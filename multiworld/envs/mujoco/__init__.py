@@ -683,6 +683,30 @@ def register_classic_mujoco_envs():
         kwargs={},
     )
     register(
+        id='AntFullPositionFixedGoal-x5-y5-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntFullPositionGoalEnv',
+        kwargs=dict(
+            fixed_goal=(
+                5., 5,
+                0.55825595, 0.99471698, -0.06549675,
+                0.05403846, 0.05769015, 0.54550099, 0.49175504, 0.43605609,
+                -1.06352108, -0.54212713, -0.72604919, -0.00647439, 0.99493912
+            ),
+        ),
+    )
+    register(
+        id='AntFullPositionFixedGoal-x2-y5-v0',
+        entry_point='multiworld.envs.mujoco.classic_mujoco.ant:AntFullPositionGoalEnv',
+        kwargs=dict(
+            fixed_goal=(
+                2., 5,
+                0.55825595, 0.99471698, -0.06549675,
+                0.05403846, 0.05769015, 0.54550099, 0.49175504, 0.43605609,
+                -1.06352108, -0.54212713, -0.72604919, -0.00647439, 0.99493912
+            ),
+        ),
+    )
+    register(
         id='HopperFullPositionGoal-v0',
         entry_point='multiworld.envs.mujoco.classic_mujoco.hopper:HopperFullPositionGoalEnv',
         kwargs={},

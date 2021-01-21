@@ -174,6 +174,8 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
             self,
             presampled_positions='classic_mujoco/ant_goal_qpos_5x5_xy.npy',
             presampled_velocities='classic_mujoco/ant_goal_qvel_5x5_xy.npy',
+            fixed_goal_idx=None,
+            fixed_goal=None,
     ):
         self.quick_init(locals())
         super().__init__(
@@ -202,13 +204,27 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
             get_asset_full_path(presampled_velocities)
         )
         self._goal = None
-        idx = random.randint(0, len(self.presampled_qpos)-1)
-        self.goal = self.presampled_qpos[idx]
+        self.fixed_goal_idx = fixed_goal_idx
+        if fixed_goal is None:
+            self.fixed_goal = None
+        else:
+            self.fixed_goal = np.array(fixed_goal)
+        self.goal = self._sample_single_goal()
 
     def reset(self):
-        idx = random.randint(0, len(self.presampled_qpos)-1)
-        self.goal = self.presampled_qpos[idx]
+        self.goal = self._sample_single_goal()
         return super().reset()
+
+    def _sample_single_goal(self):
+        if self.fixed_goal is None:
+            if self.fixed_goal_idx is None:
+                idx = random.randint(0, len(self.presampled_qpos)-1)
+            else:
+                idx = self.fixed_goal_idx
+            goal = self.presampled_qpos[idx]
+        else:
+            goal = self.fixed_goal
+        return goal
 
     def _get_obs(self):
         state_obs = self._get_env_obs()
@@ -272,3 +288,22 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
 
     def viewer_setup(self):
         self.camera_init(self.viewer.cam)
+
+
+if __name__ == '__main__':
+    env = AntFullPositionGoalEnv(
+        # presampled_positions='classic_mujoco/ant_goal_qpos_5x5_xy_grounded.npy',
+        # presampled_velocities='classic_mujoco/ant_goal_qvel_5x5_xy_grounded.npy',
+        fixed_goal_idx=1,
+        fixed_goal=(
+            5., 5,
+            0.55825595, 0.99471698, -0.06549675,
+            0.05403846, 0.05769015, 0.54550099, 0.49175504, 0.43605609,
+            -1.06352108, -0.54212713, -0.72604919, -0.00647439, 0.99493912
+        ),
+    )
+    for _ in range(1000):
+        env.reset()
+        for _ in range(1000):
+            env.step(env.action_space.sample())
+            env.render(mode='human')
