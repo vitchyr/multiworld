@@ -905,3 +905,14 @@ def create_image_48_sawyer_pickup_easy_v0():
         normalize=True,
         presampled_goals=goals,
     )
+
+
+if __name__ == '__main__':
+    register_classic_mujoco_envs()
+    import gym
+    env = gym.make('AntFullPositionFixedGoal-x5-y5-v0')
+    for _ in range(1000):
+        env.reset()
+        for _ in range(100):
+            env.step(env.action_space.sample())
+            env.render()

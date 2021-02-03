@@ -1,11 +1,6 @@
 from gym.envs.registration import register
 import logging
 
-from multiworld.envs.pygame.pick_and_place import (
-    PickAndPlaceEnv,
-    PickAndPlace1DEnv,
-)
-
 LOGGER = logging.getLogger(__name__)
 REGISTERED = False
 
@@ -48,6 +43,22 @@ def register_reaching_envs():
             'ball_radius': 2,
             'render_onscreen': False,
             'show_goal': False,
+            'get_image_base_render_size': (48, 48),
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2DEasyEnv-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DEnv',
+        tags={
+            'author': 'Vitchyr'
+        },
+        kwargs={
+            'images_are_rgb': True,
+            'target_radius': 1,
+            'ball_radius': 2,
+            'render_onscreen': False,
+            'show_goal': True,
             'get_image_base_render_size': (48, 48),
             'bg_color': 'white',
         },
@@ -134,10 +145,11 @@ def register_reaching_envs():
         },
     )
     register(
-        id='Point2D-Box-Wall-ActionScale0p2-v1',
+        id='Point2D-Box-Wall-ActionScale0p2-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'difference from v1': 'colors are inverted',
+            'difference from v0': 'colors are inverted',
+            'difference from v1': 'show goals',
         },
         kwargs={
             'action_scale': .2,
@@ -146,7 +158,7 @@ def register_reaching_envs():
             'render_size': 84,
             'render_onscreen': False,
             'images_are_rgb': True,
-            'show_goal': False,
+            'show_goal': True,
             'wall_color': 'black',
             'bg_color': 'white',
         },
@@ -170,10 +182,11 @@ def register_reaching_envs():
         },
     )
     register(
-        id='Point2D-Box-Wall-ActionScale0p025-v1',
+        id='Point2D-Box-Wall-ActionScale0p025-v2',
         entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
         tags={
-            'difference from v1': 'colors are inverted',
+            'difference from v0': 'colors are inverted',
+            'difference from v1': 'show goals',
         },
         kwargs={
             'action_scale': .025,
@@ -182,7 +195,45 @@ def register_reaching_envs():
             'render_size': 84,
             'render_onscreen': False,
             'images_are_rgb': True,
-            'show_goal': False,
+            'show_goal': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Box-Wall-ActionScale0p025-FixedInitAndGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        kwargs={
+            # 'fixed_goal': (3.5, 3.5),
+            # 'fixed_init_position': (-3.5, 0),
+            'fixed_goal': (3.5, 2),
+            'fixed_init_position': (-3.5, -2),
+            'randomize_position_on_reset': False,
+            'action_scale': .025,
+            'wall_shape': 'box',
+            'wall_thickness': 2.0,
+            'render_size': 84,
+            'render_onscreen': False,
+            'images_are_rgb': True,
+            'show_goal': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Box-Wall-ActionScale0p2-FixedInitAndGoal-v0',
+        entry_point='multiworld.envs.pygame.point2d:Point2DWallEnv',
+        kwargs={
+            'fixed_goal': (3.5, 2),
+            'fixed_init_position': (-3.5, -2),
+            'randomize_position_on_reset': False,
+            'action_scale': .2,
+            'wall_shape': 'box',
+            'wall_thickness': 2.0,
+            'render_size': 84,
+            'render_onscreen': False,
+            'images_are_rgb': True,
+            'show_goal': True,
             'wall_color': 'black',
             'bg_color': 'white',
         },
@@ -653,6 +704,11 @@ def register_pnp_envs():
         num_presampled_goals=10000,
         object_reward_only=True,
     )
+    from multiworld.envs.pygame.pick_and_place import (
+        PickAndPlaceEnv,
+        PickAndPlace1DEnv,
+    )
+
     for env_id, extra_settings in [
         (
                 'FiveObject-PickAndPlace-RandomInit-1D-v1',
