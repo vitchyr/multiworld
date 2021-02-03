@@ -235,12 +235,28 @@ class AntFullPositionGoalEnv(AntEnv, GoalEnv, Serializable):
         )
 
     def step(self, action):
-        results = super().step(action)
+        obs, reward, done, info = super().step(action)
         state = self.sim.get_state()
         state.qpos[15:] = self.goal
         state.qvel[14:] = 0
         self.sim.set_state(state)
-        return results
+        new_info = self._update_info(obs, info)
+        return obs, reward, done, new_info
+
+    def _update_info(self, obs, info):
+        new_info = info.copy()
+        achieved = obs['achieved_goal']
+        goal = obs['desired_goal']
+        difference = achieved - goal
+        xy_difference = difference[..., :2]
+        orientation_difference = difference[..., 3:7]
+        joint_difference = difference[..., 7:]
+
+        new_info['distance'] = np.linalg.norm(difference)
+        new_info['distance/xy'] = np.linalg.norm(xy_difference)
+        new_info['distance/orientation'] = np.linalg.norm(orientation_difference)
+        new_info['distance/joint'] = np.linalg.norm(joint_difference)
+        return new_info
 
     def _get_achieved_goal(self):
         return self.sim.data.qpos.flat[:15].copy()
