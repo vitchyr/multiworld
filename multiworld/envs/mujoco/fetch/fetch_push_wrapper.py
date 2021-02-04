@@ -6,6 +6,11 @@ import numpy as np
 MODEL_XML_PATH = os.path.join('fetch', 'push.xml')
 
 
+def goal_distance(goal_a, goal_b):
+    assert goal_a.shape == goal_b.shape
+    return np.linalg.norm(goal_a - goal_b, axis=-1)
+
+
 class FetchPushCustomGoalSamplingEnv(FetchPushEnv):
     def __init__(
             self,
@@ -55,6 +60,11 @@ class FetchPushCustomGoalSamplingEnv(FetchPushEnv):
 
         self.sim.forward()
         return True
+
+    def step(self, action):
+        obs, reward, done, info = super().step(action)
+        info['distance'] = goal_distance(obs['achieved_goal'], self.goal)
+        return obs, reward, done, info
 
     def _sample_goal(self):
         if self._fixed_goal_relative_xy is None:
