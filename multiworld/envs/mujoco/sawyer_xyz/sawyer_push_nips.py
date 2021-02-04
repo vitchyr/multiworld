@@ -416,6 +416,12 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             self.goal_box.high,
             size=(batch_size, self.goal_box.low.size),
         )
+        if self.fixed_hand_goal is not None:
+            hand_goals = np.tile(self.fixed_hand_goal, (batch_size, 1))
+            goals[:, :2] = hand_goals
+        if self.fixed_puck_goal is not None:
+            puck_goals = np.tile(self.fixed_puck_goal, (batch_size, 1))
+            goals[:, 2:] = puck_goals
         return {
             'desired_goal': goals,
             'state_desired_goal': goals,
@@ -477,7 +483,7 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         goal_key = "state_desired_goal"
 
         for idx, name in [
-            (slice(0,2), "hand_goal"),
+            (slice(0, 2), "hand_goal"),
             (slice(2, 4), "puck_goal"),
         ]:
             values = []
@@ -511,15 +517,19 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         statistics = OrderedDict()
         hand_distances = []
         puck_distances = []
+        distances = []
         for path, goal in zip(paths, goals):
             difference = path['observations'] - goal
             hand_distance = np.linalg.norm(difference[..., 0:2], axis=1)
             puck_distance = np.linalg.norm(difference[..., 2:4], axis=1)
+            distance = np.linalg.norm(difference, axis=1)
             hand_distances.append(hand_distance)
             puck_distances.append(puck_distance)
+            distances.append(distance)
         for stat_name, stat_list in [
             ('distance/hand', hand_distances),
             ('distance/puck', puck_distances),
+            ('distance', distances),
         ]:
             statistics.update(create_stats_ordered_dict(
                 stat_name,
