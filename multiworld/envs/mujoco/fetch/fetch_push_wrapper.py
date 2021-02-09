@@ -17,6 +17,7 @@ class FetchPushCustomGoalSamplingEnv(FetchPushEnv):
             fixed_goal_relative_xy=None,
             fixed_obj_relative_xy=None,
             reward_type='sparse',
+            fix_init_position=True,
     ):
         self._fixed_goal_relative_xy = fixed_goal_relative_xy
         self._fixed_obj_relative_xy = fixed_obj_relative_xy
@@ -42,9 +43,13 @@ class FetchPushCustomGoalSamplingEnv(FetchPushEnv):
             reward_type=reward_type,
         )
         utils.EzPickle.__init__(self)
+        self.fix_init_position = fix_init_position
 
     def _reset_sim(self):
-        if self._fixed_obj_relative_xy is None:
+        if (
+                self._fixed_obj_relative_xy is None
+                or not self.fix_init_position
+        ):
             return super(FetchPushCustomGoalSamplingEnv, self)._reset_sim()
 
         self.sim.set_state(self.initial_state)

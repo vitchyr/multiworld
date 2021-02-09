@@ -19,6 +19,15 @@ def register_mujoco_envs():
 
 def register_extra_fetch_envs():
     register(
+        id='FetchPush-Original-v1',
+        entry_point='multiworld.envs.mujoco.fetch.fetch_push_wrapper:FetchPushCustomGoalSamplingEnv',
+        kwargs={
+            'reward_type': 'sparse',
+            'fix_init_position': False,
+        },
+        max_episode_steps=50,
+    )
+    register(
         id='FetchPush-FixedInit-RandomGoal-v1',
         entry_point='multiworld.envs.mujoco.fetch.fetch_push_wrapper:FetchPushCustomGoalSamplingEnv',
         kwargs={
@@ -909,10 +918,13 @@ def create_image_48_sawyer_pickup_easy_v0():
 
 if __name__ == '__main__':
     register_classic_mujoco_envs()
-    import gym
-    env = gym.make('AntFullPositionFixedGoal-x5-y5-v0')
+    register_sawyer_envs()
+    # import gym
+    env = gym.make('SawyerPush-FixedInit-FixedGoal-x0p15-y0p7-v0')
+    import numpy as np
     for _ in range(1000):
-        env.reset()
+        obs = env.reset()
+        import ipdb; ipdb.set_trace()
         for _ in range(100):
-            env.step(env.action_space.sample())
+            obs, *_ = env.step(np.ones_like(env.action_space.sample()))
             env.render()
