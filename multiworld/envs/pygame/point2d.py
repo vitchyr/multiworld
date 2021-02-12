@@ -41,6 +41,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
             pointmass_color="blue",
             bg_color="black",
             wall_color="white",
+            ignore_previous_position=False,
             **kwargs
     ):
         if walls is None:
@@ -70,6 +71,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
         self.randomize_position_on_reset = randomize_position_on_reset
         self.images_are_rgb = images_are_rgb
         self.show_goal = show_goal
+        self.ignore_previous_position = ignore_previous_position
         self.pointmass_color = pointmass_color
         self.bg_color = bg_color
         self._wall_color = wall_color
@@ -112,11 +114,20 @@ class Point2DEnv(MultitaskEnv, Serializable):
         assert self.action_scale <= 1.0
         velocities = np.clip(velocities, a_min=-1, a_max=1) * self.action_scale
         new_position = self._position + velocities
+        return self.step_by_position(new_position, velocities)
+
+    def step_by_position(self, new_position, velocities):
         orig_new_pos = new_position.copy()
         for wall in self.walls:
-            new_position = wall.handle_collision(
-                self._position, new_position
+            needs_collision_check = (
+                not self.ignore_previous_position or
+                wall.contains_point(new_position)
             )
+
+            if needs_collision_check:
+                new_position = wall.handle_collision(
+                    self._position, new_position
+                )
         if sum(new_position != orig_new_pos) > 1:
             """
             Hack: sometimes you get caught on two walls at a time. If you
@@ -392,7 +403,7 @@ class Point2DEnv(MultitaskEnv, Serializable):
                 wall.endpoint1[0] - wall.endpoint4[0],
                 - wall.endpoint1[1] + wall.endpoint2[1],
                 Color(self._wall_color),
-                thickness=0,
+                thickness=1, # Why no thickness before?
             )
         drawer.render()
 
@@ -678,6 +689,158 @@ class Point2DWallEnv(Point2DEnv):
             ]
         if wall_shape == "none":
             self.walls = []
+
+class Point2DBlockEnv(Point2DEnv):
+    def __init__(self, block_matrix, action_as_position=False,
+                 random_steps=1, random_step_variance=.2,
+                 *args, **kwargs):
+        self.quick_init(locals())
+        super().__init__(*args, **kwargs)
+        self.walls = []
+        self.scale_factor = self.boundary_dist * 2 / len(block_matrix)
+        self.inner_wall_max_dist = 1
+        self.wall_thickness = 0.5
+        self.block_matrix = block_matrix
+        self.action_as_position = action_as_position
+        self.random_steps = random_steps
+        self.random_step_variance = random_step_variance
+
+        self.num_empty_blocks = 0
+
+        self.coverage_map = [
+            [False for _ in row]
+            for row in self.block_matrix
+        ]
+
+        for row_idx, row in enumerate(block_matrix):
+            for col_idx, val in enumerate(row):
+                if val:
+                    # Because the window is (-boundary_dist, boundary_dist)
+                    # instead of (0, 2 * boundary_dist)
+                    # y = -self.boundary_dist + row_idx *block_width
+                    # x = -self.boundary_dist + col_idx * block_width
+                    x, y = self.get_block_xy(row_idx, col_idx)
+                    self.walls.append(
+                        VerticalWall(
+                            0,
+                            x_pos = x + self.block_width / 2,
+                            bottom_y = y + self.block_width / 2,
+                            top_y = y + self.block_width / 2,
+                            thickness = self.block_width / 2
+                        ),
+                    )
+                else:
+                    self.num_empty_blocks += 1
+        self.mode = "train"
+
+        if self.action_as_position:
+            self.action_space = self.observation_space['observation']
+
+    @property
+    def block_width(self):
+        return self.scale_factor
+
+    @property
+    def coverage(self):
+        num_blocks_explored = 0
+        for row in self.coverage_map:
+            for is_explored in row:
+                if is_explored:
+                    num_blocks_explored += 1
+        return num_blocks_explored / self.num_empty_blocks
+
+    def get_block_xy(self, block_row_idx, block_col_idx):
+        y = -self.boundary_dist + block_row_idx * self.block_width
+        x = -self.boundary_dist + block_col_idx * self.block_width
+        return (x, y)
+
+    def xy_to_block_idx(self, x, y):
+        block_col = (x + self.boundary_dist) // self.block_width
+        block_row = (y + self.boundary_dist) // self.block_width
+        return int(block_row), int(block_col)
+
+    def debug_info(self):
+        info = OrderedDict()
+        info['env/coverage'] = self.coverage
+        return info
+
+    def get_eval_paths(self):
+        goals = []
+        for row_idx, row in enumerate(block_matrix):
+            for col_idx, val in enumerate(row):
+                # This is an open spot. We assume it is reachable from the start
+                # position.
+                if not val:
+                    goals.append(get_block_xy(row_idx, col_idx))
+        return goals
+
+    def train(self):
+        self.mode = "train"
+
+    def test(self):
+        self.mode = "test"
+
+    def handle_coverage(self, obs):
+        xy = obs['state_achieved_goal']
+        block_row, block_col = self.xy_to_block_idx(xy[0], xy[1])
+        if (
+            block_row >= len(self.coverage_map) or
+            block_col >= len(self.coverage_map[0])
+        ):
+            return
+        if self.block_matrix[block_row][block_col]:
+            return
+        self.coverage_map[block_row][block_col] = True
+
+    def step(self, action):
+        if self.action_as_position:
+            self.ignore_previous_position = True
+            action = np.clip(action, -self.boundary_dist, self.boundary_dist)
+            ob, reward, done, info = self.step_by_position(action, action)
+            for _ in range(self.random_steps):
+                random_action = np.random.normal(0, self.random_step_variance, 2)
+                self.ignore_previous_position = False
+                ob, reward, done, info = super().step(random_action)
+                self.ignore_previous_position = True
+            self.handle_coverage(ob)
+            return ob, reward, done, info
+        else:
+            obs, reward, done, info = super().step(action)
+            self.handle_coverage(obs)
+            return obs, reward, done, info
+
+class OffsetEnv(Point2DBlockEnv):
+    """If action_as_position=True, center of map requires a width/2, height/2
+    action. Env centers this to [0, 0] instead.
+    """
+    def __init__(self, offset_x, offset_y, *args, **kwargs):
+        self.quick_init(locals())
+        super().__init__(*args, **kwargs)
+        self.offset_x = offset_x
+        self.offset_y = offset_y
+
+    def offset_obs(self, obs):
+        new_obs = {}
+        for k, v in obs.items():
+            x, y = v[0], v[1]
+            new_obs[k] = np.array([x + self.offset_x, y + self.offset_y])
+        return new_obs
+
+    def unoffset_action(self, action):
+        action_x, action_y = action[0], action[1]
+        return np.array([action_x - self.offset_x, action_y - self.offset_y])
+
+    def reset(self):
+        obs = super().reset()
+        obs = self.offset_obs(obs)
+        return obs
+
+    def step(self, action):
+        action = self.unoffset_action(action)
+        obs, reward, done, info = super().step(action)
+        obs = self.offset_obs(obs)
+        return obs, reward, done, info
+
 
 
 if __name__ == "__main__":

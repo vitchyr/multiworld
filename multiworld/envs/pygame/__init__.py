@@ -1,5 +1,7 @@
 from gym.envs.registration import register
 import logging
+import numpy as np
+import os
 
 from multiworld.envs.pygame.pick_and_place import (
     PickAndPlaceEnv,
@@ -292,6 +294,132 @@ def register_reaching_envs():
             'get_image_base_render_size': (48, 48),
         },
     )
+    register(
+        id='Point2D-Maze-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DBlockEnv',
+        kwargs={
+            'action_scale': 0.25,
+            'block_matrix': np.load(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'maze/11x11_maze.npy'
+                )
+            ),
+            'render_size': 500,
+            'images_are_rgb': True,
+            'render_onscreen': True,
+            'render_target': True,
+            'target_radius': 0.3,
+            'ball_radius': 0.3,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': np.array([3.9, -3.9]),
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Rooms-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DBlockEnv',
+        kwargs={
+            'action_scale': 0.25,
+            'block_matrix': np.load(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'maze/four_room.npy'
+                )
+            ),
+            'render_size': 500,
+            'images_are_rgb': True,
+            'render_onscreen': True,
+            'render_target': True,
+            'target_radius': 0.3,
+            'ball_radius': 0.3,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': np.array([3.9, -3.9]),
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Rooms-Oracle-v1',
+        entry_point='multiworld.envs.pygame.point2d:Point2DBlockEnv',
+        kwargs={
+            'block_matrix': np.load(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'maze/four_room.npy'
+                )
+            ),
+            'render_size': 500,
+            'images_are_rgb': True,
+            'render_onscreen': True,
+            'render_target': True,
+            'action_scale': 1,
+            'target_radius': 0.1,
+            'ball_radius': 0.1,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': np.array([0.0, 0.0]),
+            'boundary_dist': 10,
+            'action_as_position': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+    register(
+        id='Point2D-Rooms-Oracle-v2',
+        entry_point='multiworld.envs.pygame.point2d:Point2DBlockEnv',
+        kwargs={
+            'block_matrix': np.load(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'maze/four_room_v2.npy'
+                )
+            ),
+            'render_size': 500,
+            'images_are_rgb': True,
+            'render_onscreen': True,
+            'render_target': True,
+            'action_scale': 1,
+            'target_radius': 0.1,
+            'ball_radius': 0.1,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': np.array([0.0, 0.0]),
+            'boundary_dist': 10,
+            'action_as_position': True,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+
+    # Probably broken action space.
+    register(
+        id='Point2D-Rooms-Oracle-Offset-v1',
+        entry_point='multiworld.envs.pygame.point2d:OffsetEnv',
+        kwargs={
+            'block_matrix': np.load(
+                os.path.join(
+                    os.path.dirname(os.path.realpath(__file__)),
+                    'maze/four_room.npy'
+                )
+            ),
+            'render_size': 500,
+            'images_are_rgb': True,
+            'render_onscreen': True,
+            'render_target': True,
+            'action_scale': 1,
+            'target_radius': 0.1,
+            'ball_radius': 0.1,
+            'randomize_position_on_reset': False,
+            'fixed_init_position': np.array([5.0, 5.0]),
+            'boundary_dist': 10,
+            'action_as_position': True,
+            'offset_x': -5,
+            'offset_y': -5,
+            'wall_color': 'black',
+            'bg_color': 'white',
+        },
+    )
+
     # Image envs
     register(
         id='Point2D-ImageFixedGoal-v0',
