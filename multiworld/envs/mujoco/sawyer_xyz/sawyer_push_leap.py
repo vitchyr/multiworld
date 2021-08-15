@@ -274,14 +274,14 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
 
         info = dict(
             hand_distance=hand_distance,
-            obj0_distance=puck_distance,
+            puck_distance=puck_distance,
             hand_success=float(hand_distance < self.indicator_threshold),
             puck_success=float(puck_distance < self.indicator_threshold),
         )
 
         if not self.lite_logging:
             info.update(dict(
-                touch0_distance=touch_distance,
+                touch_distance=touch_distance,
                 state_distance=state_distance,
                 hand_and_puck_success=float(
                     hand_distance + puck_distance < self.indicator_threshold
@@ -386,32 +386,32 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
             raise NotImplementedError("Invalid/no reward type.")
         return r
 
-    # def get_diagnostics(self, paths, prefix=''):
-        # statistics = OrderedDict()
-        # for stat_name in [
-        #     'hand_distance', #'hand_distance_l2',
-        #     'puck_distance', #'puck_distance_l2',
-        #     'state_distance', #'state_distance_l2',
-        #     'touch_distance', #'touch_distance_l2',
-        #     'hand_success', 'hand_success_2', 'hand_success_3',
-        #     'puck_success', 'puck_success_2', 'puck_success_3',
-        #     'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
-        #     'state_success', 'state_success_2', 'state_success_3',
-        #     'touch_success', 'touch_success_2', 'touch_success_3',
-        # ]:
-        #     stat_name = stat_name
-        #     stat = get_stat_in_paths(paths, 'env_infos', stat_name)
-        #     statistics.update(create_stats_ordered_dict(
-        #         '%s%s' % (prefix, stat_name),
-        #         stat,
-        #         always_show_all_stats=True,
-        #     ))
-        #     statistics.update(create_stats_ordered_dict(
-        #         'Final %s%s' % (prefix, stat_name),
-        #         [s[-1] for s in stat],
-        #         always_show_all_stats=True,
-        #     ))
-        # return statistics
+    def get_diagnostics(self, paths, prefix=''):
+        statistics = OrderedDict()
+        for stat_name in [
+            'hand_distance', #'hand_distance_l2',
+            'puck_distance', #'puck_distance_l2',
+            'state_distance', #'state_distance_l2',
+            'touch_distance', #'touch_distance_l2',
+            'hand_success', 'hand_success_2', 'hand_success_3',
+            'puck_success', 'puck_success_2', 'puck_success_3',
+            'hand_and_puck_success', 'hand_and_puck_success_2', 'hand_and_puck_success_3',
+            'state_success', 'state_success_2', 'state_success_3',
+            'touch_success', 'touch_success_2', 'touch_success_3',
+        ]:
+            stat_name = stat_name
+            stat = get_stat_in_paths(paths, 'env_infos', stat_name)
+            statistics.update(create_stats_ordered_dict(
+                '%s%s' % (prefix, stat_name),
+                stat,
+                always_show_all_stats=True,
+            ))
+            statistics.update(create_stats_ordered_dict(
+                'Final %s%s' % (prefix, stat_name),
+                [s[-1] for s in stat],
+                always_show_all_stats=True,
+            ))
+        return statistics
 
     def get_puck_pos(self):
         return self.data.body_xpos[self.puck_id].copy()
@@ -438,11 +438,11 @@ class SawyerPushAndReachXYEnv(MujocoEnv, Serializable, MultitaskEnv):
         self._reset_hand()
         self._reset_puck()
 
-        goal = self._sample_realistic_goal()
-        # goals = self.sample_goals(batch_size=1)
-        # for k in goals.keys():
-            # goals[k] = goals[k][0]
-        self.set_goal(goal)
+        # goal = self._sample_realistic_goal()
+        goals = self.sample_goals(batch_size=1)
+        for k in goals.keys():
+            goals[k] = goals[k][0]
+        self.set_goal(goals)
 
         self._state_mask = self.sample_masks(batch_size=1)[0]
 
